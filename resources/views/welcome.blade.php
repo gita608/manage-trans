@@ -15,7 +15,7 @@
 
     <!--Swiper slider css-->
     <link href="{{ asset('assets/libs/swiper/swiper-bundle.min.css') }}" rel="stylesheet" type="text/css" />
-
+ 
     <!-- Layout config Js -->
     <script src="{{ asset('assets/js/layout.js') }}"></script>
     <!-- Bootstrap Css -->
