@@ -132,10 +132,22 @@
                         </div>
                     </div>
 
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="crew_phone" class="form-label">Crew Phone</label>
+                                <input type="text" class="form-control @error('crew_phone') is-invalid @enderror" id="crew_phone" name="crew_phone" value="{{ old('crew_phone', $trip->crew_phone) }}" placeholder="Enter crew phone number">
+                                @error('crew_phone')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="mb-3">
-                        <label for="follow_up_action" class="form-label">Follow Up / Confirm Action</label>
-                        <textarea class="form-control @error('follow_up_action') is-invalid @enderror" id="follow_up_action" name="follow_up_action" rows="3" placeholder="Enter follow-up action or confirmation details">{{ old('follow_up_action', $trip->follow_up_action) }}</textarea>
-                        @error('follow_up_action')
+                        <label for="crew_address" class="form-label">Crew Address</label>
+                        <textarea class="form-control @error('crew_address') is-invalid @enderror" id="crew_address" name="crew_address" rows="3" placeholder="Enter crew address">{{ old('crew_address', $trip->crew_address) }}</textarea>
+                        @error('crew_address')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>

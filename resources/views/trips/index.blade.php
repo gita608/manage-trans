@@ -51,7 +51,8 @@
                                 <th scope="col">Pick-up Time</th>
                                 <th scope="col">From</th>
                                 <th scope="col">To</th>
-                                <th scope="col">Follow Up Action</th>
+                                <th scope="col">Crew Phone</th>
+                                <th scope="col">Status</th>
                                 <th scope="col">Actions</th>
                             </tr>
                         </thead>
@@ -74,13 +75,14 @@
                                         </span>
                                     </td>
                                     <td>
-                                        @if($trip->follow_up_action)
-                                            <span class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ $trip->follow_up_action }}">
-                                                {{ $trip->follow_up_action }}
-                                            </span>
+                                        @if($trip->crew_phone)
+                                            {{ $trip->crew_phone }}
                                         @else
                                             <span class="text-muted">-</span>
                                         @endif
+                                    </td>
+                                    <td>
+                                        <span class="badge {{ $trip->getStatusBadgeClass() }}">{{ ucfirst(str_replace('_', ' ', $trip->status)) }}</span>
                                     </td>
                                     <td>
                                         <div class="d-flex gap-2">

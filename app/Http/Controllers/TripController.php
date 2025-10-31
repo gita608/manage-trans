@@ -41,8 +41,12 @@ class TripController extends Controller
             'pick_up_time' => ['required'],
             'from_location' => ['required', 'string', 'max:255'],
             'to_location' => ['required', 'string', 'max:255'],
-            'follow_up_action' => ['nullable', 'string'],
+            'crew_phone' => ['nullable', 'string', 'max:255'],
+            'crew_address' => ['nullable', 'string'],
         ]);
+
+        // Set default status to assigned
+        $validated['status'] = Trip::STATUS_ASSIGNED;
 
         Trip::create($validated);
 
@@ -54,7 +58,7 @@ class TripController extends Controller
      */
     public function show(Trip $trip)
     {
-        $trip->load(['driver', 'vessel']);
+        $trip->load(['driver', 'vessel', 'activityLogs.user']);
         return view('trips.show', compact('trip'));
     }
 
@@ -81,9 +85,11 @@ class TripController extends Controller
             'pick_up_time' => ['required'],
             'from_location' => ['required', 'string', 'max:255'],
             'to_location' => ['required', 'string', 'max:255'],
-            'follow_up_action' => ['nullable', 'string'],
+            'crew_phone' => ['nullable', 'string', 'max:255'],
+            'crew_address' => ['nullable', 'string'],
         ]);
 
+        // Keep existing status, don't update it through the form
         $trip->update($validated);
 
         return redirect()->route('trips.index')->with('success', 'Trip updated successfully!');
