@@ -1,1 +1,95 @@
+# Laravel specific
+/vendor/
+/node_modules/
+/public/hot
+/public/storage
+/storage/*.key
+/storage/logs/*
+!/storage/logs/.gitignore
+/.idea
+/.vscode
+/.vagrant
+/.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+
+# Environment files
 .env
+.env.backup
+.env.local
+.env.*.local
+.env.production
+
+# Operating System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*~
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+.project
+.settings/
+
+# Compiled files
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+*.sqlite3
+
+# Build files
+/public/css/app.css
+/public/js/app.js
+/public/mix-manifest.json
+/public/build/
+
+# Testing
+/coverage/
+.phpunit.result.cache
+
+# Composer
+composer.phar
+composer.lock
+
+# NPM
+package-lock.json
+yarn.lock
+
+# Backup files
+*.bak
+*.backup
+*.tmp
+*.temp
+
+# Deployment
+.deployment
+.htaccess.backup
+
+# Cache
+bootstrap/cache/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+
+# User uploaded files (optional - depends on your needs)
+/public/uploads/
+/storage/app/public/uploads/
