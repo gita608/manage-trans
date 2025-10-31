@@ -5,6 +5,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DriverController;
+use App\Http\Controllers\VesselController;
+use App\Http\Controllers\TripController;
 
 // Root route - show login for guests, redirect to dashboard if authenticated
 Route::get('/', [AuthController::class, 'root'])->name('home');
@@ -29,4 +31,10 @@ Route::middleware(['auth'])->group(function () {
     
     // Driver Routes
     Route::resource('drivers', DriverController::class);
+    
+    // Vessel Routes
+    Route::resource('vessels', VesselController::class);
+    
+    // Trip Routes
+    Route::resource('trips', TripController::class);
 });

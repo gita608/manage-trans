@@ -41,6 +41,16 @@
                                 <i class="ri-taxi-line"></i> <span>Drivers</span>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link menu-link" href="{{ route('vessels.index') }}">
+                                <i class="ri-ship-line"></i> <span>Vessels</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link menu-link" href="{{ route('trips.index') }}">
+                                <i class="ri-road-map-line"></i> <span>Trips</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
                 <!-- Sidebar -->

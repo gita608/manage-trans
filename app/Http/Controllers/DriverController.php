@@ -32,7 +32,7 @@ class DriverController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255', 'unique:drivers'],
             'license_number' => ['required', 'string', 'max:255', 'unique:drivers'],
             'contact' => ['required', 'string', 'max:255'],
             'vehicle_info' => ['required', 'string'],
@@ -73,7 +73,7 @@ class DriverController extends Controller
     public function update(Request $request, Driver $driver)
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255', Rule::unique('drivers')->ignore($driver->id)],
             'license_number' => ['required', 'string', 'max:255', Rule::unique('drivers')->ignore($driver->id)],
             'contact' => ['required', 'string', 'max:255'],
             'vehicle_info' => ['required', 'string'],
