@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Drivers | ' . config('app.name', 'Laravel'))
+@section('title', 'Drivers | ' . config('app.name'))
 
 @section('content')
 <!-- start page title -->

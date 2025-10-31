@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Trip | ' . config('app.name', 'Laravel'))
+@section('title', 'Edit Trip | ' . config('app.name'))
 
 @section('content')
 <!-- start page title -->

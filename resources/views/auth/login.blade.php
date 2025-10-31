@@ -4,7 +4,7 @@
 <head>
 
     <meta charset="utf-8" />
-    <title>Sign In | {{ config('app.name', 'Laravel') }}</title>
+    <title>Sign In | {{ config('app.name') }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="Premium Multipurpose Admin & Dashboard Template" name="description" />
     <meta content="Themesbrand" name="author" />
@@ -49,7 +49,6 @@
                                     <img src="{{ asset('assets/images/logo-light.png') }}" alt="" height="20">
                                 </a>
                             </div>
-                            <p class="mt-3 fs-15 fw-medium">Premium Admin & Dashboard Template</p>
                         </div>
                     </div>
                 </div>
@@ -62,7 +61,7 @@
                             <div class="card-body p-4">
                                 <div class="text-center mt-2">
                                     <h5 class="text-primary">Welcome Back !</h5>
-                                    <p class="text-muted">Sign in to continue to {{ config('app.name', 'Velzon') }}.</p>
+                                    <p class="text-muted">Sign in to continue to {{ config('app.name') }}.</p>
                                 </div>
                                 <div class="p-2 mt-4">
                                     <form method="POST" action="{{ route('login') }}">
@@ -127,21 +126,6 @@
         </div>
         <!-- end auth page content -->
 
-        <!-- footer -->
-        <footer class="footer">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="text-center">
-                            <p class="mb-0 text-muted">&copy;
-                                <script>document.write(new Date().getFullYear())</script> {{ config('app.name', 'Velzon') }}. Crafted with <i class="mdi mdi-heart text-danger"></i> by Themesbrand
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </footer>
-        <!-- end Footer -->
     </div>
     <!-- end auth-page-wrapper -->
 
