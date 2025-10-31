@@ -46,9 +46,38 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('profile.update') }}">
+                <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="photo" class="form-label">Profile Photo</label>
+                                @if(auth()->user()->photo)
+                                    <div class="mb-2">
+                                        <img src="{{ asset('storage/' . auth()->user()->photo) }}" alt="Current photo" style="max-width: 150px; max-height: 150px; border-radius: 8px;">
+                                        <p class="text-muted mt-2">Current photo</p>
+                                    </div>
+                                @else
+                                    <div class="mb-2">
+                                        <div class="bg-primary-subtle d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 150px; height: 150px;">
+                                            <span class="text-primary display-4">{{ substr(auth()->user()->name, 0, 1) }}</span>
+                                        </div>
+                                        <p class="text-muted mt-2">No photo uploaded</p>
+                                    </div>
+                                @endif
+                                <input type="file" class="form-control @error('photo') is-invalid @enderror" id="photo" name="photo" accept="image/*">
+                                <small class="text-muted">Max file size: 2MB. Allowed types: JPEG, PNG, JPG, GIF. Leave blank to keep current photo.</small>
+                                @error('photo')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <div class="mt-2">
+                                    <img id="photo-preview" src="#" alt="Photo preview" style="display: none; max-width: 150px; max-height: 150px; border-radius: 8px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="mb-3">
                         <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
@@ -112,6 +141,23 @@
                 const icon = this.querySelector('i');
                 icon.classList.toggle('ri-eye-fill');
                 icon.classList.toggle('ri-eye-off-fill');
+            });
+        }
+
+        // Photo preview
+        const photoInput = document.getElementById('photo');
+        if (photoInput) {
+            photoInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const preview = document.getElementById('photo-preview');
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                }
             });
         }
     });
