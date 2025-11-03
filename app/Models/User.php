@@ -22,6 +22,8 @@ class User extends Authenticatable
         'email',
         'password',
         'photo',
+        'role',
+        'phone',
     ];
 
     /**
@@ -45,5 +47,19 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    // Roles: 1 = Admin, 2 = Staff
+    public const ROLE_ADMIN = 1;
+    public const ROLE_STAFF = 2;
+
+    public function isAdmin(): bool
+    {
+        return (int) $this->role === self::ROLE_ADMIN;
+    }
+
+    public function scopeStaff($query)
+    {
+        return $query->where('role', self::ROLE_STAFF);
     }
 }

@@ -51,6 +51,11 @@
                                 <i class="ri-road-map-line"></i> <span>Trips</span>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link menu-link" href="{{ route('staff.index') }}">
+                                <i class="ri-team-line"></i> <span>Staff</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
                 <!-- Sidebar -->

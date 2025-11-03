@@ -7,6 +7,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\VesselController;
 use App\Http\Controllers\TripController;
+use App\Http\Controllers\StaffController;
 
 // Root route - show login for guests, redirect to dashboard if authenticated
 Route::get('/', [AuthController::class, 'root'])->name('home');
@@ -37,4 +38,9 @@ Route::middleware(['auth'])->group(function () {
     
     // Trip Routes
     Route::resource('trips', TripController::class);
+
+    // Staff Routes (users with role=2)
+    Route::resource('staff', StaffController::class)->parameters([
+        'staff' => 'staff'
+    ])->except(['show']);
 });
