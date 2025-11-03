@@ -67,6 +67,12 @@
                                     <form method="POST" action="{{ route('login') }}">
                                         @csrf
 
+                                        @if (session('error'))
+                                            <div class="alert alert-danger">
+                                                {{ session('error') }}
+                                            </div>
+                                        @endif
+
                                         @if ($errors->any())
                                             <div class="alert alert-danger">
                                                 <ul class="mb-0">
@@ -114,9 +120,11 @@
                         </div>
                         <!-- end card -->
 
+                        @if(isset($enableSignup) && $enableSignup)
                         <div class="mt-4 text-center">
                             <p class="mb-0">Don't have an account ? <a href="{{ route('register') }}" class="fw-semibold text-primary text-decoration-underline"> Signup </a> </p>
                         </div>
+                        @endif
 
                     </div>
                 </div>

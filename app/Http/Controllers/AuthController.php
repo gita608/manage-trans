@@ -17,7 +17,8 @@ class AuthController extends Controller
      */
     public function showLoginForm()
     {
-        return view('auth.login');
+        $enableSignup = getSetting('enable_signup', 'true') === 'true';
+        return view('auth.login', compact('enableSignup'));
     }
 
     /**
@@ -27,7 +28,7 @@ class AuthController extends Controller
      */
     public function root()
     {
-        if (auth()->check()) {
+        if (Auth::check()) {
             return redirect()->route('dashboard');
         }
         return $this->showLoginForm();
@@ -80,6 +81,10 @@ class AuthController extends Controller
      */
     public function showRegistrationForm()
     {
+        $enableSignup = getSetting('enable_signup', 'true') === 'true';
+        if (!$enableSignup) {
+            return redirect()->route('login')->with('error', 'Registration is currently disabled.');
+        }
         return view('auth.register');
     }
 
@@ -91,6 +96,11 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
+        $enableSignup = getSetting('enable_signup', 'true') === 'true';
+        if (!$enableSignup) {
+            return redirect()->route('login')->with('error', 'Registration is currently disabled.');
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],

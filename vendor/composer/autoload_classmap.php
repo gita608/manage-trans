@@ -6,9 +6,22 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'App\\Http\\Controllers\\AuthController' => $baseDir . '/app/Http/Controllers/AuthController.php',
     'App\\Http\\Controllers\\Controller' => $baseDir . '/app/Http/Controllers/Controller.php',
+    'App\\Http\\Controllers\\DashboardController' => $baseDir . '/app/Http/Controllers/DashboardController.php',
+    'App\\Http\\Controllers\\DriverController' => $baseDir . '/app/Http/Controllers/DriverController.php',
+    'App\\Http\\Controllers\\ProfileController' => $baseDir . '/app/Http/Controllers/ProfileController.php',
+    'App\\Http\\Controllers\\SettingsController' => $baseDir . '/app/Http/Controllers/SettingsController.php',
+    'App\\Http\\Controllers\\StaffController' => $baseDir . '/app/Http/Controllers/StaffController.php',
+    'App\\Http\\Controllers\\TripController' => $baseDir . '/app/Http/Controllers/TripController.php',
+    'App\\Http\\Controllers\\VesselController' => $baseDir . '/app/Http/Controllers/VesselController.php',
+    'App\\Models\\ActivityLog' => $baseDir . '/app/Models/ActivityLog.php',
+    'App\\Models\\Driver' => $baseDir . '/app/Models/Driver.php',
+    'App\\Models\\Trip' => $baseDir . '/app/Models/Trip.php',
     'App\\Models\\User' => $baseDir . '/app/Models/User.php',
+    'App\\Models\\Vessel' => $baseDir . '/app/Models/Vessel.php',
     'App\\Providers\\AppServiceProvider' => $baseDir . '/app/Providers/AppServiceProvider.php',
+    'App\\Traits\\LogsActivity' => $baseDir . '/app/Traits/LogsActivity.php',
     'Attribute' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
     'Brick\\Math\\BigDecimal' => $vendorDir . '/brick/math/src/BigDecimal.php',
     'Brick\\Math\\BigInteger' => $vendorDir . '/brick/math/src/BigInteger.php',
