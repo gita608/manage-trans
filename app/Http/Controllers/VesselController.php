@@ -13,7 +13,7 @@ class VesselController extends Controller
      */
     public function index()
     {
-        $vessels = Vessel::latest()->paginate(10);
+        $vessels = Vessel::query()->latest()->get();
         return view('vessels.index', compact('vessels'));
     }
 

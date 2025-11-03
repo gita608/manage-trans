@@ -19,7 +19,7 @@
 <div class="card">
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table align-middle">
+            <table id="staff-table" class="table align-middle datatable">
                 <thead class="table-light">
                     <tr>
                         <th>Name</th>
@@ -60,7 +60,7 @@
             </table>
         </div>
 
-        {{ $staff->links() }}
+        @include('partials.datatable', ['selector' => '#staff-table'])
     </div>
 </div>
 @endsection

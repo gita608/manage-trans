@@ -41,7 +41,7 @@
                 @endif
 
                 <div class="table-responsive">
-                    <table class="table table-nowrap align-middle mb-0">
+                    <table id="vessels-table" class="table table-nowrap align-middle mb-0 datatable">
                         <thead class="table-light">
                             <tr>
                                 <th scope="col">ID</th>
@@ -85,11 +85,7 @@
                     </table>
                 </div>
 
-                @if($vessels->hasPages())
-                    <div class="d-flex justify-content-end mt-3">
-                        {{ $vessels->links() }}
-                    </div>
-                @endif
+                @include('partials.datatable', ['selector' => '#vessels-table'])
             </div>
         </div>
     </div>

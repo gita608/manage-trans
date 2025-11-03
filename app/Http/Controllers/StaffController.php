@@ -11,7 +11,7 @@ class StaffController extends Controller
 {
     public function index()
     {
-        $staff = User::staff()->latest()->paginate(10);
+        $staff = User::staff()->latest()->get();
         return view('staff.index', compact('staff'));
     }
 

@@ -40,8 +40,37 @@
                     </div>
                 @endif
 
+                <div class="row g-2 mb-3">
+                    <div class="col-sm-6 col-md-3">
+                        <label class="form-label">Driver</label>
+                        <select id="filter-driver" class="form-select">
+                            <option value="">All Drivers</option>
+                            @foreach($drivers as $d)
+                                <option value="{{ $d->name }}">{{ $d->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <label class="form-label">Vessel</label>
+                        <select id="filter-vessel" class="form-select">
+                            <option value="">All Vessels</option>
+                            @foreach($vessels as $v)
+                                <option value="{{ $v->name }}">{{ $v->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <label class="form-label">Date</label>
+                        <input type="date" id="filter-date" class="form-control">
+                    </div>
+                    <div class="col-auto align-self-end d-flex gap-2">
+                        <button type="button" id="filter-apply" class="btn btn-primary"><i class="ri-search-line me-1"></i> Apply</button>
+                        <button type="button" id="filter-reset" class="btn btn-light">Reset</button>
+                    </div>
+                </div>
+
                 <div class="table-responsive">
-                    <table class="table table-nowrap align-middle mb-0">
+                    <table id="trips-table" class="table table-nowrap align-middle mb-0 datatable">
                         <thead class="table-light">
                             <tr>
                                 <th scope="col">Date</th>
@@ -113,11 +142,59 @@
                     </table>
                 </div>
 
-                @if($trips->hasPages())
-                    <div class="d-flex justify-content-end mt-3">
-                        {{ $trips->links() }}
-                    </div>
-                @endif
+                @include('partials.datatable', ['selector' => '#trips-table'])
+
+                @push('scripts')
+                <script>
+                    (function(){
+                        function formatDateToDisplay(value){
+                            if(!value) return '';
+                            try {
+                                const d = new Date(value);
+                                return d.toLocaleDateString('en-US', { month:'short', day:'2-digit', year:'numeric' });
+                            } catch(e){ return ''; }
+                        }
+                        document.addEventListener('DOMContentLoaded', function(){
+                            var t = jQuery('#trips-table').DataTable();
+
+                            var driverSel = document.getElementById('filter-driver');
+                            var vesselSel = document.getElementById('filter-vessel');
+                            var dateInp = document.getElementById('filter-date');
+                            var resetBtn = document.getElementById('filter-reset');
+
+                            // Column indexes: 0 Date, 2 Driver, 3 Vessel
+                            function applyFilters(){
+                                var driver = driverSel.value || '';
+                                var vessel = vesselSel.value || '';
+                                var dateVal = dateInp.value || '';
+                                var dateDisp = formatDateToDisplay(dateVal);
+
+                                t.column(2).search(driver, true, false); // exact contains
+                                t.column(3).search(vessel, true, false);
+
+                                if(dateDisp){
+                                    t.column(0).search('^' + dateDisp.replace(/[-/\\.^$*+?()|[\]{}]/g,'\\$&') + '$', true, false);
+                                } else {
+                                    t.column(0).search('');
+                                }
+                                t.draw();
+                            }
+
+                            driverSel.addEventListener('change', applyFilters);
+                            vesselSel.addEventListener('change', applyFilters);
+                            dateInp.addEventListener('change', applyFilters);
+                            resetBtn.addEventListener('click', function(){
+                                driverSel.value = '';
+                                vesselSel.value = '';
+                                dateInp.value = '';
+                                t.search('');
+                                t.columns().search('');
+                                t.draw();
+                            });
+                        });
+                    })();
+                </script>
+                @endpush
             </div>
         </div>
     </div>

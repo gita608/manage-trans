@@ -14,8 +14,15 @@ class TripController extends Controller
      */
     public function index()
     {
-        $trips = Trip::with(['driver', 'vessel'])->latest('trip_date')->latest('pick_up_time')->paginate(15);
-        return view('trips.index', compact('trips'));
+        $trips = Trip::with(['driver', 'vessel'])
+            ->latest('trip_date')
+            ->latest('pick_up_time')
+            ->get();
+
+        $drivers = Driver::orderBy('name')->get();
+        $vessels = Vessel::orderBy('name')->get();
+
+        return view('trips.index', compact('trips', 'drivers', 'vessels'));
     }
 
     /**

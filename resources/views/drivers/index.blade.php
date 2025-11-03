@@ -41,7 +41,7 @@
                 @endif
 
                 <div class="table-responsive">
-                    <table class="table table-nowrap align-middle mb-0">
+                    <table id="drivers-table" class="table table-nowrap align-middle mb-0 datatable">
                         <thead class="table-light">
                             <tr>
                                 <th scope="col">Photo</th>
@@ -103,11 +103,7 @@
                     </table>
                 </div>
 
-                @if($drivers->hasPages())
-                    <div class="d-flex justify-content-end mt-3">
-                        {{ $drivers->links() }}
-                    </div>
-                @endif
+                @include('partials.datatable', ['selector' => '#drivers-table'])
             </div>
         </div>
     </div>
