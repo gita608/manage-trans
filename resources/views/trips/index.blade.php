@@ -70,7 +70,7 @@
                 </div>
 
                 <div class="table-responsive">
-                    <table id="trips-table" class="table table-nowrap align-middle mb-0 datatable">
+                    <table id="trips-table" class="table table-nowrap align-middle mb-0 @if(!$trips->isEmpty()) datatable @endif">
                         <thead class="table-light">
                             <tr>
                                 <th scope="col">Date</th>
@@ -133,8 +133,8 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="9" class="text-center py-4">
-                                        <p class="text-muted mb-0">No trips found. <a href="{{ route('trips.create') }}">Create your first trip</a></p>
+                                    <td colspan="10" class="text-center py-4">
+                                        <p class="text-muted mb-0">No trips found.</p>
                                     </td>
                                 </tr>
                             @endforelse
@@ -142,57 +142,51 @@
                     </table>
                 </div>
 
-                @include('partials.datatable', ['selector' => '#trips-table'])
+                @if(!$trips->isEmpty())
+                    @include('partials.datatable', ['selector' => '#trips-table'])
+                @endif
 
                 @push('scripts')
                 <script>
-                    (function(){
-                        function formatDateToDisplay(value){
-                            if(!value) return '';
-                            try {
-                                const d = new Date(value);
-                                return d.toLocaleDateString('en-US', { month:'short', day:'2-digit', year:'numeric' });
-                            } catch(e){ return ''; }
+                    document.addEventListener('DOMContentLoaded', function () {
+                        var driverSel = document.getElementById('filter-driver');
+                        var vesselSel = document.getElementById('filter-vessel');
+                        var dateInp = document.getElementById('filter-date');
+                        var applyBtn = document.getElementById('filter-apply');
+                        var resetBtn = document.getElementById('filter-reset');
+
+                        // Set initial values from query parameters
+                        var urlParams = new URLSearchParams(window.location.search);
+                        if (urlParams.has('driver')) {
+                            driverSel.value = urlParams.get('driver');
                         }
-                        document.addEventListener('DOMContentLoaded', function(){
-                            var t = jQuery('#trips-table').DataTable();
+                        if (urlParams.has('vessel')) {
+                            vesselSel.value = urlParams.get('vessel');
+                        }
+                        if (urlParams.has('date')) {
+                            dateInp.value = urlParams.get('date');
+                        }
 
-                            var driverSel = document.getElementById('filter-driver');
-                            var vesselSel = document.getElementById('filter-vessel');
-                            var dateInp = document.getElementById('filter-date');
-                            var resetBtn = document.getElementById('filter-reset');
-
-                            // Column indexes: 0 Date, 2 Driver, 3 Vessel
-                            function applyFilters(){
-                                var driver = driverSel.value || '';
-                                var vessel = vesselSel.value || '';
-                                var dateVal = dateInp.value || '';
-                                var dateDisp = formatDateToDisplay(dateVal);
-
-                                t.column(2).search(driver, true, false); // exact contains
-                                t.column(3).search(vessel, true, false);
-
-                                if(dateDisp){
-                                    t.column(0).search('^' + dateDisp.replace(/[-/\\.^$*+?()|[\]{}]/g,'\\$&') + '$', true, false);
-                                } else {
-                                    t.column(0).search('');
-                                }
-                                t.draw();
+                        function applyFilters() {
+                            var params = new URLSearchParams();
+                            if (driverSel.value) {
+                                params.set('driver', driverSel.value);
                             }
+                            if (vesselSel.value) {
+                                params.set('vessel', vesselSel.value);
+                            }
+                            if (dateInp.value) {
+                                params.set('date', dateInp.value);
+                            }
+                            window.location.href = '{{ route('trips.index') }}?' + params.toString();
+                        }
 
-                            driverSel.addEventListener('change', applyFilters);
-                            vesselSel.addEventListener('change', applyFilters);
-                            dateInp.addEventListener('change', applyFilters);
-                            resetBtn.addEventListener('click', function(){
-                                driverSel.value = '';
-                                vesselSel.value = '';
-                                dateInp.value = '';
-                                t.search('');
-                                t.columns().search('');
-                                t.draw();
-                            });
+                        applyBtn.addEventListener('click', applyFilters);
+
+                        resetBtn.addEventListener('click', function () {
+                            window.location.href = '{{ route('trips.index') }}';
                         });
-                    })();
+                    });
                 </script>
                 @endpush
             </div>

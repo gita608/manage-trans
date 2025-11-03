@@ -12,10 +12,27 @@ class TripController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $trips = Trip::with(['driver', 'vessel'])
-            ->latest('trip_date')
+        $query = Trip::with(['driver', 'vessel']);
+
+        if ($request->has('driver') && $request->driver) {
+            $query->whereHas('driver', function ($q) use ($request) {
+                $q->where('name', $request->driver);
+            });
+        }
+
+        if ($request->has('vessel') && $request->vessel) {
+            $query->whereHas('vessel', function ($q) use ($request) {
+                $q->where('name', $request->vessel);
+            });
+        }
+
+        if ($request->has('date') && $request->date) {
+            $query->whereDate('trip_date', $request->date);
+        }
+
+        $trips = $query->latest('trip_date')
             ->latest('pick_up_time')
             ->get();
 
