@@ -56,6 +56,11 @@
                                 <i class="ri-team-line"></i> <span>Staff</span>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link menu-link" href="{{ route('settings.index') }}">
+                                <i class="ri-settings-2-line"></i> <span>Settings</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
                 <!-- Sidebar -->

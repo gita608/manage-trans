@@ -82,7 +82,7 @@
                                 <th scope="col">To</th>
                                 <th scope="col">Crew Phone</th>
                                 <th scope="col">Status</th>
-                                <th scope="col">Actions</th>
+                                <th scope="col" class="no-export">Actions</th>
                             </tr>
                         </thead>
                         <tbody>

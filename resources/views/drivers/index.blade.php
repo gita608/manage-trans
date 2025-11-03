@@ -50,7 +50,7 @@
                                 <th scope="col">Contact</th>
                                 <th scope="col">Age</th>
                                 <th scope="col">Vehicle Info</th>
-                                <th scope="col">Actions</th>
+                                <th scope="col" class="no-export">Actions</th>
                             </tr>
                         </thead>
                         <tbody>

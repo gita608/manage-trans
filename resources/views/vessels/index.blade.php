@@ -47,7 +47,7 @@
                                 <th scope="col">ID</th>
                                 <th scope="col">Name</th>
                                 <th scope="col">Created At</th>
-                                <th scope="col">Actions</th>
+                                <th scope="col" class="no-export">Actions</th>
                             </tr>
                         </thead>
                         <tbody>

@@ -9,6 +9,8 @@ use App\Http\Controllers\VesselController;
 use App\Http\Controllers\TripController;
 use App\Http\Controllers\StaffController;
 
+use App\Http\Controllers\SettingsController;
+
 // Root route - show login for guests, redirect to dashboard if authenticated
 Route::get('/', [AuthController::class, 'root'])->name('home');
 
@@ -43,4 +45,8 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('staff', StaffController::class)->parameters([
         'staff' => 'staff'
     ])->except(['show']);
+
+    // Settings Routes
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
 });

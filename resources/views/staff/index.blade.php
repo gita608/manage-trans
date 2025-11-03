@@ -26,7 +26,7 @@
                         <th>Email</th>
                         <th>Phone</th>
                         <th>Photo</th>
-                        <th>Actions</th>
+                        <th class="no-export">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
