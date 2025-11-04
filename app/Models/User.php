@@ -62,4 +62,9 @@ class User extends Authenticatable
     {
         return $query->where('role', self::ROLE_STAFF);
     }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class)->latest();
+    }
 }

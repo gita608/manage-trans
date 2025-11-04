@@ -20,6 +20,12 @@ class SettingsSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
+                'key' => 'app_logo',
+                'value' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
                 'key' => 'enable_signup',
                 'value' => 'true',
                 'created_at' => now(),
