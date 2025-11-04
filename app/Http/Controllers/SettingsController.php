@@ -14,10 +14,6 @@ class SettingsController extends Controller
     {
         // Get all settings from database or create default settings
         $settings = [
-            'enable_signup' => (object) [
-                'key' => 'enable_signup',
-                'value' => getSetting('enable_signup', 'true')
-            ],
             'app_name' => (object) [
                 'key' => 'app_name',
                 'value' => getSetting('app_name', config('app.name'))
@@ -25,6 +21,14 @@ class SettingsController extends Controller
             'app_logo' => (object) [
                 'key' => 'app_logo',
                 'value' => getSetting('app_logo', '')
+            ],
+            'favicon' => (object) [
+                'key' => 'favicon',
+                'value' => getSetting('favicon', '')
+            ],
+            'enable_signup' => (object) [
+                'key' => 'enable_signup',
+                'value' => getSetting('enable_signup', 'true')
             ],
             'enable_forgot_password' => (object) [
                 'key' => 'enable_forgot_password',
@@ -51,6 +55,7 @@ class SettingsController extends Controller
             'enable_signup' => 'nullable|boolean',
             'app_name' => 'nullable|string|max:255',
             'app_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'favicon' => 'nullable|image|mimes:ico,png|max:1024',
             'enable_forgot_password' => 'nullable|boolean'
         ]);
 
@@ -74,6 +79,19 @@ class SettingsController extends Controller
             // Store new logo
             $logoPath = $request->file('app_logo')->store('logos', 'public');
             updateSetting('app_logo', $logoPath);
+        }
+
+        // Update favicon setting
+        if ($request->hasFile('favicon')) {
+            // Delete old favicon if exists
+            $oldFavicon = getSetting('favicon');
+            if ($oldFavicon && \Illuminate\Support\Facades\Storage::disk('public')->exists($oldFavicon)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($oldFavicon);
+            }
+            
+            // Store new favicon
+            $faviconPath = $request->file('favicon')->store('favicons', 'public');
+            updateSetting('favicon', $faviconPath);
         }
 
         // Update enable_forgot_password setting

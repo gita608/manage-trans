@@ -55,7 +55,7 @@
                         <small class="text-muted">This name will appear throughout the application</small>
                     </div>
 
-                    <div class="mb-0">
+                    <div class="mb-4">
                         <label for="app_logo" class="form-label fw-semibold">
                             <i class="ri-image-line me-1 text-muted"></i>Application Logo
                         </label>
@@ -76,6 +76,31 @@
                             <i class="ri-information-line"></i> Accepted formats: JPEG, PNG, JPG, GIF, SVG | Max size: 2MB
                         </small>
                         @error('app_logo')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="mb-0">
+                        <label for="favicon" class="form-label fw-semibold">
+                            <i class="ri-file-image-line me-1 text-muted"></i>Favicon
+                        </label>
+                        @if($settings['favicon']->value)
+                            <div class="mb-3 p-3 bg-light rounded text-center">
+                                <img src="{{ asset('storage/' . $settings['favicon']->value) }}" 
+                                     alt="Current Favicon" 
+                                     class="img-thumbnail" 
+                                     style="max-height: 32px;">
+                                <div class="mt-2">
+                                    <small class="text-muted">Current Favicon</small>
+                                </div>
+                            </div>
+                        @endif
+                        <input type="file" class="form-control @error('favicon') is-invalid @enderror" 
+                               name="favicon" id="favicon" accept="image/x-icon,image/png">
+                        <small class="text-muted d-block mt-1">
+                            <i class="ri-information-line"></i> Accepted formats: ICO, PNG | Recommended size: 32x32px or 16x16px
+                        </small>
+                        @error('favicon')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
