@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class NotificationController extends Controller
 {
@@ -16,7 +17,11 @@ class NotificationController extends Controller
 
     public function getUnreadCount()
     {
-        $count = Auth::user()->notifications()->where('is_read', false)->count();
+        $count = Cache::remember(
+            'notifications.unread.' . Auth::id(),
+            300, // 5 minutes
+            fn() => Auth::user()->notifications()->where('is_read', false)->count()
+        );
         return response()->json(['count' => $count]);
     }
 
@@ -30,6 +35,7 @@ class NotificationController extends Controller
     {
         $notification = Auth::user()->notifications()->findOrFail($id);
         $notification->markAsRead();
+        Cache::forget('notifications.unread.' . Auth::id());
         return redirect()->back()->with('success', 'Notification marked as read');
     }
 
@@ -39,6 +45,7 @@ class NotificationController extends Controller
             'is_read' => true,
             'read_at' => now(),
         ]);
+        Cache::forget('notifications.unread.' . Auth::id());
         return redirect()->back()->with('success', 'All notifications marked as read');
     }
 }

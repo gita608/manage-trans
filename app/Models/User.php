@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -63,7 +64,12 @@ class User extends Authenticatable
         return $query->where('role', self::ROLE_STAFF);
     }
 
-    public function notifications()
+    /**
+     * Get the notifications for the user.
+     *
+     * @return HasMany
+     */
+    public function notifications(): HasMany
     {
         return $this->hasMany(Notification::class)->latest();
     }

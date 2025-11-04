@@ -11,8 +11,10 @@ if (!function_exists('getSetting')) {
     function getSetting($key, $default = null)
     {
         try {
-            $setting = \Illuminate\Support\Facades\DB::table('settings')->where('key', $key)->first();
-            return $setting ? $setting->value : $default;
+            return \Illuminate\Support\Facades\Cache::remember("setting.{$key}", 3600, function() use ($key, $default) {
+                $setting = \Illuminate\Support\Facades\DB::table('settings')->where('key', $key)->first();
+                return $setting ? $setting->value : $default;
+            });
         } catch (\Exception $e) {
             return $default;
         }
@@ -34,6 +36,7 @@ if (!function_exists('updateSetting')) {
                 ['key' => $key],
                 ['value' => $value, 'updated_at' => now()]
             );
+            \Illuminate\Support\Facades\Cache::forget("setting.{$key}");
         } catch (\Exception $e) {
             // Silently fail if settings table doesn't exist
         }
