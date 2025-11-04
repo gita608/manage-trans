@@ -1,4 +1,4 @@
-        <header id="page-topbar">
+<header id="page-topbar">
     <div class="layout-width">
         <div class="navbar-header">
             <div class="d-flex">
@@ -6,19 +6,35 @@
                 <div class="navbar-brand-box horizontal-logo">
                     <a href="{{ route('dashboard') }}" class="logo logo-dark">
                         <span class="logo-sm">
-                            <img src="{{ asset('assets/images/logo-sm.png') }}" alt="" height="22">
+                            @if(getSetting('app_logo'))
+                                <img src="{{ asset('storage/' . getSetting('app_logo')) }}" alt="{{ getSetting('app_name', config('app.name')) }}" height="22">
+                            @else
+                                <img src="{{ asset('assets/images/logo-sm.png') }}" alt="" height="22">
+                            @endif
                         </span>
                         <span class="logo-lg">
-                            <img src="{{ asset('assets/images/logo-dark.png') }}" alt="" height="17">
+                            @if(getSetting('app_logo'))
+                                <img src="{{ asset('storage/' . getSetting('app_logo')) }}" alt="{{ getSetting('app_name', config('app.name')) }}" height="17">
+                            @else
+                                <img src="{{ asset('assets/images/logo-dark.png') }}" alt="" height="17">
+                            @endif
                         </span>
                     </a>
 
                     <a href="{{ route('dashboard') }}" class="logo logo-light">
                         <span class="logo-sm">
-                            <img src="{{ asset('assets/images/logo-sm.png') }}" alt="" height="22">
+                            @if(getSetting('app_logo'))
+                                <img src="{{ asset('storage/' . getSetting('app_logo')) }}" alt="{{ getSetting('app_name', config('app.name')) }}" height="22">
+                            @else
+                                <img src="{{ asset('assets/images/logo-sm.png') }}" alt="" height="22">
+                            @endif
                         </span>
                         <span class="logo-lg">
-                            <img src="{{ asset('assets/images/logo-light.png') }}" alt="" height="17">
+                            @if(getSetting('app_logo'))
+                                <img src="{{ asset('storage/' . getSetting('app_logo')) }}" alt="{{ getSetting('app_name', config('app.name')) }}" height="17">
+                            @else
+                                <img src="{{ asset('assets/images/logo-light.png') }}" alt="" height="17">
+                            @endif
                         </span>
                     </a>
                 </div>

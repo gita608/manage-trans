@@ -4,7 +4,7 @@
 <head>
 
     <meta charset="utf-8" />
-    <title>Sign In | {{ config('app.name') }}</title>
+    <title>Sign In | {{ getSetting('app_name', config('app.name')) }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="Premium Multipurpose Admin & Dashboard Template" name="description" />
     <meta content="Themesbrand" name="author" />
@@ -46,7 +46,11 @@
                         <div class="text-center mt-sm-5 mb-4 text-white-50">
                             <div>
                                 <a href="{{ url('/') }}" class="d-inline-block auth-logo">
-                                    <img src="{{ asset('assets/images/logo-light.png') }}" alt="" height="20">
+                                    @if(getSetting('app_logo'))
+                                        <img src="{{ asset('storage/' . getSetting('app_logo')) }}" alt="{{ getSetting('app_name', config('app.name')) }}" height="20">
+                                    @else
+                                        <img src="{{ asset('assets/images/logo-light.png') }}" alt="" height="20">
+                                    @endif
                                 </a>
                             </div>
                         </div>
@@ -61,7 +65,7 @@
                             <div class="card-body p-4">
                                 <div class="text-center mt-2">
                                     <h5 class="text-primary">Welcome Back !</h5>
-                                    <p class="text-muted">Sign in to continue to {{ config('app.name') }}.</p>
+                                    <p class="text-muted">Sign in to continue to {{ getSetting('app_name', config('app.name')) }}.</p>
                                 </div>
                                 <div class="p-2 mt-4">
                                     <form method="POST" action="{{ route('login') }}">
@@ -92,9 +96,11 @@
                                         </div>
 
                                         <div class="mb-3">
-                                            <div class="float-end">
-                                                <a href="{{ route('password.request') }}" class="text-muted">Forgot password?</a>
-                                            </div>
+                                            @if(getSetting('enable_forgot_password', 'true') == 'true')
+                                                <div class="float-end">
+                                                    <a href="{{ route('password.request') }}" class="text-muted">Forgot password?</a>
+                                                </div>
+                                            @endif
                                             <label class="form-label" for="password-input">Password</label>
                                             <div class="position-relative auth-pass-inputgroup mb-3">
                                                 <input type="password" class="form-control pe-5 password-input @error('password') is-invalid @enderror" name="password" placeholder="Enter password" id="password-input" required>

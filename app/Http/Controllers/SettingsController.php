@@ -17,6 +17,18 @@ class SettingsController extends Controller
             'enable_signup' => (object) [
                 'key' => 'enable_signup',
                 'value' => getSetting('enable_signup', 'true')
+            ],
+            'app_name' => (object) [
+                'key' => 'app_name',
+                'value' => getSetting('app_name', config('app.name'))
+            ],
+            'app_logo' => (object) [
+                'key' => 'app_logo',
+                'value' => getSetting('app_logo', '')
+            ],
+            'enable_forgot_password' => (object) [
+                'key' => 'enable_forgot_password',
+                'value' => getSetting('enable_forgot_password', 'true')
             ]
         ];
 
@@ -29,12 +41,30 @@ class SettingsController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'enable_signup' => 'nullable|boolean'
+            'enable_signup' => 'nullable|boolean',
+            'app_name' => 'nullable|string|max:255',
+            'app_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'enable_forgot_password' => 'nullable|boolean'
         ]);
 
         // Update enable_signup setting
         $enableSignup = $request->has('enable_signup') ? 'true' : 'false';
         updateSetting('enable_signup', $enableSignup);
+
+        // Update app_name setting
+        if ($request->filled('app_name')) {
+            updateSetting('app_name', $request->app_name);
+        }
+
+        // Update app_logo setting
+        if ($request->hasFile('app_logo')) {
+            $logoPath = $request->file('app_logo')->store('logos', 'public');
+            updateSetting('app_logo', $logoPath);
+        }
+
+        // Update enable_forgot_password setting
+        $enableForgotPassword = $request->has('enable_forgot_password') ? 'true' : 'false';
+        updateSetting('enable_forgot_password', $enableForgotPassword);
 
         return redirect()->route('settings.index')
             ->with('success', 'Settings updated successfully.');
