@@ -41,7 +41,7 @@
                 @endif
 
                 <div class="table-responsive">
-                    <table id="drivers-table" class="table table-nowrap align-middle mb-0 datatable">
+                    <table id="drivers-table" class="table table-nowrap align-middle mb-0">
                         <thead class="table-light">
                             <tr>
                                 <th scope="col">Photo</th>
