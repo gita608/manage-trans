@@ -1,22 +1,28 @@
-        <div class="app-menu navbar-menu">
+<div class="app-menu navbar-menu">
             <!-- LOGO -->
             <div class="navbar-brand-box">
+                @php
+                    $appLogo = getSetting('app_logo');
+                    $logoSm = $appLogo ? asset('storage/' . $appLogo) : asset('assets/images/logo-sm.png');
+                    $logoDark = $appLogo ? asset('storage/' . $appLogo) : asset('assets/images/logo-dark.png');
+                    $logoLight = $appLogo ? asset('storage/' . $appLogo) : asset('assets/images/logo-light.png');
+                @endphp
                 <!-- Dark Logo-->
                 <a href="{{ route('dashboard') }}" class="logo logo-dark">
                     <span class="logo-sm">
-                        <img src="{{ asset('assets/images/logo-sm.png') }}" alt="" height="22">
+                        <img src="{{ $logoSm }}" alt="" height="35">
                     </span>
                     <span class="logo-lg">
-                        <img src="{{ asset('assets/images/logo-dark.png') }}" alt="" height="17">
+                        <img src="{{ $logoDark }}" alt="" height="40">
                     </span>
                 </a>
                 <!-- Light Logo-->
                 <a href="{{ route('dashboard') }}" class="logo logo-light">
                     <span class="logo-sm">
-                        <img src="{{ asset('assets/images/logo-sm.png') }}" alt="" height="22">
+                        <img src="{{ $logoSm }}" alt="" height="35">
                     </span>
                     <span class="logo-lg">
-                        <img src="{{ asset('assets/images/logo-light.png') }}" alt="" height="17">
+                        <img src="{{ $logoLight }}" alt="" height="40">
                     </span>
                 </a>
                 <button type="button" class="btn btn-sm p-0 fs-20 header-item float-end btn-vertical-sm-hover" id="vertical-hover">

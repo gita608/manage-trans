@@ -40,6 +40,13 @@ class SettingsController extends Controller
      */
     public function update(Request $request)
     {
+
+        // Convert checkbox values to boolean before validation
+        $request->merge([
+            'enable_signup' => $request->has('enable_signup') ? true : false,
+            'enable_forgot_password' => $request->has('enable_forgot_password') ? true : false
+        ]);
+
         $request->validate([
             'enable_signup' => 'nullable|boolean',
             'app_name' => 'nullable|string|max:255',
@@ -58,6 +65,13 @@ class SettingsController extends Controller
 
         // Update app_logo setting
         if ($request->hasFile('app_logo')) {
+            // Delete old logo if exists
+            $oldLogo = getSetting('app_logo');
+            if ($oldLogo && \Illuminate\Support\Facades\Storage::disk('public')->exists($oldLogo)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($oldLogo);
+            }
+            
+            // Store new logo
             $logoPath = $request->file('app_logo')->store('logos', 'public');
             updateSetting('app_logo', $logoPath);
         }
