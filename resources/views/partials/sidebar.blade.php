@@ -1,4 +1,4 @@
-<div class="app-menu navbar-menu">
+        <div class="app-menu navbar-menu">
             <!-- LOGO -->
             <div class="navbar-brand-box">
                 @php
@@ -37,36 +37,70 @@
                     </div>
                     <ul class="navbar-nav" id="navbar-nav">
                         <li class="menu-title"><span data-key="t-menu">Menu</span></li>
+                        
+                        @if(auth()->user()->hasPermission('view_dashboard'))
                         <li class="nav-item">
-                            <a class="nav-link menu-link" href="{{ route('dashboard') }}">
+                            <a class="nav-link menu-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
                                 <i class="ri-dashboard-2-line"></i> <span data-key="t-dashboards">Dashboard</span>
-                            </a>
-                        </li>
+                                                    </a>
+                                                </li>
+                        @endif
+
+                        @if(auth()->user()->hasPermission('view_trips'))
                         <li class="nav-item">
-                            <a class="nav-link menu-link" href="{{ route('drivers.index') }}">
-                                <i class="ri-taxi-line"></i> <span>Drivers</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link menu-link" href="{{ route('vessels.index') }}">
-                                <i class="ri-ship-line"></i> <span>Vessels</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link menu-link" href="{{ route('trips.index') }}">
+                            <a class="nav-link menu-link {{ request()->routeIs('trips.*') ? 'active' : '' }}" href="{{ route('trips.index') }}">
                                 <i class="ri-road-map-line"></i> <span>Trips</span>
-                            </a>
-                        </li>
+                                                    </a>
+                                                </li>
+                        @endif
+
+                        @if(auth()->user()->hasPermission('view_drivers'))
+                                    <li class="nav-item">
+                            <a class="nav-link menu-link {{ request()->routeIs('drivers.*') ? 'active' : '' }}" href="{{ route('drivers.index') }}">
+                                <i class="ri-taxi-line"></i> <span>Drivers</span>
+                                                    </a>
+                                                </li>
+                        @endif
+
+                        @if(auth()->user()->hasPermission('view_vessels'))
                         <li class="nav-item">
-                            <a class="nav-link menu-link" href="{{ route('staff.index') }}">
+                            <a class="nav-link menu-link {{ request()->routeIs('vessels.*') ? 'active' : '' }}" href="{{ route('vessels.index') }}">
+                                <i class="ri-ship-line"></i> <span>Vessels</span>
+                                        </a>
+                                    </li>
+                        @endif
+
+                        @if(auth()->user()->hasPermission('view_staff'))
+                        <li class="nav-item">
+                            <a class="nav-link menu-link {{ request()->routeIs('staff.*') ? 'active' : '' }}" href="{{ route('staff.index') }}">
                                 <i class="ri-team-line"></i> <span>Staff</span>
                             </a>
                         </li>
+                        @endif
+
+                        @if(auth()->user()->hasPermission('view_activity_logs'))
                         <li class="nav-item">
-                            <a class="nav-link menu-link" href="{{ route('settings.index') }}">
+                            <a class="nav-link menu-link {{ request()->routeIs('activity-logs') ? 'active' : '' }}" href="{{ route('activity-logs') }}">
+                                <i class="ri-history-line"></i> <span>Activity Logs</span>
+                                                    </a>
+                                                </li>
+                        @endif
+
+                        @if(auth()->user()->hasPermission('manage_permissions'))
+                        <li class="nav-item">
+                            <a class="nav-link menu-link {{ request()->routeIs('permissions.*') ? 'active' : '' }}" href="{{ route('permissions.index') }}">
+                                <i class="ri-shield-user-line"></i> <span>Permissions</span>
+                                        </a>
+                                    </li>
+                        @endif
+
+                        @if(auth()->user()->hasPermission('view_settings'))
+                        <li class="nav-item">
+                            <a class="nav-link menu-link {{ request()->routeIs('settings.*') ? 'active' : '' }}" href="{{ route('settings.index') }}">
                                 <i class="ri-settings-2-line"></i> <span>Settings</span>
-                            </a>
-                        </li>
+                                                                </a>
+                                                            </li>
+                        @endif
                     </ul>
                 </div>
                 <!-- Sidebar -->
@@ -74,3 +108,42 @@
 
             <div class="sidebar-background"></div>
         </div>
+
+
+                            <a class="nav-link menu-link" href="{{ route('trips.index') }}">
+                                <i class="ri-road-map-line"></i> <span>Trips</span>
+                                                                </a>
+
+                                                            </li>
+
+                                                            <li class="nav-item">
+
+                            <a class="nav-link menu-link" href="{{ route('staff.index') }}">
+                                <i class="ri-team-line"></i> <span>Staff</span>
+                                                    </a>
+
+                                                </li>
+
+                                                <li class="nav-item">
+
+                            <a class="nav-link menu-link" href="{{ route('settings.index') }}">
+                                <i class="ri-settings-2-line"></i> <span>Settings</span>
+                                                                </a>
+
+                                                            </li>
+
+                    </ul>
+
+                </div>
+
+                <!-- Sidebar -->
+
+            </div>
+
+
+
+            <div class="sidebar-background"></div>
+
+        </div>
+
+
