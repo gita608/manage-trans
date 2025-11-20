@@ -7,7 +7,7 @@
 <div class="row">
     <div class="col-12">
         <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-            <h4 class="mb-sm-0">Vessels</h4>
+            <h4 class="mb-sm-0">Vessels Management</h4>
 
             <div class="page-title-right">
                 <ol class="breadcrumb m-0">
@@ -15,30 +15,52 @@
                     <li class="breadcrumb-item active">Vessels</li>
                 </ol>
             </div>
-
         </div>
     </div>
 </div>
 <!-- end page title -->
 
-<div class="row">
+@if (session('success'))
+    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+        <i class="ri-check-double-line me-2 align-middle"></i><strong>Success!</strong> {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
+<!-- Quick Action Card -->
+<div class="row mb-4">
     <div class="col-lg-12">
-        <div class="card">
-            <div class="card-header">
+        <div class="card border shadow-sm">
+            <div class="card-body p-4">
                 <div class="d-flex align-items-center justify-content-between">
-                    <h5 class="card-title mb-0">All Vessels</h5>
-                    <a href="{{ route('vessels.create') }}" class="btn btn-success">
-                        <i class="ri-add-line align-middle me-1"></i> Add New Vessel
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-sm flex-shrink-0 me-3">
+                            <span class="avatar-title bg-info-subtle text-info rounded fs-3">
+                                <i class="ri-ship-line"></i>
+                            </span>
+                        </div>
+                        <div>
+                            <h5 class="mb-1">Add New Vessel</h5>
+                            <p class="text-muted mb-0 small">Register a new vessel to the fleet</p>
+                        </div>
+                    </div>
+                    <a href="{{ route('vessels.create') }}" class="btn btn-primary">
+                        <i class="ri-add-line me-1"></i> Add Vessel
                     </a>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Vessels List -->
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card border shadow-sm">
+            <div class="card-header bg-light border-bottom">
+                <h5 class="card-title mb-0">All Vessels</h5>
+            </div>
             <div class="card-body">
-                @if (session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                @endif
 
                 <div class="table-responsive">
                     <table id="vessels-table" class="table table-nowrap align-middle mb-0 datatable">

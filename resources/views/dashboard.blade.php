@@ -55,7 +55,7 @@
                     <div class="row">
                         <!-- Total Drivers -->
                         <div class="col-xl-3 col-md-6">
-                            <div class="card card-animate">
+                            <div class="card card-animate border shadow-sm">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center">
                                         <div class="flex-grow-1 overflow-hidden">
@@ -67,11 +67,11 @@
                                             <h4 class="fs-22 fw-semibold ff-secondary mb-4">
                                                 <span class="counter-value" data-target="{{ $totalDrivers }}">0</span>
                                             </h4>
-                                            <a href="#" class="text-decoration-underline">View all drivers</a>
+                                            <a href="{{ route('drivers.index') }}" class="text-decoration-underline">View all drivers</a>
                                         </div>
                                         <div class="avatar-sm flex-shrink-0">
                                             <span class="avatar-title bg-primary-subtle rounded fs-3">
-                                                <i class="bx bxs-user-detail text-primary"></i>
+                                                <i class="ri-user-line text-primary"></i>
                                             </span>
                                         </div>
                                     </div>
@@ -81,7 +81,7 @@
 
                         <!-- Total Vessels -->
                         <div class="col-xl-3 col-md-6">
-                            <div class="card card-animate">
+                            <div class="card card-animate border shadow-sm">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center">
                                         <div class="flex-grow-1 overflow-hidden">
@@ -93,11 +93,11 @@
                                             <h4 class="fs-22 fw-semibold ff-secondary mb-4">
                                                 <span class="counter-value" data-target="{{ $totalVessels }}">0</span>
                                             </h4>
-                                            <a href="#" class="text-decoration-underline">View all vessels</a>
+                                            <a href="{{ route('vessels.index') }}" class="text-decoration-underline">View all vessels</a>
                                         </div>
                                         <div class="avatar-sm flex-shrink-0">
                                             <span class="avatar-title bg-info-subtle rounded fs-3">
-                                                <i class="bx bxs-ship text-info"></i>
+                                                <i class="ri-ship-line text-info"></i>
                                             </span>
                                         </div>
                                     </div>
@@ -107,7 +107,7 @@
 
                         <!-- Total Trips -->
                         <div class="col-xl-3 col-md-6">
-                            <div class="card card-animate">
+                            <div class="card card-animate border shadow-sm">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center">
                                         <div class="flex-grow-1 overflow-hidden">
@@ -119,11 +119,11 @@
                                             <h4 class="fs-22 fw-semibold ff-secondary mb-4">
                                                 <span class="counter-value" data-target="{{ $totalTrips }}">0</span>
                                             </h4>
-                                            <a href="#" class="text-decoration-underline">View all trips</a>
+                                            <a href="{{ route('trips.index') }}" class="text-decoration-underline">View all trips</a>
                                         </div>
                                         <div class="avatar-sm flex-shrink-0">
                                             <span class="avatar-title bg-success-subtle rounded fs-3">
-                                                <i class="bx bx-map text-success"></i>
+                                                <i class="ri-route-line text-success"></i>
                                             </span>
                                         </div>
                                     </div>
@@ -133,7 +133,7 @@
 
                         <!-- Total Staff -->
                         <div class="col-xl-3 col-md-6">
-                            <div class="card card-animate">
+                            <div class="card card-animate border shadow-sm">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center">
                                         <div class="flex-grow-1 overflow-hidden">
@@ -145,11 +145,11 @@
                                             <h4 class="fs-22 fw-semibold ff-secondary mb-4">
                                                 <span class="counter-value" data-target="{{ $totalStaff }}">0</span>
                                             </h4>
-                                            <a href="#" class="text-decoration-underline">View all staff</a>
+                                            <a href="{{ route('staff.index') }}" class="text-decoration-underline">View all staff</a>
                                         </div>
                                         <div class="avatar-sm flex-shrink-0">
                                             <span class="avatar-title bg-warning-subtle rounded fs-3">
-                                                <i class="bx bx-group text-warning"></i>
+                                                <i class="ri-team-line text-warning"></i>
                                             </span>
                                         </div>
                                     </div>
@@ -161,9 +161,9 @@
                     <!-- Trip Status Cards -->
                     <div class="row">
                         <div class="col-xl-4 col-md-4">
-                            <div class="card card-height-100">
-                                <div class="card-header align-items-center d-flex">
-                                    <h4 class="card-title mb-0 flex-grow-1">Trip Status Overview</h4>
+                            <div class="card card-height-100 border shadow-sm">
+                                <div class="card-header bg-light border-bottom align-items-center d-flex">
+                                    <h5 class="card-title mb-0 flex-grow-1">Trip Status Overview</h5>
                                 </div>
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
@@ -205,13 +205,13 @@
 
                         <!-- Recent Trips -->
                         <div class="col-xl-8 col-md-8">
-                            <div class="card">
-                                <div class="card-header align-items-center d-flex">
-                                    <h4 class="card-title mb-0 flex-grow-1">Recent Trips</h4>
+                            <div class="card border shadow-sm">
+                                <div class="card-header bg-light border-bottom align-items-center d-flex">
+                                    <h5 class="card-title mb-0 flex-grow-1">Recent Trips</h5>
                                     <div class="flex-shrink-0">
-                                        <button type="button" class="btn btn-soft-primary btn-sm">
+                                        <a href="{{ route('trips.index') }}" class="btn btn-soft-primary btn-sm">
                                             <i class="ri-eye-line align-middle"></i> View All
-                                        </button>
+                                        </a>
                                     </div>
                                 </div>
                                 <div class="card-body">
@@ -259,9 +259,9 @@
                     <!-- Recent Activity -->
                     <div class="row">
                         <div class="col-12">
-                            <div class="card">
-                                <div class="card-header align-items-center d-flex">
-                                    <h4 class="card-title mb-0 flex-grow-1">Recent Activity</h4>
+                            <div class="card border shadow-sm">
+                                <div class="card-header bg-light border-bottom align-items-center d-flex">
+                                    <h5 class="card-title mb-0 flex-grow-1">Recent Activity</h5>
                                 </div>
                                 <div class="card-body">
                                     <div class="acitivity-timeline">

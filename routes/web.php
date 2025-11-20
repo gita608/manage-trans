@@ -96,6 +96,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['permission:create_trips'])->group(function () {
         Route::get('/trips/create', [TripController::class, 'create'])->name('trips.create');
         Route::post('/trips', [TripController::class, 'store'])->name('trips.store');
+        Route::post('/trips/extract-from-image', [TripController::class, 'extractFromImage'])->name('trips.extract-from-image');
     });
     
     Route::middleware(['permission:view_trips'])->group(function () {
