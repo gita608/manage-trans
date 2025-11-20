@@ -218,33 +218,45 @@
                     <table id="trips-table" class="table table-nowrap align-middle mb-0 @if(!$trips->isEmpty()) datatable @endif">
                         <thead class="table-light">
                             <tr>
-                                <th scope="col">Date</th>
-                                <th scope="col">Crew Name</th>
-                                <th scope="col">Driver Name</th>
-                                <th scope="col">Vessel Name</th>
-                                <th scope="col">Pick-up Time</th>
-                                <th scope="col">From</th>
-                                <th scope="col">To</th>
-                                <th scope="col">Crew Phone</th>
-                                <th scope="col">Status</th>
-                                <th scope="col" class="no-export">Actions</th>
+                                <th scope="col" style="min-width: 110px;">Date</th>
+                                <th scope="col" style="max-width: 200px;">Crew Name</th>
+                                <th scope="col" style="max-width: 150px;">Driver Name</th>
+                                <th scope="col" style="max-width: 150px;">Vessel Name</th>
+                                <th scope="col" style="min-width: 100px;">Pick-up Time</th>
+                                <th scope="col" style="max-width: 180px;">From</th>
+                                <th scope="col" style="max-width: 180px;">To</th>
+                                <th scope="col" style="min-width: 120px;">Crew Phone</th>
+                                <th scope="col" style="min-width: 100px;">Status</th>
+                                <th scope="col" class="no-export" style="min-width: 140px; width: 140px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse ($trips as $trip)
                                 <tr>
-                                    <td>{{ $trip->trip_date->format('M d, Y') }}</td>
-                                    <td>{{ $trip->crew_name }}</td>
-                                    <td>{{ $trip->driver->name }}</td>
-                                    <td>{{ $trip->vessel->name }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($trip->pick_up_time)->format('h:i A') }}</td>
+                                    <td style="white-space: nowrap;">{{ $trip->trip_date->format('M d, Y') }}</td>
                                     <td>
-                                        <span class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ $trip->from_location }}">
+                                        <span class="text-truncate d-inline-block" style="max-width: 200px;" title="{{ $trip->crew_name }}" data-bs-toggle="tooltip">
+                                            {{ $trip->crew_name }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ $trip->driver->name }}" data-bs-toggle="tooltip">
+                                            {{ $trip->driver->name }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ $trip->vessel->name }}" data-bs-toggle="tooltip">
+                                            {{ $trip->vessel->name }}
+                                        </span>
+                                    </td>
+                                    <td style="white-space: nowrap;">{{ \Carbon\Carbon::parse($trip->pick_up_time)->format('h:i A') }}</td>
+                                    <td>
+                                        <span class="text-truncate d-inline-block" style="max-width: 180px;" title="{{ $trip->from_location }}" data-bs-toggle="tooltip">
                                             {{ $trip->from_location }}
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ $trip->to_location }}">
+                                        <span class="text-truncate d-inline-block" style="max-width: 180px;" title="{{ $trip->to_location }}" data-bs-toggle="tooltip">
                                             {{ $trip->to_location }}
                                         </span>
                                     </td>
@@ -259,17 +271,17 @@
                                         <span class="badge {{ $trip->getStatusBadgeClass() }}">{{ ucfirst(str_replace('_', ' ', $trip->status)) }}</span>
                                     </td>
                                     <td>
-                                        <div class="d-flex gap-2">
-                                            <a href="{{ route('trips.show', $trip) }}" class="btn btn-sm btn-info" title="View">
+                                        <div class="d-flex gap-1 flex-nowrap">
+                                            <a href="{{ route('trips.show', $trip) }}" class="btn btn-sm btn-info" title="View" data-bs-toggle="tooltip">
                                                 <i class="ri-eye-line"></i>
                                             </a>
-                                            <a href="{{ route('trips.edit', $trip) }}" class="btn btn-sm btn-primary" title="Edit">
+                                            <a href="{{ route('trips.edit', $trip) }}" class="btn btn-sm btn-primary" title="Edit" data-bs-toggle="tooltip">
                                                 <i class="ri-pencil-line"></i>
                                             </a>
                                             <form action="{{ route('trips.destroy', $trip) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this trip?');">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-danger" title="Delete">
+                                                <button type="submit" class="btn btn-sm btn-danger" title="Delete" data-bs-toggle="tooltip">
                                                     <i class="ri-delete-bin-line"></i>
                                                 </button>
                                             </form>
@@ -361,6 +373,12 @@
                                 }
                             });
                         }
+
+                        // Initialize Bootstrap tooltips
+                        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                            return new bootstrap.Tooltip(tooltipTriggerEl);
+                        });
                     });
                 </script>
                 @endpush

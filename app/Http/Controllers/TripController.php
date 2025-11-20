@@ -36,8 +36,7 @@ class TripController extends Controller
             $query->whereDate('trip_date', $request->date);
         }
 
-        $trips = $query->latest('trip_date')
-            ->latest('pick_up_time')
+        $trips = $query->latest('created_at')
             ->get();
 
         $drivers = Driver::orderBy('name')->get();

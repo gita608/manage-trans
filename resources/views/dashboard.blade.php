@@ -38,165 +38,178 @@
                 <div class="container-fluid">
 
                     <!-- Welcome Section -->
-                    <div class="row">
+                    <div class="row mb-3">
                         <div class="col-12">
-                            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                                <h4 class="mb-sm-0">Dashboard</h4>
-                                <div class="page-title-right">
-                                    <ol class="breadcrumb m-0">
-                                        <li class="breadcrumb-item active">Welcome, {{ auth()->user()->name }}!</li>
-                                    </ol>
+                            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                <div class="card-body p-4">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <h3 class="text-white mb-2">Welcome back, {{ auth()->user()->name }}! 👋</h3>
+                                            <p class="text-white-50 mb-0">Here's what's happening with your transportation management today.</p>
+                                        </div>
+                                        <div class="text-end d-none d-md-block">
+                                            <p class="text-white mb-1 fw-medium">{{ now()->format('l') }}</p>
+                                            <p class="text-white-50 mb-0">{{ now()->format('F j, Y') }}</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Quick Stats Overview -->
+                    <div class="row mb-2">
+                        <div class="col-12">
+                            <h5 class="text-muted mb-3">Quick Overview</h5>
+                        </div>
+                    </div>
+
                     <!-- Statistics Cards -->
-                    <div class="row">
+                    <div class="row g-3">
                         <!-- Total Drivers -->
                         <div class="col-xl-3 col-md-6">
-                            <div class="card card-animate border shadow-sm">
+                            <div class="card card-animate border shadow-sm position-relative">
                                 <div class="card-body">
-                                    <div class="d-flex align-items-center">
-                                        <div class="flex-grow-1 overflow-hidden">
-                                            <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Drivers</p>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex align-items-end justify-content-between mt-4">
-                                        <div>
-                                            <h4 class="fs-22 fw-semibold ff-secondary mb-4">
-                                                <span class="counter-value" data-target="{{ $totalDrivers }}">0</span>
-                                            </h4>
-                                            <a href="{{ route('drivers.index') }}" class="text-decoration-underline">View all drivers</a>
-                                        </div>
-                                        <div class="avatar-sm flex-shrink-0">
-                                            <span class="avatar-title bg-primary-subtle rounded fs-3">
-                                                <i class="ri-user-line text-primary"></i>
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="avatar-sm flex-shrink-0 me-3">
+                                            <span class="avatar-title bg-primary-subtle text-primary rounded">
+                                                <i class="ri-user-line fs-4"></i>
                                             </span>
                                         </div>
+                                        <div class="flex-grow-1">
+                                            <p class="text-uppercase fw-medium text-muted mb-0 fs-12">DRIVERS</p>
+                                        </div>
                                     </div>
+                                    <h3 class="mb-3 fw-bold">
+                                        <span class="counter-value" data-target="{{ $totalDrivers }}">0</span>
+                                    </h3>
+                                    <a href="{{ route('drivers.index') }}" class="text-decoration-none text-muted small">
+                                        View Details <i class="ri-arrow-right-line align-middle"></i>
+                                    </a>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Total Vessels -->
                         <div class="col-xl-3 col-md-6">
-                            <div class="card card-animate border shadow-sm">
+                            <div class="card card-animate border shadow-sm position-relative">
                                 <div class="card-body">
-                                    <div class="d-flex align-items-center">
-                                        <div class="flex-grow-1 overflow-hidden">
-                                            <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Vessels</p>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex align-items-end justify-content-between mt-4">
-                                        <div>
-                                            <h4 class="fs-22 fw-semibold ff-secondary mb-4">
-                                                <span class="counter-value" data-target="{{ $totalVessels }}">0</span>
-                                            </h4>
-                                            <a href="{{ route('vessels.index') }}" class="text-decoration-underline">View all vessels</a>
-                                        </div>
-                                        <div class="avatar-sm flex-shrink-0">
-                                            <span class="avatar-title bg-info-subtle rounded fs-3">
-                                                <i class="ri-ship-line text-info"></i>
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="avatar-sm flex-shrink-0 me-3">
+                                            <span class="avatar-title bg-info-subtle text-info rounded">
+                                                <i class="ri-ship-line fs-4"></i>
                                             </span>
                                         </div>
+                                        <div class="flex-grow-1">
+                                            <p class="text-uppercase fw-medium text-muted mb-0 fs-12">VESSELS</p>
+                                        </div>
                                     </div>
+                                    <h3 class="mb-3 fw-bold">
+                                        <span class="counter-value" data-target="{{ $totalVessels }}">0</span>
+                                    </h3>
+                                    <a href="{{ route('vessels.index') }}" class="text-decoration-none text-muted small">
+                                        View Details <i class="ri-arrow-right-line align-middle"></i>
+                                    </a>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Total Trips -->
                         <div class="col-xl-3 col-md-6">
-                            <div class="card card-animate border shadow-sm">
+                            <div class="card card-animate border shadow-sm position-relative">
                                 <div class="card-body">
-                                    <div class="d-flex align-items-center">
-                                        <div class="flex-grow-1 overflow-hidden">
-                                            <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Trips</p>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex align-items-end justify-content-between mt-4">
-                                        <div>
-                                            <h4 class="fs-22 fw-semibold ff-secondary mb-4">
-                                                <span class="counter-value" data-target="{{ $totalTrips }}">0</span>
-                                            </h4>
-                                            <a href="{{ route('trips.index') }}" class="text-decoration-underline">View all trips</a>
-                                        </div>
-                                        <div class="avatar-sm flex-shrink-0">
-                                            <span class="avatar-title bg-success-subtle rounded fs-3">
-                                                <i class="ri-route-line text-success"></i>
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="avatar-sm flex-shrink-0 me-3">
+                                            <span class="avatar-title bg-success-subtle text-success rounded">
+                                                <i class="ri-route-line fs-4"></i>
                                             </span>
                                         </div>
+                                        <div class="flex-grow-1">
+                                            <p class="text-uppercase fw-medium text-muted mb-0 fs-12">TRIPS</p>
+                                        </div>
                                     </div>
+                                    <h3 class="mb-3 fw-bold">
+                                        <span class="counter-value" data-target="{{ $totalTrips }}">0</span>
+                                    </h3>
+                                    <a href="{{ route('trips.index') }}" class="text-decoration-none text-muted small">
+                                        View Details <i class="ri-arrow-right-line align-middle"></i>
+                                    </a>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Total Staff -->
                         <div class="col-xl-3 col-md-6">
-                            <div class="card card-animate border shadow-sm">
+                            <div class="card card-animate border shadow-sm position-relative">
                                 <div class="card-body">
-                                    <div class="d-flex align-items-center">
-                                        <div class="flex-grow-1 overflow-hidden">
-                                            <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Staff</p>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex align-items-end justify-content-between mt-4">
-                                        <div>
-                                            <h4 class="fs-22 fw-semibold ff-secondary mb-4">
-                                                <span class="counter-value" data-target="{{ $totalStaff }}">0</span>
-                                            </h4>
-                                            <a href="{{ route('staff.index') }}" class="text-decoration-underline">View all staff</a>
-                                        </div>
-                                        <div class="avatar-sm flex-shrink-0">
-                                            <span class="avatar-title bg-warning-subtle rounded fs-3">
-                                                <i class="ri-team-line text-warning"></i>
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="avatar-sm flex-shrink-0 me-3">
+                                            <span class="avatar-title bg-warning-subtle text-warning rounded">
+                                                <i class="ri-team-line fs-4"></i>
                                             </span>
                                         </div>
+                                        <div class="flex-grow-1">
+                                            <p class="text-uppercase fw-medium text-muted mb-0 fs-12">STAFF</p>
+                                        </div>
                                     </div>
+                                    <h3 class="mb-3 fw-bold">
+                                        <span class="counter-value" data-target="{{ $totalStaff }}">0</span>
+                                    </h3>
+                                    <a href="{{ route('staff.index') }}" class="text-decoration-none text-muted small">
+                                        View Details <i class="ri-arrow-right-line align-middle"></i>
+                                    </a>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Trip Status Cards -->
-                    <div class="row">
-                        <div class="col-xl-4 col-md-4">
-                            <div class="card card-height-100 border shadow-sm">
-                                <div class="card-header bg-light border-bottom align-items-center d-flex">
-                                    <h5 class="card-title mb-0 flex-grow-1">Trip Status Overview</h5>
+                    <!-- Trip Status & Recent Activity -->
+                    <div class="row mt-4">
+                        <div class="col-12 mb-2">
+                            <h5 class="text-muted">Trip Management</h5>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-xl-4 col-md-12">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-light border-bottom">
+                                    <h6 class="card-title mb-0 fw-semibold">Trip Status</h6>
                                 </div>
                                 <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-                                        <div>
-                                            <h5 class="mb-0">{{ $assignedTrips }}</h5>
-                                            <p class="text-muted mb-0">Assigned</p>
-                                        </div>
-                                        <div class="avatar-xs">
-                                            <span class="avatar-title bg-warning-subtle text-warning rounded fs-3">
-                                                <i class="ri-task-line"></i>
+                                    <div class="d-flex align-items-center mb-4 p-3 bg-warning-subtle rounded">
+                                        <div class="avatar-sm flex-shrink-0 me-3">
+                                            <span class="avatar-title bg-warning text-white rounded">
+                                                <i class="ri-task-line fs-4"></i>
                                             </span>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h4 class="mb-0 fw-bold">{{ $assignedTrips }}</h4>
+                                            <p class="text-muted mb-0 small">Assigned Trips</p>
                                         </div>
                                     </div>
-                                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-                                        <div>
-                                            <h5 class="mb-0">{{ $inProgressTrips }}</h5>
-                                            <p class="text-muted mb-0">In Progress</p>
-                                        </div>
-                                        <div class="avatar-xs">
-                                            <span class="avatar-title bg-info-subtle text-info rounded fs-3">
-                                                <i class="ri-time-line"></i>
+                                    
+                                    <div class="d-flex align-items-center mb-4 p-3 bg-info-subtle rounded">
+                                        <div class="avatar-sm flex-shrink-0 me-3">
+                                            <span class="avatar-title bg-info text-white rounded">
+                                                <i class="ri-time-line fs-4"></i>
                                             </span>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h4 class="mb-0 fw-bold">{{ $inProgressTrips }}</h4>
+                                            <p class="text-muted mb-0 small">In Progress</p>
                                         </div>
                                     </div>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="mb-0">{{ $completedTrips }}</h5>
-                                            <p class="text-muted mb-0">Completed</p>
-                                        </div>
-                                        <div class="avatar-xs">
-                                            <span class="avatar-title bg-success-subtle text-success rounded fs-3">
-                                                <i class="ri-checkbox-circle-line"></i>
+                                    
+                                    <div class="d-flex align-items-center p-3 bg-success-subtle rounded">
+                                        <div class="avatar-sm flex-shrink-0 me-3">
+                                            <span class="avatar-title bg-success text-white rounded">
+                                                <i class="ri-checkbox-circle-line fs-4"></i>
                                             </span>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h4 class="mb-0 fw-bold">{{ $completedTrips }}</h4>
+                                            <p class="text-muted mb-0 small">Completed</p>
                                         </div>
                                     </div>
                                 </div>
@@ -204,40 +217,45 @@
                         </div>
 
                         <!-- Recent Trips -->
-                        <div class="col-xl-8 col-md-8">
-                            <div class="card border shadow-sm">
-                                <div class="card-header bg-light border-bottom align-items-center d-flex">
-                                    <h5 class="card-title mb-0 flex-grow-1">Recent Trips</h5>
-                                    <div class="flex-shrink-0">
-                                        <a href="{{ route('trips.index') }}" class="btn btn-soft-primary btn-sm">
-                                            <i class="ri-eye-line align-middle"></i> View All
+                        <div class="col-xl-8 col-md-12">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-light border-bottom">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <h6 class="card-title mb-0 fw-semibold">Recent Trips</h6>
+                                        <a href="{{ route('trips.index') }}" class="btn btn-sm btn-soft-primary">
+                                            View All <i class="ri-arrow-right-line align-middle ms-1"></i>
                                         </a>
                                     </div>
                                 </div>
-                                <div class="card-body">
-                                    <div class="table-responsive table-card">
-                                        <table class="table table-borderless table-centered align-middle table-nowrap mb-0">
-                                            <thead class="text-muted table-light">
+                                <div class="card-body p-0">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover table-nowrap align-middle mb-0">
+                                            <thead class="bg-light">
                                                 <tr>
-                                                    <th scope="col">Crew Name</th>
-                                                    <th scope="col">Driver</th>
-                                                    <th scope="col">Vessel</th>
-                                                    <th scope="col">Date</th>
-                                                    <th scope="col">Status</th>
+                                                    <th class="ps-4">Crew Name</th>
+                                                    <th>Driver</th>
+                                                    <th>Vessel</th>
+                                                    <th>Date</th>
+                                                    <th class="pe-4">Status</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 @forelse($recentTrips as $trip)
                                                 <tr>
-                                                    <td>
+                                                    <td class="ps-4">
                                                         <div class="d-flex align-items-center">
-                                                            <div class="flex-grow-1">{{ $trip->crew_name }}</div>
+                                                            <div class="avatar-xs flex-shrink-0 me-2">
+                                                                <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                                                    {{ substr($trip->crew_name, 0, 1) }}
+                                                                </span>
+                                                            </div>
+                                                            <div class="fw-medium">{{ $trip->crew_name }}</div>
                                                         </div>
                                                     </td>
                                                     <td>{{ $trip->driver->name ?? 'N/A' }}</td>
                                                     <td>{{ $trip->vessel->name ?? 'N/A' }}</td>
-                                                    <td>{{ $trip->trip_date->format('M d, Y') }}</td>
-                                                    <td>
+                                                    <td><small>{{ $trip->trip_date->format('M d, Y') }}</small></td>
+                                                    <td class="pe-4">
                                                         <span class="badge {{ $trip->getStatusBadgeClass() }}">
                                                             {{ ucfirst(str_replace('_', ' ', $trip->status)) }}
                                                         </span>
@@ -245,7 +263,10 @@
                                                 </tr>
                                                 @empty
                                                 <tr>
-                                                    <td colspan="5" class="text-center text-muted">No trips found</td>
+                                                    <td colspan="5" class="text-center text-muted py-4">
+                                                        <i class="ri-file-list-line fs-3 mb-2 d-block"></i>
+                                                        No trips found
+                                                    </td>
                                                 </tr>
                                                 @endforelse
                                             </tbody>
@@ -257,32 +278,45 @@
                     </div>
 
                     <!-- Recent Activity -->
+                    <div class="row mt-4">
+                        <div class="col-12 mb-2">
+                            <h5 class="text-muted">Recent Activity</h5>
+                        </div>
+                    </div>
+
                     <div class="row">
                         <div class="col-12">
-                            <div class="card border shadow-sm">
-                                <div class="card-header bg-light border-bottom align-items-center d-flex">
-                                    <h5 class="card-title mb-0 flex-grow-1">Recent Activity</h5>
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-light border-bottom">
+                                    <h6 class="card-title mb-0 fw-semibold">Activity Log</h6>
                                 </div>
                                 <div class="card-body">
-                                    <div class="acitivity-timeline">
+                                    <div class="activity-timeline">
                                         @forelse($recentActivities as $activity)
-                                        <div class="acitivity-item d-flex mb-3">
-                                            <div class="flex-shrink-0">
-                                                <div class="avatar-xs acitivity-avatar">
-                                                    <div class="avatar-title bg-soft-success text-success rounded-circle">
+                                        <div class="d-flex align-items-start mb-4 pb-3 border-bottom">
+                                            <div class="flex-shrink-0 me-3">
+                                                <div class="avatar-xs">
+                                                    <div class="avatar-title bg-primary-subtle text-primary rounded-circle">
                                                         <i class="ri-check-line"></i>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="flex-grow-1 ms-3">
-                                                <h6 class="mb-1">{{ $activity->description }}</h6>
+                                            <div class="flex-grow-1">
+                                                <p class="mb-1 fw-medium">{{ $activity->description }}</p>
                                                 <p class="text-muted mb-0">
-                                                    <small>by {{ $activity->user->name ?? 'System' }} - {{ $activity->created_at->diffForHumans() }}</small>
+                                                    <small>
+                                                        <i class="ri-user-line me-1"></i>{{ $activity->user->name ?? 'System' }}
+                                                        <span class="mx-2">•</span>
+                                                        <i class="ri-time-line me-1"></i>{{ $activity->created_at->diffForHumans() }}
+                                                    </small>
                                                 </p>
                                             </div>
                                         </div>
                                         @empty
-                                        <p class="text-muted text-center">No recent activity</p>
+                                        <div class="text-center text-muted py-4">
+                                            <i class="ri-history-line fs-3 mb-2 d-block"></i>
+                                            <p class="mb-0">No recent activity</p>
+                                        </div>
                                         @endforelse
                                     </div>
                                 </div>
