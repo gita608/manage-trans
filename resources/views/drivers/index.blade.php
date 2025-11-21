@@ -68,6 +68,7 @@
                             <tr>
                                 <th scope="col">Photo</th>
                                 <th scope="col">Name</th>
+                                <th scope="col">Email</th>
                                 <th scope="col">Type</th>
                                 <th scope="col">License Number</th>
                                 <th scope="col">Contact</th>
@@ -89,6 +90,16 @@
                                         @endif
                                     </td>
                                     <td>{{ $driver->name }}</td>
+                                    <td>
+                                        @if($driver->email)
+                                            {{ $driver->email }}
+                                            <span class="badge bg-success-subtle text-success ms-1" title="API Access Enabled">
+                                                <i class="ri-smartphone-line"></i>
+                                            </span>
+                                        @else
+                                            <span class="text-muted">Not set</span>
+                                        @endif
+                                    </td>
                                     <td>
                                         @if($driver->type == \App\Models\Driver::TYPE_INTERNAL)
                                             <span class="badge bg-info">Internal</span>
@@ -124,7 +135,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="text-center py-4">
+                                    <td colspan="9" class="text-center py-4">
                                         <p class="text-muted mb-0">No drivers found. <a href="{{ route('drivers.create') }}">Create your first driver</a></p>
                                     </td>
                                 </tr>

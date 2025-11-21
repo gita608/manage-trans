@@ -75,4 +75,47 @@ class DriverAuthController extends Controller
             'message' => 'Logout successful',
         ], 200);
     }
+
+    /**
+     * Get all trips assigned to the authenticated driver.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function trips(Request $request)
+    {
+        $driver = $request->user();
+
+        // Get trips with vessel relationship
+        $trips = $driver->trips()
+            ->with('vessel')
+            ->orderBy('trip_date', 'desc')
+            ->orderBy('pick_up_time', 'desc')
+            ->get()
+            ->map(function ($trip) {
+                return [
+                    'id' => $trip->id,
+                    'crew_name' => $trip->crew_name,
+                    'crew_phone' => $trip->crew_phone,
+                    'crew_address' => $trip->crew_address,
+                    'trip_date' => $trip->trip_date->format('d/m/Y'),
+                    'pick_up_time' => $trip->pick_up_time,
+                    'from_location' => $trip->from_location,
+                    'to_location' => $trip->to_location,
+                    'status' => $trip->status,
+                    'status_label' => ucfirst(str_replace('_', ' ', $trip->status)),
+                    'vessel' => $trip->vessel ? [
+                        'id' => $trip->vessel->id,
+                        'name' => $trip->vessel->name,
+                    ] : null,
+                    'created_at' => $trip->created_at->format('d/m/Y h:i A'),
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'trips' => $trips,
+            'total' => $trips->count(),
+        ], 200);
+    }
 }

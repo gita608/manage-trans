@@ -22,4 +22,5 @@ use App\Http\Controllers\Api\DriverAuthController;
     // Protected routes (requires bearer token authentication)
     Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/logout', [DriverAuthController::class, 'logout'])->name('api.driver.logout');
+        Route::get('/trips', [DriverAuthController::class, 'trips'])->name('api.driver.trips');
     });
