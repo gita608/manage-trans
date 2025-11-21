@@ -569,17 +569,17 @@
                 <div class="auth-left-content">
                     <div class="auth-logo">
                         <a href="{{ url('/') }}">
-                            @if(getSetting('app_logo'))
+                                    @if(getSetting('app_logo'))
                                 <img src="{{ asset('storage/' . getSetting('app_logo')) }}" alt="{{ getSetting('app_name', config('app.name')) }}">
-                            @else
+                                    @else
                                 <img src="{{ asset('assets/images/logo-light.png') }}" alt="{{ getSetting('app_name', config('app.name')) }}">
-                            @endif
-                        </a>
-                    </div>
+                                    @endif
+                                </a>
+                            </div>
                     <h1>Welcome Back</h1>
                     <p>Sign in to access your {{ getSetting('app_name', config('app.name')) }} account and manage your transportation operations efficiently.</p>
-                </div>
-            </div>
+                        </div>
+                    </div>
 
             <div class="auth-right">
                 <div class="auth-form-header">
@@ -587,25 +587,25 @@
                     <p>Enter your credentials to continue</p>
                 </div>
 
-                <form method="POST" action="{{ route('login') }}">
-                    @csrf
+                                    <form method="POST" action="{{ route('login') }}">
+                                        @csrf
 
-                    @if (session('error'))
-                        <div class="alert alert-danger">
+                                        @if (session('error'))
+                                            <div class="alert alert-danger">
                             <i class="ri-error-warning-line me-2"></i>{{ session('error') }}
-                        </div>
-                    @endif
+                                            </div>
+                                        @endif
 
-                    @if ($errors->any())
-                        <div class="alert alert-danger">
+                                        @if ($errors->any())
+                                            <div class="alert alert-danger">
                             <i class="ri-error-warning-line me-2"></i>
                             <ul class="mb-0 ps-3">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
+                                                    @foreach ($errors->all() as $error)
+                                                        <li>{{ $error }}</li>
+                                                    @endforeach
+                                                </ul>
+                                            </div>
+                                        @endif
 
                     <div class="form-group">
                         <label class="form-label" for="email">Email Address</label>
@@ -619,14 +619,14 @@
                                    placeholder="Enter your email"
                                    required
                                    autofocus>
-                            @error('email')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
+                                            @error('email')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                                </div>
 
                     <div class="form-group">
-                        <label class="form-label" for="password-input">Password</label>
+                                            <label class="form-label" for="password-input">Password</label>
                         <div class="input-wrapper">
                             <i class="ri-lock-line input-icon"></i>
                             <input type="password"
@@ -638,15 +638,15 @@
                             <button class="password-toggle-btn" type="button" id="password-addon" aria-label="Toggle password visibility">
                                 <i class="ri-eye-fill"></i>
                             </button>
-                            @error('password')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
+                                                @error('password')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
 
                     <div class="form-options">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="remember" id="auth-remember-check" {{ old('remember') ? 'checked' : '' }}>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="remember" id="auth-remember-check" {{ old('remember') ? 'checked' : '' }}>
                             <label class="form-check-label" for="auth-remember-check">
                                 Remember me
                             </label>

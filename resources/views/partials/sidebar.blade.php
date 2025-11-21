@@ -12,8 +12,8 @@
             <span class="logo-sm">
                 <img src="{{ $logoSm }}" alt="" height="35">
             </span>
-            <span class="logo-lg">
-                <img src="{{ $logoDark }}" alt="" height="40">
+            <span class="logo-lg" style="width: 180px !important; height: auto !important; display: flex !important; align-items: center !important; justify-content: center !important;">
+                <img src="{{ $logoDark }}" alt="" style="max-width: 100%; height: auto; max-height: 80px; width: auto;">
             </span>
         </a>
         <!-- Light Logo-->
@@ -21,8 +21,8 @@
             <span class="logo-sm">
                 <img src="{{ $logoSm }}" alt="" height="35">
             </span>
-            <span class="logo-lg">
-                <img src="{{ $logoLight }}" alt="" height="40">
+            <span class="logo-lg" style="width: 180px !important; height: auto !important; display: flex !important; align-items: center !important; justify-content: center !important;">
+                <img src="{{ $logoLight }}" alt="" style="max-width: 100%; height: auto; max-height: 80px; width: auto;">
             </span>
         </a>
         <button type="button" class="btn btn-sm p-0 fs-20 header-item float-end btn-vertical-sm-hover"
@@ -125,41 +125,4 @@
     </div>
 
     <div class="sidebar-background"></div>
-</div>
-
-
-<a class="nav-link menu-link" href="{{ route('trips.index') }}">
-    <i class="ri-road-map-line"></i> <span>Trips</span>
-</a>
-
-</li>
-
-<li class="nav-item">
-
-    <a class="nav-link menu-link" href="{{ route('staff.index') }}">
-        <i class="ri-team-line"></i> <span>Staff</span>
-    </a>
-
-</li>
-
-<li class="nav-item">
-
-    <a class="nav-link menu-link" href="{{ route('settings.index') }}">
-        <i class="ri-settings-2-line"></i> <span>Settings</span>
-    </a>
-
-</li>
-
-</ul>
-
-</div>
-
-<!-- Sidebar -->
-
-</div>
-
-
-
-<div class="sidebar-background"></div>
-
 </div>
