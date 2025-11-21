@@ -34,6 +34,8 @@ class DriverController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:drivers'],
             'type' => ['required', 'integer', 'in:1,2'],
+            'email' => ['nullable', 'email', 'max:255', 'unique:drivers'],
+            'password' => ['nullable', 'string', 'min:8'],
             'license_number' => ['nullable', 'string', 'max:255', 'unique:drivers'],
             'contact' => ['nullable', 'string', 'max:255'],
             'vehicle_info' => ['nullable', 'string'],
@@ -50,6 +52,12 @@ class DriverController extends Controller
         if ($request->hasFile('photo')) {
             $photoPath = $request->file('photo')->store('drivers', 'public');
             $validated['photo'] = $photoPath;
+        }
+
+        // Password will be automatically hashed by the Driver model
+        // Remove password from validated if empty
+        if (empty($validated['password'])) {
+            unset($validated['password']);
         }
 
         Driver::create($validated);
@@ -81,6 +89,8 @@ class DriverController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('drivers')->ignore($driver->id)],
             'type' => ['required', 'integer', 'in:1,2'],
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('drivers')->ignore($driver->id)],
+            'password' => ['nullable', 'string', 'min:8'],
             'license_number' => ['nullable', 'string', 'max:255', Rule::unique('drivers')->ignore($driver->id)],
             'contact' => ['nullable', 'string', 'max:255'],
             'vehicle_info' => ['nullable', 'string'],
@@ -99,6 +109,12 @@ class DriverController extends Controller
         } else {
             // Keep existing photo if no new photo is uploaded
             unset($validated['photo']);
+        }
+
+        // Password will be automatically hashed by the Driver model
+        // Remove password from validated if empty (keep current password)
+        if (empty($validated['password'])) {
+            unset($validated['password']);
         }
 
         $driver->update($validated);

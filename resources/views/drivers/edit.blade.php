@@ -74,6 +74,30 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email', $driver->email) }}" placeholder="Enter email address">
+                                <small class="text-muted">Optional - Required for driver to login via mobile app</small>
+                                @error('email')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" name="password" placeholder="Enter new password">
+                                <small class="text-muted">Leave blank to keep current password</small>
+                                @error('password')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
                                 <label for="license_number" class="form-label">License Number</label>
                                 <input type="text" class="form-control @error('license_number') is-invalid @enderror" id="license_number" name="license_number" value="{{ old('license_number', $driver->license_number) }}" placeholder="Enter license number">
                                 @error('license_number')
@@ -82,7 +106,6 @@
                             </div>
                         </div>
 
-                    <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="contact" class="form-label">Contact</label>
@@ -92,7 +115,9 @@
                                 @enderror
                             </div>
                         </div>
+                    </div>
 
+                    <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="age" class="form-label">Age</label>

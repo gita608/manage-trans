@@ -61,20 +61,40 @@
                                     <td>{{ $driver->name }}</td>
                                 </tr>
                                 <tr>
+                                    <th>Type:</th>
+                                    <td>
+                                        <span class="badge bg-{{ $driver->type == 1 ? 'primary' : 'info' }}">
+                                            {{ $driver->getTypeLabel() }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Email:</th>
+                                    <td>
+                                        @if($driver->email)
+                                            {{ $driver->email }}
+                                            <span class="badge bg-success ms-2">API Enabled</span>
+                                        @else
+                                            <span class="text-muted">Not set</span>
+                                            <span class="badge bg-warning ms-2">API Disabled</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                                <tr>
                                     <th>License Number:</th>
-                                    <td>{{ $driver->license_number }}</td>
+                                    <td>{{ $driver->license_number ?? 'N/A' }}</td>
                                 </tr>
                                 <tr>
                                     <th>Contact:</th>
-                                    <td>{{ $driver->contact }}</td>
+                                    <td>{{ $driver->contact ?? 'N/A' }}</td>
                                 </tr>
                                 <tr>
                                     <th>Age:</th>
-                                    <td>{{ $driver->age }} years</td>
+                                    <td>{{ $driver->age ? $driver->age . ' years' : 'N/A' }}</td>
                                 </tr>
                                 <tr>
                                     <th>Vehicle Information:</th>
-                                    <td>{{ $driver->vehicle_info }}</td>
+                                    <td>{{ $driver->vehicle_info ?? 'N/A' }}</td>
                                 </tr>
                                 <tr>
                                     <th>Created At:</th>
