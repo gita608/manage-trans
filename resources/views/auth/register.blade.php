@@ -21,6 +21,8 @@
     <link href="{{ asset('assets/css/app.min.css') }}" rel="stylesheet" type="text/css" />
     <!-- custom Css-->
     <link href="{{ asset('assets/css/custom.min.css') }}" rel="stylesheet" type="text/css" />
+    <!-- Dark Mode Custom Styles -->
+    <link href="{{ asset('assets/css/dark-mode-custom.css') }}" rel="stylesheet" type="text/css" />
 
     <style>
         :root {
@@ -44,28 +46,25 @@
             --orb-opacity: 0.2;
         }
 
-        [data-theme="dark"],
-        @media (prefers-color-scheme: dark) {
-            :root {
-                /* Dark Mode Colors */
-                --bg-primary: #0f172a;
-                --bg-secondary: #1e293b;
-                --bg-tertiary: #334155;
-                --text-primary: #f8fafc;
-                --text-secondary: #cbd5e1;
-                --text-tertiary: #94a3b8;
-                --border-color: rgba(99, 102, 241, 0.2);
-                --card-bg: rgba(15, 23, 42, 0.8);
-                --input-bg: rgba(15, 23, 42, 0.6);
-                --input-border: rgba(99, 102, 241, 0.2);
-                --input-focus-border: #6366f1;
-                --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-                --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-                --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-                --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
-                --grid-opacity: 0.3;
-                --orb-opacity: 0.3;
-            }
+        [data-bs-theme="dark"] {
+            /* Dark Mode Colors */
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-tertiary: #94a3b8;
+            --border-color: rgba(99, 102, 241, 0.2);
+            --card-bg: rgba(15, 23, 42, 0.8);
+            --input-bg: rgba(15, 23, 42, 0.6);
+            --input-border: rgba(99, 102, 241, 0.2);
+            --input-focus-border: #6366f1;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+            --grid-opacity: 0.3;
+            --orb-opacity: 0.3;
         }
 
         * {
@@ -82,8 +81,9 @@
             align-items: center;
             justify-content: center;
             position: relative;
-            overflow: hidden;
-            padding: 20px 0;
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding: 40px 0;
             transition: background 0.3s ease;
         }
 
@@ -157,6 +157,7 @@
             padding: 20px;
             position: relative;
             z-index: 1;
+            min-height: auto;
         }
 
         .auth-container {
@@ -239,7 +240,7 @@
         }
 
         .auth-right {
-            padding: 60px;
+            padding: 40px 50px;
             background: var(--bg-secondary);
             display: flex;
             flex-direction: column;
@@ -248,34 +249,34 @@
         }
 
         .auth-form-header {
-            margin-bottom: 40px;
+            margin-bottom: 24px;
         }
 
         .auth-form-header h2 {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
             color: var(--text-primary);
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             letter-spacing: -0.5px;
             transition: color 0.3s ease;
         }
 
         .auth-form-header p {
-            font-size: 16px;
+            font-size: 14px;
             color: var(--text-tertiary);
             transition: color 0.3s ease;
         }
 
         .form-group {
-            margin-bottom: 24px;
+            margin-bottom: 16px;
         }
 
         .form-label {
             display: block;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             color: var(--text-secondary);
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             letter-spacing: 0.3px;
             transition: color 0.3s ease;
         }
@@ -301,12 +302,12 @@
 
         .form-control {
             width: 100%;
-            padding: 16px 20px 16px 56px;
+            padding: 12px 20px 12px 50px;
             background: var(--input-bg);
             border: 2px solid var(--input-border);
-            border-radius: 12px;
+            border-radius: 10px;
             color: var(--text-primary);
-            font-size: 15px;
+            font-size: 14px;
             transition: all 0.3s ease;
             outline: none;
         }
@@ -346,10 +347,10 @@
         }
 
         .password-strength {
-            margin-top: 12px;
-            height: 6px;
+            margin-top: 8px;
+            height: 4px;
             background: var(--bg-tertiary);
-            border-radius: 3px;
+            border-radius: 2px;
             overflow: hidden;
             transition: background 0.3s ease;
         }
@@ -363,8 +364,8 @@
         }
 
         .password-strength-text {
-            margin-top: 8px;
-            font-size: 12px;
+            margin-top: 6px;
+            font-size: 11px;
             font-weight: 500;
             text-align: right;
             transition: color 0.3s ease;
@@ -375,13 +376,13 @@
         .password-strength-strong { color: #10b981; }
 
         .terms-section {
-            margin: 24px 0;
+            margin: 16px 0;
         }
 
         .terms-text {
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text-tertiary);
-            line-height: 1.6;
+            line-height: 1.5;
             text-align: center;
             transition: color 0.3s ease;
         }
@@ -399,12 +400,12 @@
 
         .btn-submit {
             width: 100%;
-            padding: 16px 24px;
+            padding: 12px 24px;
             background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             color: white;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -437,11 +438,11 @@
         }
 
         .alert {
-            padding: 16px 20px;
-            border-radius: 12px;
-            margin-bottom: 24px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
             border-left: 4px solid;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .alert-danger {
@@ -450,18 +451,15 @@
             color: #dc2626;
         }
 
-        [data-theme="dark"] .alert-danger,
-        @media (prefers-color-scheme: dark) {
-            .alert-danger {
-                background: rgba(239, 68, 68, 0.2);
-                color: #fca5a5;
-            }
+        [data-bs-theme="dark"] .alert-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
         }
 
         .auth-footer {
-            margin-top: 32px;
+            margin-top: 20px;
             text-align: center;
-            padding-top: 32px;
+            padding-top: 20px;
             border-top: 1px solid var(--border-color);
             transition: border-color 0.3s ease;
         }
@@ -508,28 +506,25 @@
         }
 
         /* Dark mode specific adjustments */
-        [data-theme="dark"],
-        @media (prefers-color-scheme: dark) {
-            body {
-                background: #0f172a;
-            }
+        [data-bs-theme="dark"] body {
+            background: #0f172a;
+        }
 
-            .auth-right {
-                background: rgba(30, 41, 59, 0.5);
-            }
+        [data-bs-theme="dark"] .auth-right {
+            background: rgba(30, 41, 59, 0.5);
+        }
 
-            .form-control {
-                background: rgba(15, 23, 42, 0.6);
-                border-color: rgba(99, 102, 241, 0.2);
-            }
+        [data-bs-theme="dark"] .form-control {
+            background: rgba(15, 23, 42, 0.6);
+            border-color: rgba(99, 102, 241, 0.2);
+        }
 
-            .form-control:focus {
-                background: rgba(15, 23, 42, 0.8);
-            }
+        [data-bs-theme="dark"] .form-control:focus {
+            background: rgba(15, 23, 42, 0.8);
+        }
 
-            .password-strength {
-                background: rgba(15, 23, 42, 0.6);
-            }
+        [data-bs-theme="dark"] .password-strength {
+            background: rgba(15, 23, 42, 0.6);
         }
 
         @media (max-width: 968px) {
@@ -552,6 +547,10 @@
         }
 
         @media (max-width: 576px) {
+            body {
+                padding: 20px 0;
+            }
+
             .auth-wrapper {
                 padding: 16px;
             }
@@ -721,25 +720,6 @@
     <script src="{{ asset('assets/js/plugins.js') }}"></script>
 
     <script>
-        // Detect and apply theme
-        function applyTheme() {
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const savedTheme = localStorage.getItem('theme');
-            const theme = savedTheme || (prefersDark ? 'dark' : 'light');
-            
-            if (theme === 'dark') {
-                document.documentElement.setAttribute('data-theme', 'dark');
-            } else {
-                document.documentElement.removeAttribute('data-theme');
-            }
-        }
-
-        // Apply theme on load
-        applyTheme();
-
-        // Listen for theme changes
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
-
         // Password toggle functionality
         function setupPasswordToggle(toggleId, inputId) {
             const toggle = document.getElementById(toggleId);

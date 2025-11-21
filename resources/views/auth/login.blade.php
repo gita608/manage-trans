@@ -21,6 +21,8 @@
     <link href="{{ asset('assets/css/app.min.css') }}" rel="stylesheet" type="text/css" />
     <!-- custom Css-->
     <link href="{{ asset('assets/css/custom.min.css') }}" rel="stylesheet" type="text/css" />
+    <!-- Dark Mode Custom Styles -->
+    <link href="{{ asset('assets/css/dark-mode-custom.css') }}" rel="stylesheet" type="text/css" />
 
     <style>
         :root {
@@ -44,28 +46,25 @@
             --orb-opacity: 0.2;
         }
 
-        [data-theme="dark"],
-        @media (prefers-color-scheme: dark) {
-            :root {
-                /* Dark Mode Colors */
-                --bg-primary: #0f172a;
-                --bg-secondary: #1e293b;
-                --bg-tertiary: #334155;
-                --text-primary: #f8fafc;
-                --text-secondary: #cbd5e1;
-                --text-tertiary: #94a3b8;
-                --border-color: rgba(99, 102, 241, 0.2);
-                --card-bg: rgba(15, 23, 42, 0.8);
-                --input-bg: rgba(15, 23, 42, 0.6);
-                --input-border: rgba(99, 102, 241, 0.2);
-                --input-focus-border: #6366f1;
-                --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-                --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-                --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-                --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
-                --grid-opacity: 0.3;
-                --orb-opacity: 0.3;
-            }
+        [data-bs-theme="dark"] {
+            /* Dark Mode Colors */
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-tertiary: #94a3b8;
+            --border-color: rgba(99, 102, 241, 0.2);
+            --card-bg: rgba(15, 23, 42, 0.8);
+            --input-bg: rgba(15, 23, 42, 0.6);
+            --input-border: rgba(99, 102, 241, 0.2);
+            --input-focus-border: #6366f1;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+            --grid-opacity: 0.3;
+            --orb-opacity: 0.3;
         }
 
         * {
@@ -82,7 +81,9 @@
             align-items: center;
             justify-content: center;
             position: relative;
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding: 40px 0;
             transition: background 0.3s ease;
         }
 
@@ -442,12 +443,9 @@
             color: #dc2626;
         }
 
-        [data-theme="dark"] .alert-danger,
-        @media (prefers-color-scheme: dark) {
-            .alert-danger {
-                background: rgba(239, 68, 68, 0.2);
-                color: #fca5a5;
-            }
+        [data-bs-theme="dark"] .alert-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
         }
 
         .auth-footer {
@@ -475,45 +473,22 @@
             color: #8b5cf6;
         }
 
-        /* Light mode specific adjustments */
-        @media (prefers-color-scheme: light) {
-            body {
-                background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 50%, #fce7f3 100%);
-            }
-
-            .auth-right {
-                background: rgba(255, 255, 255, 0.95);
-            }
-
-            .form-control {
-                background: #ffffff;
-                border-color: #e2e8f0;
-            }
-
-            .form-control:focus {
-                background: #ffffff;
-            }
+        /* Dark mode specific adjustments */
+        [data-bs-theme="dark"] body {
+            background: #0f172a;
         }
 
-        /* Dark mode specific adjustments */
-        [data-theme="dark"],
-        @media (prefers-color-scheme: dark) {
-            body {
-                background: #0f172a;
-            }
+        [data-bs-theme="dark"] .auth-right {
+            background: rgba(30, 41, 59, 0.5);
+        }
 
-            .auth-right {
-                background: rgba(30, 41, 59, 0.5);
-            }
+        [data-bs-theme="dark"] .form-control {
+            background: rgba(15, 23, 42, 0.6);
+            border-color: rgba(99, 102, 241, 0.2);
+        }
 
-            .form-control {
-                background: rgba(15, 23, 42, 0.6);
-                border-color: rgba(99, 102, 241, 0.2);
-            }
-
-            .form-control:focus {
-                background: rgba(15, 23, 42, 0.8);
-            }
+        [data-bs-theme="dark"] .form-control:focus {
+            background: rgba(15, 23, 42, 0.8);
         }
 
         @media (max-width: 968px) {
@@ -536,6 +511,10 @@
         }
 
         @media (max-width: 576px) {
+            body {
+                padding: 20px 0;
+            }
+
             .auth-wrapper {
                 padding: 16px;
             }
@@ -681,25 +660,6 @@
     <script src="{{ asset('assets/js/plugins.js') }}"></script>
 
     <script>
-        // Detect and apply theme
-        function applyTheme() {
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const savedTheme = localStorage.getItem('theme');
-            const theme = savedTheme || (prefersDark ? 'dark' : 'light');
-            
-            if (theme === 'dark') {
-                document.documentElement.setAttribute('data-theme', 'dark');
-            } else {
-                document.documentElement.removeAttribute('data-theme');
-            }
-        }
-
-        // Apply theme on load
-        applyTheme();
-
-        // Listen for theme changes
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
-
         // Password toggle
         document.getElementById('password-addon')?.addEventListener('click', function() {
             const passwordInput = document.getElementById('password-input');
