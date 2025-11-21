@@ -217,7 +217,9 @@
         }
 
         .auth-logo img {
-            height: 60px;
+            height: 180px;
+            width: auto;
+            max-width: 100%;
             filter: brightness(0) invert(1);
         }
 

@@ -12,8 +12,8 @@
             <span class="logo-sm">
                 <img src="{{ $logoSm }}" alt="" height="35">
             </span>
-            <span class="logo-lg" style="width: 180px !important; height: auto !important; display: flex !important; align-items: center !important; justify-content: center !important;">
-                <img src="{{ $logoDark }}" alt="" style="max-width: 100%; height: auto; max-height: 80px; width: auto;">
+            <span class="logo-lg" style="width: 220px !important; height: auto !important; display: flex !important; align-items: center !important; justify-content: center !important; padding: 10px 0;">
+                <img src="{{ $logoDark }}" alt="" style="max-width: 100%; height: auto; max-height: 100px; width: auto;">
             </span>
         </a>
         <!-- Light Logo-->
@@ -21,8 +21,8 @@
             <span class="logo-sm">
                 <img src="{{ $logoSm }}" alt="" height="35">
             </span>
-            <span class="logo-lg" style="width: 180px !important; height: auto !important; display: flex !important; align-items: center !important; justify-content: center !important;">
-                <img src="{{ $logoLight }}" alt="" style="max-width: 100%; height: auto; max-height: 80px; width: auto;">
+            <span class="logo-lg" style="width: 220px !important; height: auto !important; display: flex !important; align-items: center !important; justify-content: center !important; padding: 10px 0;">
+                <img src="{{ $logoLight }}" alt="" style="max-width: 100%; height: auto; max-height: 100px; width: auto;">
             </span>
         </a>
         <button type="button" class="btn btn-sm p-0 fs-20 header-item float-end btn-vertical-sm-hover"
