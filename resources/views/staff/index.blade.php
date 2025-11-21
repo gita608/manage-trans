@@ -47,7 +47,7 @@
 
 <!-- Staff List -->
 <div class="card border shadow-sm">
-    <div class="card-header bg-light border-bottom">
+    <div class="card-header border-bottom">
         <h5 class="card-title mb-0">All Staff Members</h5>
     </div>
     <div class="card-body">

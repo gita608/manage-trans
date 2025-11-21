@@ -35,7 +35,7 @@
         <!-- Application Settings -->
         <div class="col-lg-6">
             <div class="card">
-                <div class="card-header bg-light">
+                <div class="card-header">
                     <h5 class="card-title mb-0">
                         <i class="ri-settings-3-line me-2 align-middle"></i>Application Settings
                     </h5>
@@ -111,7 +111,7 @@
         <!-- Authentication Settings -->
         <div class="col-lg-6">
             <div class="card">
-                <div class="card-header bg-light">
+                <div class="card-header">
                     <h5 class="card-title mb-0">
                         <i class="ri-shield-user-line me-2 align-middle"></i>Authentication Settings
                     </h5>

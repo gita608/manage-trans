@@ -12,6 +12,8 @@
 
     <!-- Layout config Js -->
     <script src="{{ asset('assets/js/layout.js') }}"></script>
+    <!-- Dark Mode Persistence Fix -->
+    <script src="{{ asset('assets/js/dark-mode-fix.js') }}"></script>
     <!-- Bootstrap Css -->
     <link href="{{ asset('assets/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css" />
     <!-- Icons Css -->
@@ -20,6 +22,8 @@
     <link href="{{ asset('assets/css/app.min.css') }}" rel="stylesheet" type="text/css" />
     <!-- custom Css-->
     <link href="{{ asset('assets/css/custom.min.css') }}" rel="stylesheet" type="text/css" />
+    <!-- Dark Mode Custom Styles -->
+    <link href="{{ asset('assets/css/dark-mode-custom.css') }}" rel="stylesheet" type="text/css" />
 </head>
 
 <body>
@@ -40,7 +44,7 @@
                     <!-- Welcome Section -->
                     <div class="row mb-3">
                         <div class="col-12">
-                            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <div class="card border-0 shadow-sm bg-primary-gradient">
                                 <div class="card-body p-4">
                                     <div class="d-flex align-items-center justify-content-between">
                                         <div>
@@ -173,7 +177,7 @@
                     <div class="row g-3">
                         <div class="col-xl-4 col-md-12">
                             <div class="card border-0 shadow-sm h-100">
-                                <div class="card-header bg-light border-bottom">
+                                <div class="card-header border-bottom">
                                     <h6 class="card-title mb-0 fw-semibold">Trip Status</h6>
                                 </div>
                                 <div class="card-body">
@@ -219,7 +223,7 @@
                         <!-- Recent Trips -->
                         <div class="col-xl-8 col-md-12">
                             <div class="card border-0 shadow-sm h-100">
-                                <div class="card-header bg-light border-bottom">
+                                <div class="card-header border-bottom">
                                     <div class="d-flex align-items-center justify-content-between">
                                         <h6 class="card-title mb-0 fw-semibold">Recent Trips</h6>
                                         <a href="{{ route('trips.index') }}" class="btn btn-sm btn-soft-primary">
@@ -230,7 +234,7 @@
                                 <div class="card-body p-0">
                                     <div class="table-responsive">
                                         <table class="table table-hover table-nowrap align-middle mb-0">
-                                            <thead class="bg-light">
+                                            <thead>
                                                 <tr>
                                                     <th class="ps-4">Crew Name</th>
                                                     <th>Driver</th>
@@ -288,7 +292,7 @@
                         @if($busiestDriver)
                         <div class="col-xl-6">
                             <div class="card border-0 shadow-sm">
-                                <div class="card-header bg-light border-bottom">
+                                <div class="card-header border-bottom">
                                     <h6 class="card-title mb-0 fw-semibold">
                                         <i class="ri-trophy-line me-2 text-warning"></i>Busiest Driver
                                     </h6>
@@ -345,7 +349,7 @@
                         <!-- Top 5 Drivers -->
                         <div class="col-xl-6">
                             <div class="card border-0 shadow-sm h-100">
-                                <div class="card-header bg-light border-bottom">
+                                <div class="card-header border-bottom">
                                     <div class="d-flex align-items-center justify-content-between">
                                         <h6 class="card-title mb-0 fw-semibold">Top 5 Drivers</h6>
                                         <a href="{{ route('reports.driver-performance') }}" class="btn btn-sm btn-soft-primary">
@@ -419,7 +423,7 @@
                     <div class="row">
                         <div class="col-12">
                             <div class="card border-0 shadow-sm">
-                                <div class="card-header bg-light border-bottom">
+                                <div class="card-header border-bottom">
                                     <h6 class="card-title mb-0 fw-semibold">Activity Log</h6>
                                 </div>
                                 <div class="card-body">

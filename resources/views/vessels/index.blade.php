@@ -57,7 +57,7 @@
 <div class="row">
     <div class="col-lg-12">
         <div class="card border shadow-sm">
-            <div class="card-header bg-light border-bottom">
+            <div class="card-header border-bottom">
                 <h5 class="card-title mb-0">All Vessels</h5>
             </div>
             <div class="card-body">

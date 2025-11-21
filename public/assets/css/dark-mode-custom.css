@@ -680,3 +680,15 @@
                 color 0.2s ease-in-out;
 }
 
+/* ========================================
+   CUSTOM - Gradient Backgrounds
+   ======================================== */
+
+.bg-primary-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+[data-bs-theme="dark"] .bg-primary-gradient {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+}
+

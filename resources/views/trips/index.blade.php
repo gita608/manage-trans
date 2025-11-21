@@ -90,7 +90,7 @@
 <!-- Collapsible Image Upload Section -->
 <div class="collapse mb-4" id="extractSection">
     <div class="card border shadow-sm">
-        <div class="card-header bg-light border-bottom">
+        <div class="card-header border-bottom">
             <h5 class="card-title mb-0">
                 <i class="ri-file-upload-line me-2 text-primary"></i>AI-Powered Trip Extraction
             </h5>
@@ -160,7 +160,7 @@
 <div class="row">
     <div class="col-lg-12">
         <div class="card border shadow-sm">
-            <div class="card-header bg-light border-bottom">
+            <div class="card-header border-bottom">
                 <div class="d-flex align-items-center justify-content-between">
                     <h5 class="card-title mb-0">All Trips</h5>
                     <div class="d-flex gap-2">

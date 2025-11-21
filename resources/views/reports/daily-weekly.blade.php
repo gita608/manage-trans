@@ -25,7 +25,7 @@
 <div class="row mb-4">
     <div class="col-12">
         <div class="card border shadow-sm">
-            <div class="card-header bg-light border-bottom">
+            <div class="card-header border-bottom">
                 <h6 class="card-title mb-0">Filters</h6>
             </div>
             <div class="card-body">
@@ -168,7 +168,7 @@
 <div class="row g-3 mb-4">
     <div class="col-xl-6">
         <div class="card border shadow-sm">
-            <div class="card-header bg-light border-bottom">
+            <div class="card-header border-bottom">
                 <h6 class="card-title mb-0">Trips by {{ ucfirst($reportType) }}</h6>
             </div>
             <div class="card-body">
@@ -179,7 +179,7 @@
 
     <div class="col-xl-6">
         <div class="card border shadow-sm">
-            <div class="card-header bg-light border-bottom">
+            <div class="card-header border-bottom">
                 <h6 class="card-title mb-0">Peak Hours</h6>
             </div>
             <div class="card-body">
@@ -193,7 +193,7 @@
 <div class="row g-3 mb-4">
     <div class="col-xl-6">
         <div class="card border shadow-sm">
-            <div class="card-header bg-light border-bottom">
+            <div class="card-header border-bottom">
                 <h6 class="card-title mb-0">Busiest Days</h6>
             </div>
             <div class="card-body">
@@ -223,7 +223,7 @@
 
     <div class="col-xl-6">
         <div class="card border shadow-sm">
-            <div class="card-header bg-light border-bottom">
+            <div class="card-header border-bottom">
                 <h6 class="card-title mb-0">{{ ucfirst($reportType) }} Statistics</h6>
             </div>
             <div class="card-body">
@@ -258,13 +258,13 @@
 <div class="row">
     <div class="col-12">
         <div class="card border shadow-sm">
-            <div class="card-header bg-light border-bottom">
+            <div class="card-header border-bottom">
                 <h6 class="card-title mb-0">Trip Details</h6>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-hover table-nowrap align-middle mb-0">
-                        <thead class="bg-light">
+                        <thead>
                             <tr>
                                 <th>Date</th>
                                 <th>Crew Name</th>

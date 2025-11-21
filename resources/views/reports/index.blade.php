@@ -91,7 +91,7 @@
 <div class="row mt-4">
     <div class="col-12">
         <div class="card border shadow-sm">
-            <div class="card-header bg-light border-bottom">
+            <div class="card-header border-bottom">
                 <h5 class="card-title mb-0">Report Features</h5>
             </div>
             <div class="card-body">
