@@ -68,6 +68,7 @@
                             <tr>
                                 <th scope="col">Photo</th>
                                 <th scope="col">Name</th>
+                                <th scope="col">Type</th>
                                 <th scope="col">License Number</th>
                                 <th scope="col">Contact</th>
                                 <th scope="col">Age</th>
@@ -88,12 +89,19 @@
                                         @endif
                                     </td>
                                     <td>{{ $driver->name }}</td>
-                                    <td>{{ $driver->license_number }}</td>
-                                    <td>{{ $driver->contact }}</td>
-                                    <td>{{ $driver->age }}</td>
+                                    <td>
+                                        @if($driver->type == \App\Models\Driver::TYPE_INTERNAL)
+                                            <span class="badge bg-info">Internal</span>
+                                        @else
+                                            <span class="badge bg-warning">Outsourcing</span>
+                                        @endif
+                                    </td>
+                                    <td>{{ $driver->license_number ?? '-' }}</td>
+                                    <td>{{ $driver->contact ?? '-' }}</td>
+                                    <td>{{ $driver->age ?? '-' }}</td>
                                     <td>
                                         <span class="text-truncate d-inline-block" style="max-width: 200px;" title="{{ $driver->vehicle_info }}">
-                                            {{ $driver->vehicle_info }}
+                                            {{ $driver->vehicle_info ?? '-' }}
                                         </span>
                                     </td>
                                     <td>

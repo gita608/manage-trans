@@ -54,6 +54,17 @@ class DashboardController extends Controller
             ->orderBy('month', 'asc')
             ->get();
         
+        // Get busiest driver (most trips)
+        $busiestDriver = Driver::withCount('trips')
+            ->orderBy('trips_count', 'desc')
+            ->first();
+        
+        // Get top 5 busiest drivers
+        $topDrivers = Driver::withCount('trips')
+            ->orderBy('trips_count', 'desc')
+            ->take(5)
+            ->get();
+        
         return view('dashboard', compact(
             'totalDrivers',
             'totalVessels',
@@ -64,7 +75,9 @@ class DashboardController extends Controller
             'completedTrips',
             'recentTrips',
             'recentActivities',
-            'tripsByMonth'
+            'tripsByMonth',
+            'busiestDriver',
+            'topDrivers'
         ));
     }
 }

@@ -175,34 +175,34 @@
                 <!-- Collapsible Filter Section -->
                 <div class="collapse show" id="filterSection">
                     <div class="row g-3 mb-4 p-3 bg-light rounded">
-                        <div class="col-sm-6 col-md-3">
+                    <div class="col-sm-6 col-md-3">
                             <label class="form-label fw-semibold">
                                 <i class="ri-user-line me-1"></i>Driver
                             </label>
-                            <select id="filter-driver" class="form-select">
-                                <option value="">All Drivers</option>
-                                @foreach($drivers as $d)
-                                    <option value="{{ $d->name }}">{{ $d->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-sm-6 col-md-3">
+                        <select id="filter-driver" class="form-select">
+                            <option value="">All Drivers</option>
+                            @foreach($drivers as $d)
+                                <option value="{{ $d->name }}">{{ $d->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
                             <label class="form-label fw-semibold">
                                 <i class="ri-ship-line me-1"></i>Vessel
                             </label>
-                            <select id="filter-vessel" class="form-select">
-                                <option value="">All Vessels</option>
-                                @foreach($vessels as $v)
-                                    <option value="{{ $v->name }}">{{ $v->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-sm-6 col-md-3">
+                        <select id="filter-vessel" class="form-select">
+                            <option value="">All Vessels</option>
+                            @foreach($vessels as $v)
+                                <option value="{{ $v->name }}">{{ $v->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
                             <label class="form-label fw-semibold">
                                 <i class="ri-calendar-line me-1"></i>Date
                             </label>
-                            <input type="date" id="filter-date" class="form-control">
-                        </div>
+                        <input type="date" id="filter-date" class="form-control">
+                    </div>
                         <div class="col-sm-6 col-md-3 d-flex align-items-end gap-2">
                             <button type="button" id="filter-apply" class="btn btn-primary flex-fill">
                                 <i class="ri-search-line me-1"></i> Apply

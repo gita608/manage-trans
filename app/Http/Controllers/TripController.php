@@ -286,11 +286,12 @@ class TripController extends Controller
                 $driver = Driver::whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($driverName) . '%'])->first();
             }
             
-            // If still not found, create a new driver
+            // If still not found, create a new driver (default to internal type)
             if (!$driver) {
                 try {
                     $driver = Driver::create([
                         'name' => $driverName,
+                        'type' => Driver::TYPE_INTERNAL, // Default to internal for auto-created drivers
                     ]);
                     $driversCreated++;
                     Log::info('Auto-created driver: ' . $driverName);

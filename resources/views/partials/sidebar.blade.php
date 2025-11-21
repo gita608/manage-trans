@@ -93,6 +93,15 @@
                 </li>
                 @endif
 
+                @if(auth()->user()->hasPermission('view_reports'))
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('reports.*') ? 'active' : '' }}"
+                        href="{{ route('reports.index') }}">
+                        <i class="ri-file-chart-line"></i> <span>Reports</span>
+                    </a>
+                </li>
+                @endif
+
                 @if(auth()->user()->hasPermission('manage_permissions'))
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('permissions.*') ? 'active' : '' }}"

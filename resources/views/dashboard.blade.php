@@ -277,6 +277,138 @@
                         </div>
                     </div>
 
+                    <!-- Busiest Driver -->
+                    <div class="row mt-4">
+                        <div class="col-12 mb-2">
+                            <h5 class="text-muted">Driver Performance</h5>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        @if($busiestDriver)
+                        <div class="col-xl-6">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-light border-bottom">
+                                    <h6 class="card-title mb-0 fw-semibold">
+                                        <i class="ri-trophy-line me-2 text-warning"></i>Busiest Driver
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        @if($busiestDriver->photo)
+                                            <img src="{{ asset('storage/' . $busiestDriver->photo) }}" alt="{{ $busiestDriver->name }}" class="rounded-circle avatar-lg me-3">
+                                        @else
+                                            <div class="avatar-lg rounded-circle bg-primary-subtle d-flex align-items-center justify-content-center me-3">
+                                                <span class="text-primary fs-3 fw-bold">{{ substr($busiestDriver->name, 0, 1) }}</span>
+                                            </div>
+                                        @endif
+                                        <div class="flex-grow-1">
+                                            <h5 class="mb-1 fw-bold">{{ $busiestDriver->name }}</h5>
+                                            <p class="text-muted mb-0 small">
+                                                @if($busiestDriver->type == \App\Models\Driver::TYPE_INTERNAL)
+                                                    <span class="badge bg-info">Internal</span>
+                                                @else
+                                                    <span class="badge bg-warning">Outsourcing</span>
+                                                @endif
+                                                @if($busiestDriver->contact)
+                                                    <span class="ms-2"><i class="ri-phone-line me-1"></i>{{ $busiestDriver->contact }}</span>
+                                                @endif
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="row g-3 mt-3">
+                                        <div class="col-6">
+                                            <div class="p-3 bg-primary-subtle rounded text-center">
+                                                <h3 class="mb-0 fw-bold text-primary">{{ $busiestDriver->trips_count }}</h3>
+                                                <p class="text-muted mb-0 small">Total Trips</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="p-3 bg-success-subtle rounded text-center">
+                                                <h3 class="mb-0 fw-bold text-success">
+                                                    {{ $busiestDriver->trips()->where('status', \App\Models\Trip::STATUS_COMPLETED)->count() }}
+                                                </h3>
+                                                <p class="text-muted mb-0 small">Completed</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <a href="{{ route('drivers.show', $busiestDriver) }}" class="btn btn-sm btn-primary w-100">
+                                            <i class="ri-eye-line me-1"></i> View Driver Details
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
+                        <!-- Top 5 Drivers -->
+                        <div class="col-xl-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-light border-bottom">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <h6 class="card-title mb-0 fw-semibold">Top 5 Drivers</h6>
+                                        <a href="{{ route('reports.driver-performance') }}" class="btn btn-sm btn-soft-primary">
+                                            View Report <i class="ri-arrow-right-line align-middle ms-1"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Rank</th>
+                                                    <th>Driver</th>
+                                                    <th class="text-end">Trips</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @forelse($topDrivers as $index => $driver)
+                                                <tr>
+                                                    <td>
+                                                        @if($index == 0)
+                                                            <span class="badge bg-warning">🥇</span>
+                                                        @elseif($index == 1)
+                                                            <span class="badge bg-secondary">🥈</span>
+                                                        @elseif($index == 2)
+                                                            <span class="badge bg-warning-subtle">🥉</span>
+                                                        @else
+                                                            <span class="text-muted">#{{ $index + 1 }}</span>
+                                                        @endif
+                                                    </td>
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            @if($driver->photo)
+                                                                <img src="{{ asset('storage/' . $driver->photo) }}" alt="{{ $driver->name }}" class="rounded-circle avatar-xs me-2">
+                                                            @else
+                                                                <div class="avatar-xs rounded-circle bg-primary-subtle d-flex align-items-center justify-content-center me-2">
+                                                                    <span class="text-primary small">{{ substr($driver->name, 0, 1) }}</span>
+                                                                </div>
+                                                            @endif
+                                                            <span class="fw-medium">{{ $driver->name }}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <span class="badge bg-primary">{{ $driver->trips_count }}</span>
+                                                    </td>
+                                                </tr>
+                                                @empty
+                                                <tr>
+                                                    <td colspan="3" class="text-center text-muted py-3">
+                                                        <i class="ri-user-line fs-3 mb-2 d-block"></i>
+                                                        No drivers found
+                                                    </td>
+                                                </tr>
+                                                @endforelse
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Recent Activity -->
                     <div class="row mt-4">
                         <div class="col-12 mb-2">

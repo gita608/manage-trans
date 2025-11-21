@@ -11,6 +11,7 @@ use App\Http\Controllers\StaffController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\ReportController;
 
 // Root route - show login for guests, redirect to dashboard if authenticated
 Route::get('/', [AuthController::class, 'root'])->name('home');
@@ -160,5 +161,13 @@ Route::middleware(['auth'])->group(function () {
     // Activity Log Routes
     Route::middleware(['permission:view_activity_logs'])->group(function () {
         Route::get('/activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs');
+    });
+
+    // Report Routes
+    Route::middleware(['permission:view_reports'])->group(function () {
+        Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/trip-summary', [ReportController::class, 'tripSummary'])->name('reports.trip-summary');
+        Route::get('/reports/driver-performance', [ReportController::class, 'driverPerformance'])->name('reports.driver-performance');
+        Route::get('/reports/daily-weekly', [ReportController::class, 'dailyWeekly'])->name('reports.daily-weekly');
     });
 });

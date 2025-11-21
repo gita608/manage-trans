@@ -57,9 +57,14 @@
 
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="license_number" class="form-label">License Number <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('license_number') is-invalid @enderror" id="license_number" name="license_number" value="{{ old('license_number', $driver->license_number) }}" placeholder="Enter license number" required>
-                                @error('license_number')
+                                <label for="type" class="form-label">Driver Type <span class="text-danger">*</span></label>
+                                <select class="form-select @error('type') is-invalid @enderror" id="type" name="type" required>
+                                    <option value="">Select Type</option>
+                                    @foreach(\App\Models\Driver::getTypes() as $key => $label)
+                                        <option value="{{ $key }}" {{ old('type', $driver->type ?? 1) == $key ? 'selected' : '' }}>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                                @error('type')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -69,8 +74,19 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="contact" class="form-label">Contact <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('contact') is-invalid @enderror" id="contact" name="contact" value="{{ old('contact', $driver->contact) }}" placeholder="Enter contact number" required>
+                                <label for="license_number" class="form-label">License Number</label>
+                                <input type="text" class="form-control @error('license_number') is-invalid @enderror" id="license_number" name="license_number" value="{{ old('license_number', $driver->license_number) }}" placeholder="Enter license number">
+                                @error('license_number')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="contact" class="form-label">Contact</label>
+                                <input type="text" class="form-control @error('contact') is-invalid @enderror" id="contact" name="contact" value="{{ old('contact', $driver->contact) }}" placeholder="Enter contact number">
                                 @error('contact')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -79,8 +95,8 @@
 
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="age" class="form-label">Age <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control @error('age') is-invalid @enderror" id="age" name="age" value="{{ old('age', $driver->age) }}" placeholder="Enter age" min="18" max="100" required>
+                                <label for="age" class="form-label">Age</label>
+                                <input type="number" class="form-control @error('age') is-invalid @enderror" id="age" name="age" value="{{ old('age', $driver->age) }}" placeholder="Enter age" min="18" max="100">
                                 @error('age')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -89,8 +105,8 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="vehicle_info" class="form-label">Vehicle Information <span class="text-danger">*</span></label>
-                        <textarea class="form-control @error('vehicle_info') is-invalid @enderror" id="vehicle_info" name="vehicle_info" rows="3" placeholder="Enter vehicle information" required>{{ old('vehicle_info', $driver->vehicle_info) }}</textarea>
+                        <label for="vehicle_info" class="form-label">Vehicle Information</label>
+                        <textarea class="form-control @error('vehicle_info') is-invalid @enderror" id="vehicle_info" name="vehicle_info" rows="3" placeholder="Enter vehicle information">{{ old('vehicle_info', $driver->vehicle_info) }}</textarea>
                         @error('vehicle_info')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror

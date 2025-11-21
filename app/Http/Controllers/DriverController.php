@@ -33,12 +33,18 @@ class DriverController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:drivers'],
-            'license_number' => ['required', 'string', 'max:255', 'unique:drivers'],
-            'contact' => ['required', 'string', 'max:255'],
-            'vehicle_info' => ['required', 'string'],
-            'age' => ['required', 'integer', 'min:18', 'max:100'],
+            'type' => ['required', 'integer', 'in:1,2'],
+            'license_number' => ['nullable', 'string', 'max:255', 'unique:drivers'],
+            'contact' => ['nullable', 'string', 'max:255'],
+            'vehicle_info' => ['nullable', 'string'],
+            'age' => ['nullable', 'integer', 'min:18', 'max:100'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
         ]);
+
+        // Set default type if not provided
+        if (!isset($validated['type'])) {
+            $validated['type'] = Driver::TYPE_OUTSOURCING;
+        }
 
         // Handle photo upload
         if ($request->hasFile('photo')) {
@@ -74,10 +80,11 @@ class DriverController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('drivers')->ignore($driver->id)],
-            'license_number' => ['required', 'string', 'max:255', Rule::unique('drivers')->ignore($driver->id)],
-            'contact' => ['required', 'string', 'max:255'],
-            'vehicle_info' => ['required', 'string'],
-            'age' => ['required', 'integer', 'min:18', 'max:100'],
+            'type' => ['required', 'integer', 'in:1,2'],
+            'license_number' => ['nullable', 'string', 'max:255', Rule::unique('drivers')->ignore($driver->id)],
+            'contact' => ['nullable', 'string', 'max:255'],
+            'vehicle_info' => ['nullable', 'string'],
+            'age' => ['nullable', 'integer', 'min:18', 'max:100'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
         ]);
 

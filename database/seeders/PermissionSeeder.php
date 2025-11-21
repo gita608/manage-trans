@@ -55,6 +55,9 @@ class PermissionSeeder extends Seeder
             
             // Notifications
             ['name' => 'view_notifications', 'display_name' => 'View Notifications', 'category' => 'notifications', 'description' => 'View notifications'],
+            
+            // Reports
+            ['name' => 'view_reports', 'display_name' => 'View Reports', 'category' => 'reports', 'description' => 'View and access reports'],
         ];
 
         // Create permissions
@@ -83,6 +86,7 @@ class PermissionSeeder extends Seeder
             'view_drivers',
             'view_vessels',
             'view_notifications',
+            'view_reports',
         ];
 
         foreach ($staffPermissions as $permissionName) {
