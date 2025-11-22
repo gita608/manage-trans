@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Traits\HasPermissions;
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -12,7 +13,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasPermissions;
+    use HasFactory, Notifiable, HasPermissions, LogsActivity;
 
     /**
      * The attributes that are mass assignable.
@@ -73,5 +74,30 @@ class User extends Authenticatable
     public function notifications(): HasMany
     {
         return $this->hasMany(Notification::class)->latest();
+    }
+
+    /**
+     * Get activity configuration for this model.
+     *
+     * @return array
+     */
+    protected function getActivityConfig(): array
+    {
+        return [
+            'model_name' => 'User',
+            'identifier_field' => 'name',
+            'identifier_label_callback' => fn($model) => 
+                (int) $model->role === self::ROLE_ADMIN ? 'Admin' : 'Staff',
+            'field_mappings' => [
+                'name' => 'name',
+                'email' => 'email',
+                'role' => [
+                    'label' => 'role',
+                    self::ROLE_ADMIN => 'Admin',
+                    self::ROLE_STAFF => 'Staff',
+                ],
+                'password' => 'password', // Special handling in trait
+            ],
+        ];
     }
 }

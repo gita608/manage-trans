@@ -89,15 +89,15 @@ class Trip extends Model
     }
 
     /**
-     * Get a human-readable description of the activity.
-     * Override this method for custom descriptions in Trip model.
+     * Get a custom human-readable description of the activity.
+     * This method is called by the LogsActivity trait for complex cases.
      *
      * @param string $action
      * @param array|null $oldValues
      * @param array|null $newValues
      * @return string
      */
-    protected function getActivityDescription(string $action, ?array $oldValues, ?array $newValues): string
+    protected function getCustomActivityDescription(string $action, ?array $oldValues, ?array $newValues): string
     {
         // Custom descriptions for Trip model
         if ($action === 'created') {

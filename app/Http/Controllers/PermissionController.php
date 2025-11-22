@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Permission;
 use App\Models\RolePermission;
 use App\Models\User;
 use App\Models\UserPermission;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PermissionController extends Controller
 {
@@ -60,7 +62,21 @@ class PermissionController extends Controller
             $user->clearPermissionCache();
         });
 
+        // Log permission changes
+        $permissionNames = Permission::whereIn('id', $permissionIds)->pluck('name')->toArray();
         $roleName = $role == User::ROLE_ADMIN ? 'Admin' : 'Staff';
+        
+        ActivityLog::create([
+            'loggable_type' => 'App\Models\RolePermission',
+            'loggable_id' => $role,
+            'action' => 'updated',
+            'user_id' => Auth::id(),
+            'old_values' => null,
+            'new_values' => ['permissions' => $permissionNames],
+            'description' => "{$roleName} role permissions updated: " . implode(', ', $permissionNames),
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
         
         return redirect()->route('permissions.index')
             ->with('success', "{$roleName} role permissions updated successfully.");
@@ -98,6 +114,44 @@ class PermissionController extends Controller
 
         // Clear user's permission cache
         $user->clearPermissionCache();
+
+        // Log permission changes
+        $grantedPermissions = [];
+        $deniedPermissions = [];
+        foreach ($permissionIds as $permissionId) {
+            $granted = isset($permissionStatus[$permissionId]) && $permissionStatus[$permissionId] == 'granted';
+            $permission = Permission::find($permissionId);
+            if ($permission) {
+                if ($granted) {
+                    $grantedPermissions[] = $permission->name;
+                } else {
+                    $deniedPermissions[] = $permission->name;
+                }
+            }
+        }
+        
+        $description = "Permissions updated for user '{$user->name}'";
+        if (!empty($grantedPermissions)) {
+            $description .= " - Granted: " . implode(', ', $grantedPermissions);
+        }
+        if (!empty($deniedPermissions)) {
+            $description .= " - Denied: " . implode(', ', $deniedPermissions);
+        }
+        
+        ActivityLog::create([
+            'loggable_type' => 'App\Models\UserPermission',
+            'loggable_id' => $user->id,
+            'action' => 'updated',
+            'user_id' => Auth::id(),
+            'old_values' => null,
+            'new_values' => [
+                'granted_permissions' => $grantedPermissions,
+                'denied_permissions' => $deniedPermissions,
+            ],
+            'description' => $description,
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
 
         return redirect()->route('permissions.index')
             ->with('success', "Permissions updated successfully for {$user->name}.");

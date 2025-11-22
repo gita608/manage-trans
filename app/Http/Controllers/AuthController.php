@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
-use App\Models\User;
 
 class AuthController extends Controller
 {
@@ -77,7 +78,7 @@ class AuthController extends Controller
     /**
      * Show the registration form.
      *
-     * @return \Illuminate\View\View
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
     public function showRegistrationForm()
     {
@@ -111,6 +112,19 @@ class AuthController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
+        ]);
+
+        // Log registration (User model will also log via LogsActivity trait, but we log here for clarity)
+        ActivityLog::create([
+            'loggable_type' => 'App\Models\User',
+            'loggable_id' => $user->id,
+            'action' => 'registered',
+            'user_id' => $user->id,
+            'old_values' => null,
+            'new_values' => ['name' => $user->name, 'email' => $user->email],
+            'description' => "New user '{$user->name}' registered",
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
         ]);
 
         Auth::login($user);

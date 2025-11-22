@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -9,7 +10,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class Driver extends Authenticatable
 {
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasFactory, Notifiable, HasApiTokens, LogsActivity;
 
     /**
      * Driver type constants
@@ -81,5 +82,29 @@ class Driver extends Authenticatable
     public function trips()
     {
         return $this->hasMany(Trip::class);
+    }
+
+    /**
+     * Get activity configuration for this model.
+     *
+     * @return array
+     */
+    protected function getActivityConfig(): array
+    {
+        return [
+            'model_name' => 'Driver',
+            'identifier_field' => 'name',
+            'identifier_label_callback' => fn($model) => $model->getTypeLabel(),
+            'field_mappings' => [
+                'name' => 'name',
+                'type' => [
+                    'label' => 'type',
+                    self::TYPE_INTERNAL => 'Internal',
+                    self::TYPE_OUTSOURCING => 'Outsourcing (Outside)',
+                ],
+                'license_number' => 'license number',
+                'contact' => 'contact information',
+            ],
+        ];
     }
 }
