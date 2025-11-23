@@ -227,6 +227,7 @@
                                 <th scope="col" style="max-width: 180px;">To</th>
                                 <th scope="col" style="min-width: 120px;">Crew Phone</th>
                                 <th scope="col" style="min-width: 100px;">Status</th>
+                                <th scope="col" style="min-width: 120px;">Created At</th>
                                 <th scope="col" class="no-export" style="min-width: 140px; width: 140px;">Actions</th>
                             </tr>
                         </thead>
@@ -271,6 +272,10 @@
                                         <span class="badge {{ $trip->getStatusBadgeClass() }}">{{ ucfirst(str_replace('_', ' ', $trip->status)) }}</span>
                                     </td>
                                     <td>
+                                        <div>{{ $trip->created_at->format('M d, Y') }}</div>
+                                        <small class="text-muted">{{ $trip->created_at->format('h:i A') }}</small>
+                                    </td>
+                                    <td>
                                         <div class="d-flex gap-1 flex-nowrap">
                                             <a href="{{ route('trips.show', $trip) }}" class="btn btn-sm btn-info" title="View" data-bs-toggle="tooltip">
                                                 <i class="ri-eye-line"></i>
@@ -290,7 +295,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="10" class="text-center py-4">
+                                    <td colspan="11" class="text-center py-4">
                                         <p class="text-muted mb-0">No trips found.</p>
                                     </td>
                                 </tr>

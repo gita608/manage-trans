@@ -74,7 +74,8 @@
                                             <p class="text-muted mb-2">{{ $notification->message }}</p>
                                             <small class="text-muted">
                                                 <i class="ri-time-line align-middle"></i>
-                                                {{ $notification->created_at->diffForHumans() }}
+                                                <div>{{ $notification->created_at->format('M d, Y') }}</div>
+                                                <div>{{ $notification->created_at->format('h:i A') }}</div>
                                             </small>
                                         </div>
                                         @if(!$notification->is_read)

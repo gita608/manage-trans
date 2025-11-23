@@ -59,6 +59,7 @@
                         <th>Email</th>
                         <th>Phone</th>
                         <th>Photo</th>
+                        <th>Created At</th>
                         <th class="no-export">Actions</th>
                     </tr>
                 </thead>
@@ -76,6 +77,10 @@
                                 @endif
                             </td>
                             <td>
+                                <div>{{ $user->created_at->format('M d, Y') }}</div>
+                                <small class="text-muted">{{ $user->created_at->format('h:i A') }}</small>
+                            </td>
+                            <td>
                                 <a href="{{ route('staff.edit', $user) }}" class="btn btn-sm btn-primary"><i class="ri-pencil-line"></i></a>
                                 <form method="POST" action="{{ route('staff.destroy', $user) }}" class="d-inline" onsubmit="return confirm('Delete this staff?');">
                                     @csrf
@@ -86,7 +91,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center text-muted">No staff found.</td>
+                            <td colspan="6" class="text-center text-muted">No staff found.</td>
                         </tr>
                     @endforelse
                 </tbody>

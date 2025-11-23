@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\DriverAuthController;
+use App\Http\Controllers\Api\HomeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,5 +23,6 @@ use App\Http\Controllers\Api\DriverAuthController;
     // Protected routes (requires bearer token authentication)
     Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/logout', [DriverAuthController::class, 'logout'])->name('api.driver.logout');
+        Route::get('/home', [HomeController::class, 'index'])->name('api.driver.home');
         Route::get('/trips', [DriverAuthController::class, 'trips'])->name('api.driver.trips');
     });

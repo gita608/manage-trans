@@ -77,7 +77,10 @@
                                 <tr>
                                     <td>{{ $vessel->id }}</td>
                                     <td>{{ $vessel->name }}</td>
-                                    <td>{{ $vessel->created_at->format('M d, Y') }}</td>
+                                    <td>
+                                        <div>{{ $vessel->created_at->format('M d, Y') }}</div>
+                                        <small class="text-muted">{{ $vessel->created_at->format('h:i A') }}</small>
+                                    </td>
                                     <td>
                                         <div class="d-flex gap-2">
                                             <a href="{{ route('vessels.show', $vessel) }}" class="btn btn-sm btn-info" title="View">
