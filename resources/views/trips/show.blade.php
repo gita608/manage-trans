@@ -153,7 +153,15 @@
                                                     <span class="badge {{ $badgeClass }}">{{ ucfirst($log->action) }}</span>
                                                 </td>
                                                 <td>{{ $log->description }}</td>
-                                                <td>{{ $log->user->name ?? 'System' }}</td>
+                                                <td>
+                                                    @if($log->user)
+                                                        {{ $log->user->name }}
+                                                    @elseif($log->driver)
+                                                        {{ $log->driver->name }} <small class="text-muted">(Driver)</small>
+                                                    @else
+                                                        System
+                                                    @endif
+                                                </td>
                                                 <td>
                                                     <button type="button" class="btn btn-sm btn-link p-0" data-bs-toggle="modal" data-bs-target="#logModal{{ $log->id }}">
                                                         <i class="ri-eye-line"></i> View Details
@@ -210,7 +218,15 @@
                             </tr>
                             <tr>
                                 <th>User:</th>
-                                <td>{{ $log->user->name ?? 'System' }}</td>
+                                <td>
+                                    @if($log->user)
+                                        {{ $log->user->name }}
+                                    @elseif($log->driver)
+                                        {{ $log->driver->name }} <small class="text-muted">(Driver)</small>
+                                    @else
+                                        System
+                                    @endif
+                                </td>
                             </tr>
                             <tr>
                                 <th>Date & Time:</th>

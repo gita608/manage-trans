@@ -17,6 +17,7 @@ class ActivityLog extends Model
         'loggable_id',
         'action',
         'user_id',
+        'driver_id',
         'old_values',
         'new_values',
         'description',
@@ -51,5 +52,13 @@ class ActivityLog extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the driver who performed the action.
+     */
+    public function driver()
+    {
+        return $this->belongsTo(Driver::class);
     }
 }

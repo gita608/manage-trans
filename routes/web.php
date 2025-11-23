@@ -12,6 +12,8 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\TripIssueTypeController;
+use App\Http\Controllers\TripExpenseTypeController;
 
 // Root route - show login for guests, redirect to dashboard if authenticated
 Route::get('/', [AuthController::class, 'root'])->name('home');
@@ -111,6 +113,44 @@ Route::middleware(['auth'])->group(function () {
     
     Route::middleware(['permission:delete_trips'])->group(function () {
         Route::delete('/trips/{trip}', [TripController::class, 'destroy'])->name('trips.destroy');
+    });
+
+    // Trip Issue Type Routes
+    Route::middleware(['permission:view_trips'])->group(function () {
+        Route::get('/trip-issue-types', [TripIssueTypeController::class, 'index'])->name('trip-issue-types.index');
+    });
+    
+    Route::middleware(['permission:create_trips'])->group(function () {
+        Route::get('/trip-issue-types/create', [TripIssueTypeController::class, 'create'])->name('trip-issue-types.create');
+        Route::post('/trip-issue-types', [TripIssueTypeController::class, 'store'])->name('trip-issue-types.store');
+    });
+    
+    Route::middleware(['permission:edit_trips'])->group(function () {
+        Route::get('/trip-issue-types/{tripIssueType}/edit', [TripIssueTypeController::class, 'edit'])->name('trip-issue-types.edit');
+        Route::put('/trip-issue-types/{tripIssueType}', [TripIssueTypeController::class, 'update'])->name('trip-issue-types.update');
+    });
+    
+    Route::middleware(['permission:delete_trips'])->group(function () {
+        Route::delete('/trip-issue-types/{tripIssueType}', [TripIssueTypeController::class, 'destroy'])->name('trip-issue-types.destroy');
+    });
+
+    // Trip Expense Type Routes
+    Route::middleware(['permission:view_trips'])->group(function () {
+        Route::get('/trip-expense-types', [TripExpenseTypeController::class, 'index'])->name('trip-expense-types.index');
+    });
+    
+    Route::middleware(['permission:create_trips'])->group(function () {
+        Route::get('/trip-expense-types/create', [TripExpenseTypeController::class, 'create'])->name('trip-expense-types.create');
+        Route::post('/trip-expense-types', [TripExpenseTypeController::class, 'store'])->name('trip-expense-types.store');
+    });
+    
+    Route::middleware(['permission:edit_trips'])->group(function () {
+        Route::get('/trip-expense-types/{tripExpenseType}/edit', [TripExpenseTypeController::class, 'edit'])->name('trip-expense-types.edit');
+        Route::put('/trip-expense-types/{tripExpenseType}', [TripExpenseTypeController::class, 'update'])->name('trip-expense-types.update');
+    });
+    
+    Route::middleware(['permission:delete_trips'])->group(function () {
+        Route::delete('/trip-expense-types/{tripExpenseType}', [TripExpenseTypeController::class, 'destroy'])->name('trip-expense-types.destroy');
     });
 
     // Staff Routes

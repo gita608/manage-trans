@@ -85,7 +85,7 @@ class TripController extends Controller
      */
     public function show(Trip $trip)
     {
-        $trip->load(['driver', 'vessel', 'activityLogs.user']);
+        $trip->load(['driver', 'vessel', 'activityLogs.user', 'activityLogs.driver']);
         return view('trips.show', compact('trip'));
     }
 

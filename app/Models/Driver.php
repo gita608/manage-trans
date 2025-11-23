@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -82,6 +83,16 @@ class Driver extends Authenticatable
     public function trips()
     {
         return $this->hasMany(Trip::class);
+    }
+
+    /**
+     * Get the notifications for the driver.
+     *
+     * @return HasMany
+     */
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class)->latest();
     }
 
     /**

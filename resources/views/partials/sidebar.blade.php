@@ -75,6 +75,24 @@
                 </li>
                 @endif
 
+                @if(auth()->user()->hasPermission('view_trips'))
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('trip-issue-types.*') ? 'active' : '' }}"
+                        href="{{ route('trip-issue-types.index') }}">
+                        <i class="ri-alert-line"></i> <span>Trip Issue Types</span>
+                    </a>
+                </li>
+                @endif
+
+                @if(auth()->user()->hasPermission('view_trips'))
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('trip-expense-types.*') ? 'active' : '' }}"
+                        href="{{ route('trip-expense-types.index') }}">
+                        <i class="ri-money-dollar-circle-line"></i> <span>Trip Expense Types</span>
+                    </a>
+                </li>
+                @endif
+
                 @if(auth()->user()->hasPermission('view_staff'))
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('staff.*') ? 'active' : '' }}"

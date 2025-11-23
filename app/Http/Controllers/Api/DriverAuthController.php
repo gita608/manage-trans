@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Driver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class DriverAuthController extends Controller
@@ -80,6 +83,137 @@ class DriverAuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Logout successful',
+        ], 200);
+    }
+
+    /**
+     * Get authenticated driver's profile information.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function profile(Request $request)
+    {
+        $driver = $request->user();
+
+        // Get trip statistics
+        $totalTrips = $driver->trips()->count();
+        $completedTrips = $driver->trips()->where('status', \App\Models\Trip::STATUS_COMPLETED)->count();
+        $pendingTrips = $driver->trips()->whereIn('status', [\App\Models\Trip::STATUS_ASSIGNED, \App\Models\Trip::STATUS_IN_PROGRESS])->count();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $driver->id,
+                'name' => $driver->name,
+                'email' => $driver->email,
+                'type' => $driver->type,
+                'type_label' => $driver->getTypeLabel(),
+                'license_number' => $driver->license_number,
+                'contact' => $driver->contact,
+                'vehicle_info' => $driver->vehicle_info,
+                'age' => $driver->age,
+                'photo' => $driver->photo ? asset('storage/' . $driver->photo) : null,
+                'statistics' => [
+                    'total_trips' => $totalTrips,
+                    'completed_trips' => $completedTrips,
+                    'pending_trips' => $pendingTrips,
+                ],
+                'created_at' => $driver->created_at->toISOString(),
+                'updated_at' => $driver->updated_at->toISOString(),
+            ],
+        ], 200);
+    }
+
+    /**
+     * Update authenticated driver's profile.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateProfile(Request $request)
+    {
+        $driver = $request->user();
+
+        $validator = Validator::make($request->all(), [
+            'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'email' => ['sometimes', 'required', 'email', 'max:255', Rule::unique('drivers')->ignore($driver->id)],
+            'password' => ['nullable', 'string', 'min:8'],
+            'license_number' => ['nullable', 'string', 'max:255', Rule::unique('drivers')->ignore($driver->id)],
+            'contact' => ['nullable', 'string', 'max:255'],
+            'vehicle_info' => ['nullable', 'string'],
+            'age' => ['nullable', 'integer', 'min:18', 'max:100'],
+            'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        $validated = $validator->validated();
+
+        // Handle photo upload
+        if ($request->hasFile('photo')) {
+            // Delete old photo if exists
+            if ($driver->photo) {
+                Storage::disk('public')->delete($driver->photo);
+            }
+            $photoPath = $request->file('photo')->store('drivers', 'public');
+            $validated['photo'] = $photoPath;
+        }
+
+        // Remove password from validated if empty (keep current password)
+        if (empty($validated['password'])) {
+            unset($validated['password']);
+        }
+
+        // Get old values before update
+        $oldValues = $driver->getOriginal();
+        $oldValues = array_intersect_key($oldValues, array_flip(array_keys($validated)));
+
+        // Update driver (disable automatic activity logging since driver is not a User)
+        $driver->fill($validated);
+        $driver->saveQuietly();
+
+        // Refresh driver to get updated data
+        $driver->refresh();
+
+        // Create manual activity log entry
+        $description = "Driver '{$driver->name}' profile has been updated";
+
+        ActivityLog::create([
+            'loggable_type' => Driver::class,
+            'loggable_id' => $driver->id,
+            'action' => 'updated',
+            'driver_id' => $driver->id,
+            'old_values' => $oldValues,
+            'new_values' => $validated,
+            'description' => $description,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile updated successfully.',
+            'data' => [
+                'id' => $driver->id,
+                'name' => $driver->name,
+                'email' => $driver->email,
+                'type' => $driver->type,
+                'type_label' => $driver->getTypeLabel(),
+                'license_number' => $driver->license_number,
+                'contact' => $driver->contact,
+                'vehicle_info' => $driver->vehicle_info,
+                'age' => $driver->age,
+                'photo' => $driver->photo ? asset('storage/' . $driver->photo) : null,
+                'created_at' => $driver->created_at->toISOString(),
+                'updated_at' => $driver->updated_at->toISOString(),
+            ],
         ], 200);
     }
 

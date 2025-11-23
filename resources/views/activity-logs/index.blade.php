@@ -111,6 +111,14 @@
                                                     <small class="text-muted">{{ $log->user->email }}</small>
                                                 </div>
                                             </div>
+                                        @elseif($log->driver)
+                                            <div class="d-flex align-items-center">
+                                                <div>
+                                                    <strong>{{ $log->driver->name }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">Driver</small>
+                                                </div>
+                                            </div>
                                         @else
                                             <span class="text-muted">System</span>
                                         @endif
@@ -164,7 +172,13 @@
                                                     </div>
                                                     <div class="col-md-6">
                                                         <strong>User:</strong><br>
-                                                        {{ $log->user ? $log->user->name : 'System' }}
+                                                        @if($log->user)
+                                                            {{ $log->user->name }}
+                                                        @elseif($log->driver)
+                                                            {{ $log->driver->name }} <small class="text-muted">(Driver)</small>
+                                                        @else
+                                                            System
+                                                        @endif
                                                     </div>
                                                 </div>
                                                 <div class="row mb-3">

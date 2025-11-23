@@ -89,6 +89,22 @@ class Trip extends Model
     }
 
     /**
+     * Get the trip issues for this trip.
+     */
+    public function tripIssues()
+    {
+        return $this->hasMany(TripIssue::class);
+    }
+
+    /**
+     * Get the trip expenses for this trip.
+     */
+    public function tripExpenses()
+    {
+        return $this->hasMany(TripExpense::class);
+    }
+
+    /**
      * Get a custom human-readable description of the activity.
      * This method is called by the LogsActivity trait for complex cases.
      *
