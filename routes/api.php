@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\TripController;
 
     // Public routes
     Route::post('/login', [DriverAuthController::class, 'login'])->name('api.driver.login');
+    Route::get('/app-version', [DriverAuthController::class, 'app_version'])->name('api.app-version');
     
     // Protected routes (requires bearer token authentication)
     Route::middleware(['auth:sanctum'])->group(function () {

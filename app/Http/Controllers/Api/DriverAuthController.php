@@ -259,4 +259,22 @@ class DriverAuthController extends Controller
             'total' => $trips->count(),
         ], 200);
     }
+
+    /**
+     * Get app version information.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function app_version()
+    {
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'android_version' => '1.0.0',
+                'ios_version' => '1.0.0',
+                'force_android_version' => '1.0.0',
+                'force_ios_version' => '1.0.0',
+            ],
+        ], 200);
+    }
 }
