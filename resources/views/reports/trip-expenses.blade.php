@@ -1,19 +1,19 @@
 @extends('layouts.app')
 
-@section('title', 'Trip Summary Report | ' . config('app.name'))
+@section('title', 'Trip Expenses Report | ' . config('app.name'))
 
 @section('content')
 <!-- start page title -->
 <div class="row">
     <div class="col-12">
         <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-            <h4 class="mb-sm-0">Trip Summary Report</h4>
+            <h4 class="mb-sm-0">Trip Expenses Report</h4>
 
             <div class="page-title-right">
                 <ol class="breadcrumb m-0">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('reports.index') }}">Reports</a></li>
-                    <li class="breadcrumb-item active">Trip Summary</li>
+                    <li class="breadcrumb-item active">Trip Expenses</li>
                 </ol>
             </div>
         </div>
@@ -29,7 +29,7 @@
                 <h6 class="card-title mb-0">Filters</h6>
             </div>
             <div class="card-body">
-                <form method="GET" action="{{ route('reports.trip-summary') }}" id="filterForm">
+                <form method="GET" action="{{ route('reports.trip-expenses') }}" id="filterForm">
                     <div class="row g-3">
                         <div class="col-md-3">
                             <label class="form-label">Date From</label>
@@ -62,29 +62,21 @@
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label">Status</label>
-                            <select name="status" class="form-select">
-                                <option value="">All Status</option>
-                                @foreach(\App\Models\Trip::getStatuses() as $key => $label)
-                                    <option value="{{ $key }}" {{ request('status') == $key ? 'selected' : '' }}>
-                                        {{ $label }}
+                            <label class="form-label">Expense Type</label>
+                            <select name="expense_type_id" class="form-select">
+                                <option value="">All Types</option>
+                                @foreach($expenseTypes as $type)
+                                    <option value="{{ $type->id }}" {{ request('expense_type_id') == $type->id ? 'selected' : '' }}>
+                                        {{ $type->title }}
                                     </option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Driver Type</label>
-                            <select name="driver_type" class="form-select">
-                                <option value="">All Types</option>
-                                <option value="1" {{ request('driver_type') == '1' ? 'selected' : '' }}>Internal</option>
-                                <option value="2" {{ request('driver_type') == '2' ? 'selected' : '' }}>Outsourcing</option>
-                            </select>
-                        </div>
-                        <div class="col-md-9 d-flex align-items-end gap-2">
+                        <div class="col-md-12 d-flex justify-content-end gap-2">
                             <button type="submit" class="btn btn-primary">
                                 <i class="ri-search-line me-1"></i> Apply Filters
                             </button>
-                            <a href="{{ route('reports.trip-summary') }}" class="btn btn-secondary">
+                            <a href="{{ route('reports.trip-expenses') }}" class="btn btn-secondary">
                                 <i class="ri-refresh-line me-1"></i> Reset
                             </a>
                         </div>
@@ -97,72 +89,36 @@
 
 <!-- Summary Cards -->
 <div class="row g-3 mb-4">
-    <div class="col-xl-3 col-md-6">
+    <div class="col-xl-6 col-md-6">
         <div class="card border shadow-sm">
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div class="avatar-sm flex-shrink-0 me-3">
                         <span class="avatar-title bg-primary-subtle text-primary rounded">
-                            <i class="ri-route-line fs-4"></i>
+                            <i class="ri-money-dollar-circle-line fs-4"></i>
                         </span>
                     </div>
                     <div class="flex-grow-1">
-                        <p class="text-uppercase fw-medium text-muted mb-0 fs-12">Total Trips</p>
-                        <h3 class="mb-0 fw-bold">{{ $totalTrips }}</h3>
+                        <p class="text-uppercase fw-medium text-muted mb-0 fs-12">Total Expenses</p>
+                        <h3 class="mb-0 fw-bold">{{ number_format($totalExpenses, 2) }}</h3>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="col-xl-3 col-md-6">
-        <div class="card border shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="avatar-sm flex-shrink-0 me-3">
-                        <span class="avatar-title bg-warning-subtle text-warning rounded">
-                            <i class="ri-task-line fs-4"></i>
-                        </span>
-                    </div>
-                    <div class="flex-grow-1">
-                        <p class="text-uppercase fw-medium text-muted mb-0 fs-12">Assigned</p>
-                        <h3 class="mb-0 fw-bold">{{ $assignedTrips }}</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6">
+    <div class="col-xl-6 col-md-6">
         <div class="card border shadow-sm">
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div class="avatar-sm flex-shrink-0 me-3">
                         <span class="avatar-title bg-info-subtle text-info rounded">
-                            <i class="ri-time-line fs-4"></i>
+                            <i class="ri-file-list-3-line fs-4"></i>
                         </span>
                     </div>
                     <div class="flex-grow-1">
-                        <p class="text-uppercase fw-medium text-muted mb-0 fs-12">In Progress</p>
-                        <h3 class="mb-0 fw-bold">{{ $inProgressTrips }}</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6">
-        <div class="card border shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="avatar-sm flex-shrink-0 me-3">
-                        <span class="avatar-title bg-success-subtle text-success rounded">
-                            <i class="ri-checkbox-circle-line fs-4"></i>
-                        </span>
-                    </div>
-                    <div class="flex-grow-1">
-                        <p class="text-uppercase fw-medium text-muted mb-0 fs-12">Completed</p>
-                        <h3 class="mb-0 fw-bold">{{ $completedTrips }}</h3>
+                        <p class="text-uppercase fw-medium text-muted mb-0 fs-12">Total Transactions</p>
+                        <h3 class="mb-0 fw-bold">{{ $expenses->count() }}</h3>
                     </div>
                 </div>
             </div>
@@ -175,10 +131,10 @@
     <div class="col-xl-6">
         <div class="card border shadow-sm">
             <div class="card-header border-bottom">
-                <h6 class="card-title mb-0">Trips by Status</h6>
+                <h6 class="card-title mb-0">Expenses by Type</h6>
             </div>
             <div class="card-body">
-                <canvas id="statusChart" height="250"></canvas>
+                <canvas id="typeChart" height="250"></canvas>
             </div>
         </div>
     </div>
@@ -186,7 +142,7 @@
     <div class="col-xl-6">
         <div class="card border shadow-sm">
             <div class="card-header border-bottom">
-                <h6 class="card-title mb-0">Trips by Date</h6>
+                <h6 class="card-title mb-0">Expenses by Date</h6>
             </div>
             <div class="card-body">
                 <canvas id="dateChart" height="250"></canvas>
@@ -195,14 +151,14 @@
     </div>
 </div>
 
-<!-- Trip Details Table -->
+<!-- Expense Details Table -->
 <div class="row">
     <div class="col-12">
         <div class="card border shadow-sm">
             <div class="card-header border-bottom">
                 <div class="d-flex align-items-center justify-content-between">
-                    <h6 class="card-title mb-0">Trip Details</h6>
-                    <span class="badge bg-primary">{{ $totalTrips }} trips</span>
+                    <h6 class="card-title mb-0">Expense Details</h6>
+                    <span class="badge bg-primary">{{ $expenses->count() }} records</span>
                 </div>
             </div>
             <div class="card-body">
@@ -210,55 +166,52 @@
                     <table class="table table-hover table-nowrap align-middle mb-0">
                         <thead>
                             <tr>
-                                <th>Date</th>
-                                <th>Crew Name</th>
-                                <th>Driver</th>
+                                <th>Trip Date</th>
+                                <th>Expense Type</th>
+                                <th>Amount</th>
+                                <th>Submitted By</th>
                                 <th>Vessel</th>
-                                <th>Pick-up Time</th>
-                                <th>From</th>
-                                <th>To</th>
-                                <th>Total Expenses</th>
-                                <th>Status</th>
+                                <th>Receipt</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($trips as $trip)
+                            @forelse($expenses as $expense)
                             <tr>
-                                <td>{{ $trip->trip_date->format('M d, Y') }}</td>
+                                <td>{{ $expense->trip->trip_date->format('M d, Y') }}</td>
                                 <td>
-                                    <span class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ $trip->crew_name }}">
-                                        {{ $trip->crew_name }}
+                                    <span class="badge bg-light text-dark border">
+                                        {{ $expense->expenseType->title ?? 'Unknown' }}
                                     </span>
                                 </td>
-                                <td>{{ $trip->driver->name }}</td>
-                                <td>{{ $trip->vessel->name }}</td>
-                                <td>{{ \Carbon\Carbon::parse($trip->pick_up_time)->format('h:i A') }}</td>
+                                <td class="fw-bold">{{ number_format($expense->amount, 2) }}</td>
+                                <td>{{ $expense->driver->name ?? 'Unknown' }}</td>
+                                <td>{{ $expense->trip->vessel->name ?? 'Unknown' }}</td>
                                 <td>
-                                    <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $trip->from_location }}">
-                                        {{ $trip->from_location }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $trip->to_location }}">
-                                        {{ $trip->to_location }}
-                                    </span>
-                                </td>
-                                <td>{{ number_format($trip->trip_expenses_sum_amount ?? 0, 2) }}</td>
-                                <td>
-                                    <span class="badge {{ $trip->getStatusBadgeClass() }}">
-                                        {{ ucfirst(str_replace('_', ' ', $trip->status)) }}
-                                    </span>
+                                    @if($expense->receipt)
+                                        <a href="{{ Storage::url($expense->receipt) }}" target="_blank" class="btn btn-sm btn-soft-primary">
+                                            <i class="ri-file-text-line me-1"></i> View
+                                        </a>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
                                 </td>
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="9" class="text-center text-muted py-4">
-                                    <i class="ri-file-list-line fs-3 mb-2 d-block"></i>
-                                    No trips found for the selected filters
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    <i class="ri-money-dollar-circle-line fs-3 mb-2 d-block"></i>
+                                    No expenses found for the selected filters
                                 </td>
                             </tr>
                             @endforelse
                         </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <td colspan="2" class="fw-bold text-end">Total</td>
+                                <td class="fw-bold">{{ number_format($totalExpenses, 2) }}</td>
+                                <td colspan="3"></td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -269,20 +222,23 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Status Chart
-    const statusCtx = document.getElementById('statusChart').getContext('2d');
-    new Chart(statusCtx, {
+    // Type Chart
+    const typeCtx = document.getElementById('typeChart').getContext('2d');
+    new Chart(typeCtx, {
         type: 'doughnut',
         data: {
-            labels: {!! json_encode(array_keys($statusData)) !!},
+            labels: {!! json_encode(array_keys($expensesByType->toArray())) !!},
             datasets: [{
-                data: {!! json_encode(array_values($statusData)) !!},
+                data: {!! json_encode(array_values($expensesByType->toArray())) !!},
                 backgroundColor: [
-                    'rgba(255, 193, 7, 0.8)',
-                    'rgba(13, 202, 240, 0.8)',
-                    'rgba(25, 135, 84, 0.8)'
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)',
+                    'rgba(255, 159, 64, 0.8)'
                 ],
-                borderWidth: 2
+                borderWidth: 1
             }]
         },
         options: {
@@ -298,20 +254,19 @@
 
     // Date Chart
     const dateCtx = document.getElementById('dateChart').getContext('2d');
-    const dateLabels = {!! json_encode(array_keys($tripsByDate->toArray())) !!};
-    const dateData = {!! json_encode(array_values($tripsByDate->toArray())) !!};
+    const dateLabels = {!! json_encode(array_keys($expensesByDate->toArray())) !!};
+    const dateData = {!! json_encode(array_values($expensesByDate->toArray())) !!};
     
     new Chart(dateCtx, {
-        type: 'line',
+        type: 'bar',
         data: {
             labels: dateLabels,
             datasets: [{
-                label: 'Trips',
+                label: 'Expenses',
                 data: dateData,
+                backgroundColor: 'rgba(13, 202, 240, 0.6)',
                 borderColor: 'rgb(13, 202, 240)',
-                backgroundColor: 'rgba(13, 202, 240, 0.1)',
-                tension: 0.4,
-                fill: true
+                borderWidth: 1
             }]
         },
         options: {
@@ -324,10 +279,7 @@
             },
             scales: {
                 y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
+                    beginAtZero: true
                 }
             }
         }
@@ -335,4 +287,3 @@
 </script>
 @endpush
 @endsection
-

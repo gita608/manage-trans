@@ -43,6 +43,28 @@
         </div>
     </div>
 
+    <!-- Trip Expenses Report -->
+    <div class="col-xl-4 col-md-6">
+        <div class="card border shadow-sm h-100">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-start">
+                    <div class="avatar-sm flex-shrink-0 me-3">
+                        <span class="avatar-title bg-warning-subtle text-warning rounded fs-3">
+                            <i class="ri-money-dollar-circle-line"></i>
+                        </span>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="mb-2">Trip Expenses Report</h5>
+                        <p class="text-muted mb-3 small">Detailed breakdown of trip expenses with filters by type, driver, and vessel.</p>
+                        <a href="{{ route('reports.trip-expenses') }}" class="btn btn-warning btn-sm">
+                            <i class="ri-arrow-right-line me-1"></i> View Report
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Driver Performance Report -->
     <div class="col-xl-4 col-md-6">
         <div class="card border shadow-sm h-100">

@@ -24,7 +24,7 @@ class ReportController extends Controller
      */
     public function tripSummary(Request $request)
     {
-        $query = Trip::with(['driver', 'vessel']);
+        $query = Trip::with(['driver', 'vessel'])->withSum('tripExpenses', 'amount');
 
         // Date range filter
         if ($request->has('date_from') && $request->date_from) {
@@ -237,6 +237,71 @@ class ReportController extends Controller
             'dateTo',
             'drivers',
             'vessels'
+        ));
+    }
+    /**
+     * Trip Expenses Report
+     */
+    public function tripExpenses(Request $request)
+    {
+        $query = \App\Models\TripExpense::with(['trip.vessel', 'driver', 'expenseType']);
+
+        // Date range filter (based on trip date)
+        if ($request->has('date_from') && $request->date_from) {
+            $query->whereHas('trip', function($q) use ($request) {
+                $q->whereDate('trip_date', '>=', $request->date_from);
+            });
+        }
+        if ($request->has('date_to') && $request->date_to) {
+            $query->whereHas('trip', function($q) use ($request) {
+                $q->whereDate('trip_date', '<=', $request->date_to);
+            });
+        }
+
+        // Driver filter (submitted by)
+        if ($request->has('driver_id') && $request->driver_id) {
+            $query->where('driver_id', $request->driver_id);
+        }
+
+        // Vessel filter
+        if ($request->has('vessel_id') && $request->vessel_id) {
+            $query->whereHas('trip', function($q) use ($request) {
+                $q->where('vessel_id', $request->vessel_id);
+            });
+        }
+
+        // Expense Type filter
+        if ($request->has('expense_type_id') && $request->expense_type_id) {
+            $query->where('expense_type_id', $request->expense_type_id);
+        }
+
+        $expenses = $query->latest()->get();
+
+        // Statistics
+        $totalExpenses = $expenses->sum('amount');
+        
+        // Expenses by Type (for chart)
+        $expensesByType = $expenses->groupBy(function($expense) {
+            return $expense->expenseType->title ?? 'Unknown';
+        })->map->sum('amount');
+
+        // Expenses by Date (for chart)
+        $expensesByDate = $expenses->groupBy(function($expense) {
+            return $expense->trip->trip_date->format('Y-m-d');
+        })->map->sum('amount');
+
+        $drivers = Driver::orderBy('name')->get();
+        $vessels = Vessel::orderBy('name')->get();
+        $expenseTypes = \App\Models\TripExpenseType::orderBy('title')->get();
+
+        return view('reports.trip-expenses', compact(
+            'expenses',
+            'totalExpenses',
+            'expensesByType',
+            'expensesByDate',
+            'drivers',
+            'vessels',
+            'expenseTypes'
         ));
     }
 }

@@ -207,6 +207,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['permission:view_reports'])->group(function () {
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/trip-summary', [ReportController::class, 'tripSummary'])->name('reports.trip-summary');
+        Route::get('/reports/trip-expenses', [ReportController::class, 'tripExpenses'])->name('reports.trip-expenses');
         Route::get('/reports/driver-performance', [ReportController::class, 'driverPerformance'])->name('reports.driver-performance');
         Route::get('/reports/daily-weekly', [ReportController::class, 'dailyWeekly'])->name('reports.daily-weekly');
     });

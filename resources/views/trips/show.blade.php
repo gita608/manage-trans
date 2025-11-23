@@ -450,75 +450,109 @@
 <!-- Log Details Modals -->
 @foreach($trip->activityLogs as $log)
     @php
-        $badgeClass = match($log->action) {
-            'created' => 'bg-success',
-            'updated' => 'bg-info',
-            'deleted' => 'bg-danger',
-            default => 'bg-secondary',
+        $color = match($log->action) {
+            'created' => 'success',
+            'updated' => 'info',
+            'deleted' => 'danger',
+            default => 'secondary',
         };
+        $icon = match($log->action) {
+            'created' => 'ri-add-line',
+            'updated' => 'ri-pencil-line',
+            'deleted' => 'ri-delete-bin-line',
+            default => 'ri-information-line',
+        };
+        $userName = 'System';
+        if($log->user) {
+            $userName = $log->user->name;
+        } elseif($log->driver) {
+            $userName = $log->driver->name . ' (Driver)';
+        }
     @endphp
     <!-- Log Details Modal -->
     <div class="modal fade" id="logModal{{ $log->id }}" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Activity Log Details</h5>
+                    <h5 class="modal-title">Activity Details</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <table class="table table-borderless">
-                        <tbody>
-                            <tr>
-                                <th width="200">Action:</th>
-                                <td><span class="badge {{ $badgeClass }}">{{ ucfirst($log->action) }}</span></td>
-                            </tr>
-                            <tr>
-                                <th>Description:</th>
-                                <td>{{ $log->description }}</td>
-                            </tr>
-                            <tr>
-                                <th>User:</th>
-                                <td>
-                                    @if($log->user)
-                                        {{ $log->user->name }}
-                                    @elseif($log->driver)
-                                        {{ $log->driver->name }} <small class="text-muted">(Driver)</small>
-                                    @else
-                                        System
-                                    @endif
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Date & Time:</th>
-                                <td>{{ $log->created_at->format('M d, Y h:i A') }}</td>
-                            </tr>
-                            @if($log->old_values && count($log->old_values) > 0)
-                                <tr>
-                                    <th>Old Values:</th>
-                                    <td>
-                                        <pre class="bg-light p-2 rounded" style="max-height: 200px; overflow-y: auto;">{{ json_encode($log->old_values, JSON_PRETTY_PRINT) }}</pre>
-                                    </td>
-                                </tr>
-                            @endif
-                            @if($log->new_values && count($log->new_values) > 0)
-                                <tr>
-                                    <th>New Values:</th>
-                                    <td>
-                                        <pre class="bg-light p-2 rounded" style="max-height: 200px; overflow-y: auto;">{{ json_encode($log->new_values, JSON_PRETTY_PRINT) }}</pre>
-                                    </td>
-                                </tr>
-                            @endif
-                            @if($log->ip_address)
-                                <tr>
-                                    <th>IP Address:</th>
-                                    <td>{{ $log->ip_address }}</td>
-                                </tr>
-                            @endif
-                        </tbody>
-                    </table>
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="avatar-sm">
+                                <span class="avatar-title bg-{{ $color }}-subtle text-{{ $color }} rounded-circle fs-4">
+                                    <i class="{{ $icon }}"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="fs-16 mb-1">{{ $log->description }}</h5>
+                            <p class="text-muted mb-0">
+                                by <span class="fw-semibold">{{ $userName }}</span> on {{ $log->created_at->format('M d, Y h:i A') }}
+                            </p>
+                        </div>
+                    </div>
+
+                    @if(($log->old_values && count($log->old_values) > 0) || ($log->new_values && count($log->new_values) > 0))
+                        <div class="card border shadow-none mb-0 bg-light-subtle">
+                            <div class="card-header bg-transparent border-bottom-0">
+                                <h6 class="card-title mb-0">Changes Made</h6>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-borderless table-nowrap align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th scope="col" style="width: 30%;">Field</th>
+                                                @if($log->old_values && count($log->old_values) > 0) <th scope="col">Old Value</th> @endif
+                                                @if($log->new_values && count($log->new_values) > 0) <th scope="col">New Value</th> @endif
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @php
+                                                $old = $log->old_values ?? [];
+                                                $new = $log->new_values ?? [];
+                                                $allKeys = array_unique(array_merge(array_keys($old), array_keys($new)));
+                                            @endphp
+                                            @foreach($allKeys as $key)
+                                                <tr>
+                                                    <td class="fw-medium text-muted">{{ ucfirst(str_replace('_', ' ', $key)) }}</td>
+                                                    @if(count($old) > 0)
+                                                        <td class="text-danger">
+                                                            @if(isset($old[$key]))
+                                                                {{ is_array($old[$key]) ? json_encode($old[$key]) : $old[$key] }}
+                                                            @else
+                                                                <span class="text-muted">-</span>
+                                                            @endif
+                                                        </td>
+                                                    @endif
+                                                    @if(count($new) > 0)
+                                                        <td class="text-success">
+                                                            @if(isset($new[$key]))
+                                                                {{ is_array($new[$key]) ? json_encode($new[$key]) : $new[$key] }}
+                                                            @else
+                                                                <span class="text-muted">-</span>
+                                                            @endif
+                                                        </td>
+                                                    @endif
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($log->ip_address)
+                        <div class="mt-3 text-end">
+                            <span class="badge bg-light text-muted border">IP: {{ $log->ip_address }}</span>
+                        </div>
+                    @endif
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
