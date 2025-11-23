@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Trip;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class TripController extends Controller
 {
@@ -18,6 +19,18 @@ class TripController extends Controller
      */
     public function show(Request $request, $id)
     {
+        // Validate the trip ID parameter
+        $validator = Validator::make(['id' => $id], [
+            'id' => ['required', 'integer', 'min:1'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
         $driver = $request->user();
 
         // Get trip that belongs to the authenticated driver
@@ -169,6 +182,30 @@ class TripController extends Controller
      */
     public function updateStatus(Request $request, $id)
     {
+        // Validate the trip ID parameter
+        $idValidator = Validator::make(['id' => $id], [
+            'id' => ['required', 'integer', 'min:1'],
+        ]);
+
+        if ($idValidator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $idValidator->errors()->first(),
+            ], 422);
+        }
+
+        // Validate the request data
+        $validator = Validator::make($request->all(), [
+            'status' => ['required', 'in:' . implode(',', [Trip::STATUS_ASSIGNED, Trip::STATUS_IN_PROGRESS, Trip::STATUS_COMPLETED])],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
         $driver = $request->user();
 
         // Get trip that belongs to the authenticated driver
@@ -180,10 +217,6 @@ class TripController extends Controller
                 'message' => 'Trip not found or you do not have access to this trip.',
             ], 404);
         }
-
-        $request->validate([
-            'status' => ['required', 'in:' . implode(',', [Trip::STATUS_ASSIGNED, Trip::STATUS_IN_PROGRESS, Trip::STATUS_COMPLETED])],
-        ]);
 
         $oldStatus = $trip->status;
         $trip->status = $request->status;
