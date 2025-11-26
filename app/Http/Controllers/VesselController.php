@@ -32,6 +32,7 @@ class VesselController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:vessels'],
+            'contact_number' => ['nullable', 'string', 'max:255'],
         ]);
 
         Vessel::create($validated);
@@ -62,6 +63,7 @@ class VesselController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('vessels')->ignore($vessel->id)],
+            'contact_number' => ['nullable', 'string', 'max:255'],
         ]);
 
         $vessel->update($validated);

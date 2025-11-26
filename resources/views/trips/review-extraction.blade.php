@@ -67,6 +67,7 @@
                                     <th scope="col" style="width: 110px;">Pick-up</th>
                                     <th scope="col" style="width: 100px;">Flight No</th>
                                     <th scope="col" style="width: 250px;">Crew Name</th>
+                                    <th scope="col" style="width: 150px;">Contact Number</th>
                                     <th scope="col" style="width: 180px;">Route</th>
                                     <th scope="col" style="min-width: 150px;">Remarks</th>
                                 </tr>
@@ -124,6 +125,9 @@
                                         </td>
                                         <td>
                                             <textarea name="trips[{{ $index }}][crew_name]" class="form-control form-control-sm border-light bg-light-subtle" rows="2" required style="resize: vertical; min-height: 38px; font-size: 13px;">{{ $row['crew_name'] }}</textarea>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="trips[{{ $index }}][crew_phone]" class="form-control form-control-sm border-light bg-light-subtle" value="{{ $row['crew_phone'] ?? '' }}" placeholder="Contact Number">
                                         </td>
                                         <td>
                                             <div class="d-flex flex-column gap-1">

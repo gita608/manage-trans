@@ -17,6 +17,7 @@ class Vessel extends Model
      */
     protected $fillable = [
         'name',
+        'contact_number',
     ];
 
     /**
@@ -39,6 +40,7 @@ class Vessel extends Model
             'identifier_field' => 'name',
             'field_mappings' => [
                 'name' => 'name',
+                'contact_number' => 'contact number',
             ],
         ];
     }

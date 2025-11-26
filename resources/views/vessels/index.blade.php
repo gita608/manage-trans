@@ -68,6 +68,7 @@
                             <tr>
                                 <th scope="col">ID</th>
                                 <th scope="col">Name</th>
+                                <th scope="col">Contact Number</th>
                                 <th scope="col">Created At</th>
                                 <th scope="col" class="no-export">Actions</th>
                             </tr>
@@ -77,6 +78,7 @@
                                 <tr>
                                     <td>{{ $vessel->id }}</td>
                                     <td>{{ $vessel->name }}</td>
+                                    <td>{{ $vessel->contact_number ?? 'N/A' }}</td>
                                     <td>
                                         <div>{{ $vessel->created_at->format('M d, Y') }}</div>
                                         <small class="text-muted">{{ $vessel->created_at->format('h:i A') }}</small>
@@ -101,7 +103,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="text-center py-4">
+                                    <td colspan="5" class="text-center py-4">
                                         <p class="text-muted mb-0">No vessels found. <a href="{{ route('vessels.create') }}">Create your first vessel</a></p>
                                     </td>
                                 </tr>

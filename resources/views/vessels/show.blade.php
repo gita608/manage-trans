@@ -54,6 +54,10 @@
                             <td>{{ $vessel->name }}</td>
                         </tr>
                         <tr>
+                            <th>Contact Number:</th>
+                            <td>{{ $vessel->contact_number ?? 'N/A' }}</td>
+                        </tr>
+                        <tr>
                             <th>Created At:</th>
                             <td>{{ $vessel->created_at->format('M d, Y h:i A') }}</td>
                         </tr>

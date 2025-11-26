@@ -244,9 +244,14 @@ class Trip extends Model
     {
         // Custom descriptions for Trip model
         if ($action === 'created') {
-            $driverName = $this->relationLoaded('driver') && $this->driver 
-                ? $this->driver->name 
-                : 'Unknown';
+            $driverName = 'Unknown';
+            
+            if ($this->relationLoaded('driver') && $this->driver) {
+                $driverName = $this->driver->name;
+            } elseif ($this->driver_id) {
+                $driver = Driver::find($this->driver_id);
+                $driverName = $driver ? $driver->name : 'Unknown';
+            }
             
             return "Trip created for driver '{$driverName}'";
         }

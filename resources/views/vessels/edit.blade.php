@@ -52,6 +52,14 @@
                         @enderror
                     </div>
 
+                    <div class="mb-3">
+                        <label for="contact_number" class="form-label">Contact Number</label>
+                        <input type="text" class="form-control @error('contact_number') is-invalid @enderror" id="contact_number" name="contact_number" value="{{ old('contact_number', $vessel->contact_number) }}" placeholder="Enter contact number">
+                        @error('contact_number')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
                     <div class="mt-4">
                         <button class="btn btn-success" type="submit">Update Vessel</button>
                         <a href="{{ route('vessels.index') }}" class="btn btn-secondary">Cancel</a>
