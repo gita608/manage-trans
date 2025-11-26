@@ -74,21 +74,11 @@
                     <!-- Trip Information Tab -->
                     <div class="tab-pane fade show active" id="tripInfo" role="tabpanel">
                         @php
-                            $totalJobs = $trip->crews->count();
-                            $completedJobs = $trip->crews->where('status', 'completed')->count();
-                            $inProgressJobs = $trip->crews->where('status', 'in_progress')->count();
-                            
-                            // Determine overall status
-                            if ($completedJobs === $totalJobs && $totalJobs > 0) {
-                                $statusBadge = 'success';
-                                $statusText = 'All Completed';
-                            } elseif ($inProgressJobs > 0) {
-                                $statusBadge = 'warning';
-                                $statusText = 'In Progress';
-                            } else {
-                                $statusBadge = 'primary';
-                                $statusText = 'Pending';
-                            }
+                            $totalJobs = $tripStatus['totalJobs'];
+                            $isCompleted = $tripStatus['isCompleted'];
+                            $inProgressJobs = $tripStatus['inProgressJobs'];
+                            $statusBadge = $tripStatus['statusBadge'];
+                            $statusText = $tripStatus['statusText'];
                         @endphp
 
                         <div class="card border shadow-none mb-4 bg-light-subtle">

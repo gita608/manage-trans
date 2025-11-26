@@ -41,13 +41,7 @@ class TripController extends Controller
 
         // Process trips in a single pass using partition
         [$completed, $pending] = $trips->partition(function($trip) {
-            $crews = $trip->crews;
-            $totalCrews = $crews->count();
-            
-            // Trip is completed only when ALL crews are completed and has at least one crew
-            return $totalCrews > 0 && $crews->every(function($crew) {
-                return $crew->status === 'completed';
-            });
+            return Trip::checkTripCompletionStatus($trip->id) === 'completed';
         });
 
         // Map completed trips to response format

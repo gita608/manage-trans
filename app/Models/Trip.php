@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\LogsActivity;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -35,6 +36,38 @@ class Trip extends Model
     }
 
     /**
+     * Check if a trip is completed based on all crews' status.
+     * Returns 'completed' if all crews are completed, otherwise 'pending'.
+     *
+     * @param int $tripId
+     * @return string 'completed' or 'pending'
+     */
+    public static function checkTripCompletionStatus(int $tripId): string
+    {
+        $trip = self::with('crews')->find($tripId);
+        
+        if (!$trip) {
+            return 'pending';
+        }
+        
+        return $trip->isCompleted() ? 'completed' : 'pending';
+    }
+
+    /**
+     * Check if this trip is completed (all crews are completed).
+     *
+     * @return bool
+     */
+    public function isCompleted(): bool
+    {
+        if ($this->crews->isEmpty()) {
+            return false;
+        }
+        
+        return $this->crews->where('status', '!=', TripCrew::STATUS_COMPLETED)->isEmpty();
+    }
+
+    /**
      * Get the trip status based on crews.
      *
      * @return string
@@ -45,14 +78,13 @@ class Trip extends Model
             return TripCrew::STATUS_ASSIGNED;
         }
         
-        $total = $this->crews->count();
-        $completed = $this->crews->where('status', TripCrew::STATUS_COMPLETED)->count();
-        
-        if ($completed === $total) {
+        if ($this->isCompleted()) {
             return TripCrew::STATUS_COMPLETED;
         }
         
         $inProgress = $this->crews->where('status', TripCrew::STATUS_IN_PROGRESS)->count();
+        $completed = $this->crews->where('status', TripCrew::STATUS_COMPLETED)->count();
+        
         // If any crew is in progress OR completed (but not all), the trip is in progress
         if ($inProgress > 0 || $completed > 0) {
             return TripCrew::STATUS_IN_PROGRESS;
@@ -71,8 +103,8 @@ class Trip extends Model
             return 'bg-secondary';
         }
         
-        $completedCrews = $this->crews->where('status', 'completed')->count();
-        $inProgressCrews = $this->crews->where('status', 'in_progress')->count();
+        $completedCrews = $this->crews->where('status', TripCrew::STATUS_COMPLETED)->count();
+        $inProgressCrews = $this->crews->where('status', TripCrew::STATUS_IN_PROGRESS)->count();
         
         if ($completedCrews === $totalCrews) {
             return 'bg-success';
@@ -81,6 +113,58 @@ class Trip extends Model
         } else {
             return 'bg-warning';
         }
+    }
+
+    /**
+     * Get status badge color (without bg- prefix) for Bootstrap badges
+     *
+     * @return string
+     */
+    public function getStatusBadge(): string
+    {
+        if ($this->isCompleted()) {
+            return 'success';
+        } elseif ($this->status === TripCrew::STATUS_IN_PROGRESS) {
+            return 'warning';
+        } else {
+            return 'primary';
+        }
+    }
+
+    /**
+     * Get human-readable status text
+     *
+     * @return string
+     */
+    public function getStatusText(): string
+    {
+        if ($this->isCompleted() && $this->crews->count() > 0) {
+            return 'All Completed';
+        } elseif ($this->status === TripCrew::STATUS_IN_PROGRESS) {
+            return 'In Progress';
+        } else {
+            return 'Pending';
+        }
+    }
+
+    /**
+     * Get completed crews count
+     *
+     * @return int
+     */
+    public function getCompletedCrewsCount(): int
+    {
+        return $this->crews->where('status', TripCrew::STATUS_COMPLETED)->count();
+    }
+
+    /**
+     * Get in-progress crews count
+     *
+     * @return int
+     */
+    public function getInProgressCrewsCount(): int
+    {
+        return $this->crews->where('status', TripCrew::STATUS_IN_PROGRESS)->count();
     }
 
     /**
@@ -160,14 +244,9 @@ class Trip extends Model
     {
         // Custom descriptions for Trip model
         if ($action === 'created') {
-            $driverId = $this->driver_id ?? null;
-            
-            $driverName = 'Unknown';
-            
-            if ($driverId) {
-                $driver = Driver::find($driverId);
-                $driverName = $driver->name ?? 'Unknown';
-            }
+            $driverName = $this->relationLoaded('driver') && $this->driver 
+                ? $this->driver->name 
+                : 'Unknown';
             
             return "Trip created for driver '{$driverName}'";
         }
@@ -180,10 +259,12 @@ class Trip extends Model
                 $changes[] = "status changed from '{$oldStatus}' to '{$newStatus}'";
             }
             if (isset($newValues['driver_id'])) {
-                $oldDriver = Driver::find($oldValues['driver_id'] ?? null);
-                $newDriver = Driver::find($newValues['driver_id']);
-                $oldDriverName = $oldDriver->name ?? 'Unknown';
-                $newDriverName = $newDriver->name ?? 'Unknown';
+                $oldDriverId = $oldValues['driver_id'] ?? null;
+                $newDriverId = $newValues['driver_id'];
+                
+                $oldDriverName = $oldDriverId ? (Driver::find($oldDriverId)->name ?? 'Unknown') : 'Unknown';
+                $newDriverName = Driver::find($newDriverId)->name ?? 'Unknown';
+                
                 $changes[] = "driver changed from '{$oldDriverName}' to '{$newDriverName}'";
             }
             

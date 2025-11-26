@@ -81,21 +81,50 @@ class TripController extends Controller
         $trips = $query->latest('created_at')
             ->get();
 
+        // Calculate trip status data for each trip
+        $trips = $trips->map(function ($trip) {
+            $totalJobs = $trip->crews->count();
+            $isCompleted = $trip->isCompleted();
+            $completedJobs = $trip->getCompletedCrewsCount();
+            $inProgressJobs = $trip->getInProgressCrewsCount();
+            $progressPercent = $totalJobs > 0 ? ($completedJobs / $totalJobs) * 100 : 0;
+            
+            $trip->tripStatus = [
+                'totalJobs' => $totalJobs,
+                'isCompleted' => $isCompleted,
+                'completedJobs' => $completedJobs,
+                'inProgressJobs' => $inProgressJobs,
+                'progressPercent' => $progressPercent,
+                'statusBadge' => $trip->getStatusBadge(),
+                'statusText' => $trip->getStatusText(),
+            ];
+            
+            return $trip;
+        });
+
         $drivers = Driver::orderBy('name')->get();
         $vessels = Vessel::orderBy('name')->get();
 
-        // Calculate statistics for overview cards
+        // Calculate statistics for overview cards based on the filtered trips
+        $tripIds = $trips->pluck('id');
+        
+        // Count completed trips (trips where all crews are completed)
+        $completedTrips = $trips->filter(function ($trip) {
+            return $trip->isCompleted();
+        })->count();
+        
+        // Count in-progress trips (trips with at least one crew in progress but not all completed)
+        $inProgressTrips = $trips->filter(function ($trip) {
+            return $trip->status === TripCrew::STATUS_IN_PROGRESS;
+        })->count();
+        
         $stats = [
-            'total_trips' => Trip::whereDate('trip_date', today())->count(),
-            'total_jobs' => TripCrew::whereHas('trip', function ($q) {
-                $q->whereDate('trip_date', today());
-            })->count(),
-            'jobs_in_progress' => TripCrew::whereHas('trip', function ($q) {
-                $q->whereDate('trip_date', today());
-            })->where('status', 'in_progress')->count(),
-            'jobs_completed' => TripCrew::whereHas('trip', function ($q) {
-                $q->whereDate('trip_date', today());
-            })->where('status', 'completed')->count(),
+            'total_trips' => $trips->count(),
+            'total_jobs' => $tripIds->isEmpty() ? 0 : TripCrew::whereIn('trip_id', $tripIds)->count(),
+            'trips_in_progress' => $inProgressTrips, // Trips that are in progress
+            'trips_completed' => $completedTrips, // Trips where all crews are completed
+            'jobs_completed' => $tripIds->isEmpty() ? 0 : TripCrew::whereIn('trip_id', $tripIds)
+                ->where('status', TripCrew::STATUS_COMPLETED)->count(),
         ];
 
         return view('trips.index', compact('trips', 'drivers', 'vessels', 'stats'));
@@ -154,7 +183,23 @@ class TripController extends Controller
     public function show(Trip $trip)
     {
         $trip->load(['driver', 'crews.vessel', 'activityLogs.user', 'activityLogs.driver', 'tripIssues.issueType', 'tripIssues.driver', 'tripExpenses.expenseType', 'tripExpenses.driver']);
-        return view('trips.show', compact('trip'));
+        
+        // Calculate trip status data
+        $totalJobs = $trip->crews->count();
+        $isCompleted = $trip->isCompleted();
+        $completedJobs = $trip->getCompletedCrewsCount();
+        $inProgressJobs = $trip->getInProgressCrewsCount();
+        
+        $tripStatus = [
+            'totalJobs' => $totalJobs,
+            'isCompleted' => $isCompleted,
+            'completedJobs' => $completedJobs,
+            'inProgressJobs' => $inProgressJobs,
+            'statusBadge' => $trip->getStatusBadge(),
+            'statusText' => $trip->getStatusText(),
+        ];
+        
+        return view('trips.show', compact('trip', 'tripStatus'));
     }
 
     /**
@@ -190,7 +235,10 @@ class TripController extends Controller
 
         // Auto-generate trip title if driver or date changed
         $driverChanged = $trip->driver_id != $validated['driver_id'];
-        $dateChanged = $trip->trip_date->format('Y-m-d') != $validated['trip_date'];
+        $tripDateFormatted = $trip->trip_date instanceof \Carbon\Carbon 
+            ? $trip->trip_date->format('Y-m-d') 
+            : Carbon::parse($trip->trip_date)->format('Y-m-d');
+        $dateChanged = $tripDateFormatted !== Carbon::parse($validated['trip_date'])->format('Y-m-d');
         
         $tripTitle = $trip->title;
         if ($driverChanged || $dateChanged) {

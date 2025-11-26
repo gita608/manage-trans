@@ -361,22 +361,13 @@
                                         </td>
                                         <td>
                                             @php
-                                                $totalJobs = $trip->crews->count();
-                                                $completedJobs = $trip->crews->where('status', 'completed')->count();
-                                                $inProgressJobs = $trip->crews->where('status', 'in_progress')->count();
-                                                $progressPercent = $totalJobs > 0 ? ($completedJobs / $totalJobs) * 100 : 0;
-                                                
-                                                // Determine overall status
-                                                if ($completedJobs === $totalJobs && $totalJobs > 0) {
-                                                    $statusBadge = 'success';
-                                                    $statusText = 'All Completed';
-                                                } elseif ($inProgressJobs > 0) {
-                                                    $statusBadge = 'warning';
-                                                    $statusText = 'In Progress';
-                                                } else {
-                                                    $statusBadge = 'primary';
-                                                    $statusText = 'Pending';
-                                                }
+                                                $totalJobs = $trip->tripStatus['totalJobs'];
+                                                $isCompleted = $trip->tripStatus['isCompleted'];
+                                                $completedJobs = $trip->tripStatus['completedJobs'];
+                                                $inProgressJobs = $trip->tripStatus['inProgressJobs'];
+                                                $progressPercent = $trip->tripStatus['progressPercent'];
+                                                $statusBadge = $trip->tripStatus['statusBadge'];
+                                                $statusText = $trip->tripStatus['statusText'];
                                             @endphp
                                             
                                             <div class="d-flex align-items-center gap-2 mb-2">
