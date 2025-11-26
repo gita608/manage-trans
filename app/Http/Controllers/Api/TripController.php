@@ -124,58 +124,58 @@ class TripController extends Controller
     }
 
     /**
-     * Get detailed information about a specific job (TripCrew).
+     * Get detailed information about a specific trip.
+     * Returns all crews for the trip.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param  int  $id Trip ID
      * @return \Illuminate\Http\JsonResponse
      */
     public function show(Request $request, $id)
     {
         $driver = $request->user();
 
-        // Find TripCrew and check if it belongs to a trip assigned to this driver
-        $job = TripCrew::whereHas('trip', function($q) use ($driver) {
-                $q->where('driver_id', $driver->id);
-            })
-            ->with(['trip', 'vessel'])
+        // Find trip assigned to this driver
+        $trip = Trip::where('driver_id', $driver->id)
+            ->with(['crews.vessel'])
             ->find($id);
 
-        if (!$job) {
+        if (!$trip) {
             return response()->json([
                 'success' => false,
-                'message' => 'Job not found or you do not have access to it.',
+                'message' => 'Trip not found or you do not have access to it.',
             ], 404);
         }
 
-        // Format dates and times
-        $tripDate = $job->trip->trip_date instanceof \Carbon\Carbon 
-            ? $job->trip->trip_date 
-            : Carbon::parse($job->trip->trip_date);
+        // Format trip date
+        $tripDate = $trip->trip_date instanceof \Carbon\Carbon 
+            ? $trip->trip_date 
+            : Carbon::parse($trip->trip_date);
 
-        $pickupTime = null;
-        $pickupTimeFormatted = null;
-        if ($job->pick_up_time) {
-            $pickupTimeCarbon = Carbon::parse($job->pick_up_time);
-            $pickupTime = $pickupTimeCarbon->format('H:i');
-            $pickupTimeFormatted = $pickupTimeCarbon->format('g:i A');
-        }
+        // Format all crews for this trip
+        $crews = [];
+        foreach ($trip->crews as $crew) {
+            $pickupTime = null;
+            $pickupTimeFormatted = null;
+            if ($crew->pick_up_time) {
+                $pickupTimeCarbon = Carbon::parse($crew->pick_up_time);
+                $pickupTime = $pickupTimeCarbon->format('H:i');
+                $pickupTimeFormatted = $pickupTimeCarbon->format('g:i A');
+            }
 
-        $response = [
-            'success' => true,
-            'data' => [
-                'id' => $job->id,
-                'trip_id' => $job->trip_id,
+            $crews[] = [
+                'id' => $crew->id,
+                'trip_id' => $crew->trip_id,
                 'status' => [
-                    'value' => $job->status,
-                    'label' => ucfirst(str_replace('_', ' ', $job->status)),
-                    'is_ongoing' => $job->status === 'in_progress',
-                    'is_completed' => $job->status === 'completed',
+                    'value' => $crew->status,
+                    'label' => ucfirst(str_replace('_', ' ', $crew->status)),
+                    'is_ongoing' => $crew->status === 'in_progress',
+                    'is_completed' => $crew->status === 'completed',
                 ],
                 'crew_information' => [
-                    'name' => $job->name,
-                    'phone' => $job->phone,
-                    'address' => $job->address,
+                    'name' => $crew->name,
+                    'phone' => $crew->phone,
+                    'address' => $crew->address,
                 ],
                 'trip_date' => [
                     'date' => $tripDate->format('Y-m-d'),
@@ -183,23 +183,35 @@ class TripController extends Controller
                 ],
                 'locations' => [
                     'pickup' => [
-                        'address' => $job->from_location,
+                        'address' => $crew->from_location,
                         'time' => $pickupTime,
                         'time_formatted' => $pickupTimeFormatted,
                     ],
                     'drop' => [
-                        'address' => $job->to_location,
+                        'address' => $crew->to_location,
                     ],
                 ],
-                'vessel' => $job->vessel ? [
-                    'id' => $job->vessel->id,
-                    'name' => $job->vessel->name,
+                'vessel' => $crew->vessel ? [
+                    'id' => $crew->vessel->id,
+                    'name' => $crew->vessel->name,
                 ] : null,
-                'remarks' => $job->remarks,
-            ],
-        ];
+                'remarks' => $crew->remarks,
+                'flight_number' => $crew->flight_number,
+            ];
+        }
 
-        return response()->json($response, 200);
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'trip_id' => $trip->id,
+                'trip_title' => $trip->title,
+                'trip_date' => [
+                    'date' => $tripDate->format('Y-m-d'),
+                    'formatted' => $tripDate->format('l, F j, Y'),
+                ],
+                'crews' => $crews,
+            ],
+        ], 200);
     }
 
     /**
