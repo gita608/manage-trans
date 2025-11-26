@@ -61,14 +61,14 @@
                                             <input class="form-check-input" type="checkbox" id="checkAll" checked>
                                         </div>
                                     </th>
-                                    <th scope="col" style="width: 220px;">Driver</th>
-                                    <th scope="col" style="width: 220px;">Vessel</th>
-                                    <th scope="col" style="width: 150px;">Date</th>
-                                    <th scope="col" style="width: 130px;">Pick-up</th>
-                                    <th scope="col" style="width: 120px;">Flight No</th>
-                                    <th scope="col" style="width: 300px;">Crew Name</th>
-                                    <th scope="col" style="width: 220px;">Route</th>
-                                    <th scope="col">Remarks</th>
+                                    <th scope="col" style="width: 200px;">Driver</th>
+                                    <th scope="col" style="width: 200px;">Vessel</th>
+                                    <th scope="col" style="width: 130px;">Date</th>
+                                    <th scope="col" style="width: 110px;">Pick-up</th>
+                                    <th scope="col" style="width: 100px;">Flight No</th>
+                                    <th scope="col" style="width: 250px;">Crew Name</th>
+                                    <th scope="col" style="width: 180px;">Route</th>
+                                    <th scope="col" style="min-width: 150px;">Remarks</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white">
