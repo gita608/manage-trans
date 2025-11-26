@@ -257,11 +257,15 @@
                                                         </div>
                                                     </td>
                                                     <td>{{ $trip->driver->name ?? 'N/A' }}</td>
-                                                    <td>{{ $trip->vessel->name ?? 'N/A' }}</td>
+                                                    <td>{{ $trip->crews->first()->vessel->name ?? 'N/A' }}</td>
                                                     <td><small>{{ $trip->trip_date->format('M d, Y') }}</small></td>
                                                     <td class="pe-4">
+                                                        @php
+                                                            $firstCrew = $trip->crews->first();
+                                                            $status = $firstCrew ? $firstCrew->status : 'unknown';
+                                                        @endphp
                                                         <span class="badge {{ $trip->getStatusBadgeClass() }}">
-                                                            {{ ucfirst(str_replace('_', ' ', $trip->status)) }}
+                                                            {{ ucfirst(str_replace('_', ' ', $status)) }}
                                                         </span>
                                                     </td>
                                                 </tr>
@@ -330,7 +334,7 @@
                                         <div class="col-6">
                                             <div class="p-3 bg-success-subtle rounded text-center">
                                                 <h3 class="mb-0 fw-bold text-success">
-                                                    {{ $busiestDriver->trips()->where('status', \App\Models\Trip::STATUS_COMPLETED)->count() }}
+                                                    {{ $busiestDriverCompletedTrips }}
                                                 </h3>
                                                 <p class="text-muted mb-0 small">Completed</p>
                                             </div>

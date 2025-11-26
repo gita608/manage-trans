@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Driver;
 use App\Models\Vessel;
 use App\Models\Trip;
+use App\Models\TripCrew;
 use App\Models\User;
 use App\Models\ActivityLog;
 use Illuminate\Support\Facades\DB;
@@ -25,13 +26,13 @@ class DashboardController extends Controller
         $totalTrips = Trip::count();
         $totalStaff = User::where('role', User::ROLE_STAFF)->count();
         
-        // Get trips statistics
-        $assignedTrips = Trip::where('status', Trip::STATUS_ASSIGNED)->count();
-        $inProgressTrips = Trip::where('status', Trip::STATUS_IN_PROGRESS)->count();
-        $completedTrips = Trip::where('status', Trip::STATUS_COMPLETED)->count();
+        // Get crew statistics (status is on trip_crews, not trips)
+        $assignedTrips = TripCrew::where('status', 'assigned')->count();
+        $inProgressTrips = TripCrew::where('status', 'in_progress')->count();
+        $completedTrips = TripCrew::where('status', 'completed')->count();
         
         // Get recent trips
-        $recentTrips = Trip::with(['driver', 'vessel'])
+        $recentTrips = Trip::with(['driver', 'crews.vessel'])
             ->latest()
             ->take(5)
             ->get();
@@ -59,6 +60,14 @@ class DashboardController extends Controller
             ->orderBy('trips_count', 'desc')
             ->first();
         
+        // Calculate completed trips count for busiest driver
+        $busiestDriverCompletedTrips = 0;
+        if ($busiestDriver) {
+            $busiestDriverCompletedTrips = TripCrew::whereHas('trip', function($q) use ($busiestDriver) {
+                $q->where('driver_id', $busiestDriver->id);
+            })->where('status', 'completed')->count();
+        }
+        
         // Get top 5 busiest drivers
         $topDrivers = Driver::withCount('trips')
             ->orderBy('trips_count', 'desc')
@@ -77,6 +86,7 @@ class DashboardController extends Controller
             'recentActivities',
             'tripsByMonth',
             'busiestDriver',
+            'busiestDriverCompletedTrips',
             'topDrivers'
         ));
     }

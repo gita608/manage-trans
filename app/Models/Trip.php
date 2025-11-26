@@ -46,16 +46,25 @@ class Trip extends Model
     }
 
     /**
-     * Get status badge color class
+     * Get status badge color class based on crew statuses
      */
     public function getStatusBadgeClass(): string
     {
-        return match($this->status) {
-            self::STATUS_ASSIGNED => 'bg-warning',
-            self::STATUS_IN_PROGRESS => 'bg-info',
-            self::STATUS_COMPLETED => 'bg-success',
-            default => 'bg-secondary',
-        };
+        $totalCrews = $this->crews->count();
+        if ($totalCrews === 0) {
+            return 'bg-secondary';
+        }
+        
+        $completedCrews = $this->crews->where('status', 'completed')->count();
+        $inProgressCrews = $this->crews->where('status', 'in_progress')->count();
+        
+        if ($completedCrews === $totalCrews) {
+            return 'bg-success';
+        } elseif ($inProgressCrews > 0) {
+            return 'bg-info';
+        } else {
+            return 'bg-warning';
+        }
     }
 
     /**
