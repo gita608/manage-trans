@@ -108,6 +108,37 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- Documents Section -->
+                @if($driver->documents->count() > 0)
+                    <div class="border-top pt-4 mt-4">
+                        <h5 class="card-title mb-3">Documents</h5>
+                        <div class="row">
+                            @foreach($driver->documents as $document)
+                                <div class="col-md-3 mb-3">
+                                    <div class="card border shadow-none mb-0 h-100">
+                                        <div class="card-body p-3 text-center">
+                                            <div class="mb-3">
+                                                @if(str_starts_with($document->mime_type, 'image/'))
+                                                    <img src="{{ asset('storage/' . $document->file_path) }}" alt="{{ $document->original_name }}" class="img-fluid rounded" style="max-height: 100px;">
+                                                @else
+                                                    <i class="ri-file-pdf-line display-4 text-danger"></i>
+                                                @endif
+                                            </div>
+                                            <h6 class="fs-14 mb-1 text-truncate" title="{{ $document->original_name }}">
+                                                {{ $document->original_name }}
+                                            </h6>
+                                            <p class="text-muted fs-12 mb-3">{{ round($document->file_size / 1024, 2) }} KB</p>
+                                            <a href="{{ asset('storage/' . $document->file_path) }}" target="_blank" class="btn btn-sm btn-soft-primary w-100">
+                                                <i class="ri-download-line align-middle me-1"></i> View / Download
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             </div>
             <div class="card-footer">
                 <a href="{{ route('drivers.index') }}" class="btn btn-secondary">

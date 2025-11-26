@@ -148,6 +148,15 @@
                         </div>
                     </div>
 
+                    <div class="mb-3">
+                        <label for="documents" class="form-label">Documents</label>
+                        <input type="file" class="form-control @error('documents') is-invalid @enderror" id="documents" name="documents[]" multiple accept="image/*,application/pdf">
+                        <small class="text-muted">Allowed types: Images, PDF. Max size: 5MB</small>
+                        @error('documents')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
                     <div class="mt-4">
                         <button class="btn btn-success" type="submit">Create Driver</button>
                         <a href="{{ route('drivers.index') }}" class="btn btn-secondary">Cancel</a>

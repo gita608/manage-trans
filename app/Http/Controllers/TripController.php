@@ -66,7 +66,7 @@ class TripController extends Controller
         }
 
         if ($request->has('vessel') && $request->vessel) {
-            $query->whereHas('vessel', function ($q) use ($request) {
+            $query->whereHas('crews.vessel', function ($q) use ($request) {
                 $q->where('name', $request->vessel);
             });
         }

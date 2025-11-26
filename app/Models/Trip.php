@@ -88,14 +88,6 @@ class Trip extends Model
     }
 
     /**
-     * Get the vessel that owns the trip.
-     */
-    public function vessel()
-    {
-        return $this->belongsTo(Vessel::class);
-    }
-
-    /**
      * Get the trip issues for this trip.
      */
     public function tripIssues()
@@ -153,22 +145,15 @@ class Trip extends Model
         // Custom descriptions for Trip model
         if ($action === 'created') {
             $driverId = $this->driver_id ?? null;
-            $vesselId = $this->vessel_id ?? null;
             
             $driverName = 'Unknown';
-            $vesselName = 'Unknown';
             
             if ($driverId) {
                 $driver = Driver::find($driverId);
                 $driverName = $driver->name ?? 'Unknown';
             }
             
-            if ($vesselId) {
-                $vessel = Vessel::find($vesselId);
-                $vesselName = $vessel->name ?? 'Unknown';
-            }
-            
-            return "Trip created with driver '{$driverName}' and vessel '{$vesselName}'";
+            return "Trip created for driver '{$driverName}'";
         }
         
         if ($action === 'updated') {
@@ -184,13 +169,6 @@ class Trip extends Model
                 $oldDriverName = $oldDriver->name ?? 'Unknown';
                 $newDriverName = $newDriver->name ?? 'Unknown';
                 $changes[] = "driver changed from '{$oldDriverName}' to '{$newDriverName}'";
-            }
-            if (isset($newValues['vessel_id'])) {
-                $oldVessel = Vessel::find($oldValues['vessel_id'] ?? null);
-                $newVessel = Vessel::find($newValues['vessel_id']);
-                $oldVesselName = $oldVessel->name ?? 'Unknown';
-                $newVesselName = $newVessel->name ?? 'Unknown';
-                $changes[] = "vessel changed from '{$oldVesselName}' to '{$newVesselName}'";
             }
             
             if (!empty($changes)) {

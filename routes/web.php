@@ -66,6 +66,7 @@ Route::middleware(['auth'])->group(function () {
     
     Route::middleware(['permission:delete_drivers'])->group(function () {
         Route::delete('/drivers/{driver}', [DriverController::class, 'destroy'])->name('drivers.destroy');
+        Route::delete('/drivers/document/{document}', [DriverController::class, 'deleteDocument'])->name('drivers.delete-document');
     });
     
     // Vessel Routes (order matters - specific routes before parameterized routes)

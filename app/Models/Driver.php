@@ -86,6 +86,14 @@ class Driver extends Authenticatable
     }
 
     /**
+     * Get the documents for the driver.
+     */
+    public function documents()
+    {
+        return $this->hasMany(DriverDocument::class);
+    }
+
+    /**
      * Get the notifications for the driver.
      *
      * @return HasMany

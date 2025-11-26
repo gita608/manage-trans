@@ -54,13 +54,22 @@ class DriverController extends Controller
             $validated['photo'] = $photoPath;
         }
 
-        // Password will be automatically hashed by the Driver model
-        // Remove password from validated if empty
-        if (empty($validated['password'])) {
-            unset($validated['password']);
-        }
+        // Create driver first to get ID
+        $driver = Driver::create($validated);
 
-        Driver::create($validated);
+        // Handle document uploads
+        if ($request->hasFile('documents')) {
+            foreach ($request->file('documents') as $file) {
+                $path = $file->store('driver-documents', 'public');
+                
+                $driver->documents()->create([
+                    'file_path' => $path,
+                    'original_name' => $file->getClientOriginalName(),
+                    'mime_type' => $file->getMimeType(),
+                    'file_size' => $file->getSize(),
+                ]);
+            }
+        }
 
         return redirect()->route('drivers.index')->with('success', 'Driver created successfully!');
     }
@@ -111,6 +120,20 @@ class DriverController extends Controller
             unset($validated['photo']);
         }
 
+        // Handle document uploads
+        if ($request->hasFile('documents')) {
+            foreach ($request->file('documents') as $file) {
+                $path = $file->store('driver-documents', 'public');
+                
+                $driver->documents()->create([
+                    'file_path' => $path,
+                    'original_name' => $file->getClientOriginalName(),
+                    'mime_type' => $file->getMimeType(),
+                    'file_size' => $file->getSize(),
+                ]);
+            }
+        }
+
         // Password will be automatically hashed by the Driver model
         // Remove password from validated if empty (keep current password)
         if (empty($validated['password'])) {
@@ -132,8 +155,29 @@ class DriverController extends Controller
             Storage::disk('public')->delete($driver->photo);
         }
 
+        // Delete documents
+        foreach ($driver->documents as $document) {
+            Storage::disk('public')->delete($document->file_path);
+            $document->delete();
+        }
+
         $driver->delete();
 
         return redirect()->route('drivers.index')->with('success', 'Driver deleted successfully!');
+    }
+
+    /**
+     * Delete a specific document
+     */
+    public function deleteDocument(\App\Models\DriverDocument $document)
+    {
+        // Check if file exists and delete it
+        if (Storage::disk('public')->exists($document->file_path)) {
+            Storage::disk('public')->delete($document->file_path);
+        }
+        
+        $document->delete();
+        
+        return back()->with('success', 'Document deleted successfully!');
     }
 }

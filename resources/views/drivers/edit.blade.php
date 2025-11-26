@@ -153,6 +153,47 @@
                         <div class="mt-2">
                             <img id="photo-preview" src="#" alt="Photo preview" style="display: none; max-width: 200px; max-height: 200px; border-radius: 8px;">
                         </div>
+                    <div class="mb-3">
+                        <label for="documents" class="form-label">Documents</label>
+                        
+                        <!-- Existing Documents -->
+                        @if($driver->documents->count() > 0)
+                            <div class="row mb-3">
+                                @foreach($driver->documents as $document)
+                                    <div class="col-md-4 mb-2">
+                                        <div class="card border shadow-none mb-0">
+                                            <div class="card-body p-2 d-flex align-items-center justify-content-between">
+                                                <div class="d-flex align-items-center overflow-hidden">
+                                                    <div class="flex-shrink-0 me-2">
+                                                        @if(str_starts_with($document->mime_type, 'image/'))
+                                                            <img src="{{ asset('storage/' . $document->file_path) }}" alt="{{ $document->original_name }}" class="rounded" style="width: 40px; height: 40px; object-fit: cover;">
+                                                        @else
+                                                            <i class="ri-file-pdf-line fs-20 text-danger"></i>
+                                                        @endif
+                                                    </div>
+                                                    <div class="flex-grow-1 overflow-hidden">
+                                                        <h6 class="fs-13 mb-0 text-truncate" title="{{ $document->original_name }}">
+                                                            <a href="{{ asset('storage/' . $document->file_path) }}" target="_blank" class="text-body">{{ $document->original_name }}</a>
+                                                        </h6>
+                                                        <small class="text-muted">{{ round($document->file_size / 1024, 2) }} KB</small>
+                                                    </div>
+                                                </div>
+                                                <button type="button" class="btn btn-ghost-danger btn-sm btn-icon" onclick="if(confirm('Delete this document?')) document.getElementById('delete-doc-{{ $document->id }}').submit();">
+                                                    <i class="ri-delete-bin-line"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        <!-- Upload New Documents -->
+                        <input type="file" class="form-control @error('documents') is-invalid @enderror" id="documents" name="documents[]" multiple accept="image/*,application/pdf">
+                        <small class="text-muted">Allowed types: Images, PDF. Max size: 5MB</small>
+                        @error('documents')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <div class="mt-4">
@@ -165,6 +206,13 @@
     </div>
 </div>
 @endsection
+
+@foreach($driver->documents as $document)
+    <form id="delete-doc-{{ $document->id }}" action="{{ route('drivers.delete-document', $document->id) }}" method="POST" style="display: none;">
+        @csrf
+        @method('DELETE')
+    </form>
+@endforeach
 
 @push('scripts')
 <script>
