@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Trip;
+use App\Models\TripCrew;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -23,53 +24,63 @@ class HomeController extends Controller
         $currentYear = $now->year;
         $currentMonth = $now->month;
 
-        // Optimize: Calculate statistics in a single query using conditional aggregation
-        // This reduces 4 separate COUNT queries to 1 aggregated query
-        // Using the trips() relationship ensures proper foreign key filtering
-        $statisticsResult = $driver->trips()
-            ->selectRaw('
-                COUNT(*) as total_trips,
-                SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as completed,
-                SUM(CASE WHEN DATE(trip_date) = ? THEN 1 ELSE 0 END) as today_trips,
-                SUM(CASE WHEN YEAR(trip_date) = ? AND MONTH(trip_date) = ? THEN 1 ELSE 0 END) as this_month
-            ', [
-                Trip::STATUS_COMPLETED,
-                $today->format('Y-m-d'),
-                $currentYear,
-                $currentMonth
-            ])
-            ->first();
+        // Calculate statistics from trip_crews (status is on trip_crews, not trips)
+        $totalTrips = $driver->trips()->count();
+        $completedCrews = TripCrew::whereHas('trip', function($q) use ($driver) {
+            $q->where('driver_id', $driver->id);
+        })->where('status', 'completed')->count();
+        
+        $todayTrips = $driver->trips()
+            ->whereDate('trip_date', $today)
+            ->count();
+        
+        $thisMonthTrips = $driver->trips()
+            ->whereYear('trip_date', $currentYear)
+            ->whereMonth('trip_date', $currentMonth)
+            ->count();
+        
+        $statisticsResult = (object) [
+            'total_trips' => $totalTrips,
+            'completed' => $completedCrews,
+            'today_trips' => $todayTrips,
+            'this_month' => $thisMonthTrips,
+        ];
 
-        // Optimize: Fetch all needed trips in parallel using the relationship
-        // Using separate optimized queries with proper eager loading to prevent N+1 queries
+        // Fetch trips that have crews with matching status
+        // Status is now on trip_crews, so we need to find trips that have crews with the status
         $ongoingTrip = $driver->trips()
-            ->where('status', Trip::STATUS_IN_PROGRESS)
-            ->with('vessel') // Eager load vessel relationship to avoid N+1
+            ->whereHas('crews', function($q) {
+                $q->where('status', 'in_progress');
+            })
+            ->with(['crews.vessel']) // Eager load crews and their vessels
             ->orderBy('trip_date', 'desc')
-            ->orderBy('pick_up_time', 'desc')
             ->first();
 
         // Next trip (assigned status, scheduled for future)
         $nextTrip = $driver->trips()
-            ->where('status', Trip::STATUS_ASSIGNED)
+            ->whereHas('crews', function($q) {
+                $q->where('status', 'assigned');
+            })
             ->where(function ($query) use ($today, $now) {
                 $query->whereDate('trip_date', '>', $today)
                     ->orWhere(function ($q) use ($today, $now) {
                         $q->whereDate('trip_date', $today)
-                            ->where('pick_up_time', '>', $now->format('H:i:s'));
+                            ->whereHas('crews', function($crewQ) use ($now) {
+                                $crewQ->where('pick_up_time', '>', $now->format('H:i:s'));
+                            });
                     });
             })
-            ->with('vessel') // Eager load vessel relationship
+            ->with(['crews.vessel']) // Eager load crews and their vessels
             ->orderBy('trip_date', 'asc')
-            ->orderBy('pick_up_time', 'asc')
             ->first();
 
-        // Last completed trip
+        // Last completed trip (trip that has at least one completed crew)
         $lastCompletedTrip = $driver->trips()
-            ->where('status', Trip::STATUS_COMPLETED)
-            ->with('vessel') // Eager load vessel relationship
+            ->whereHas('crews', function($q) {
+                $q->where('status', 'completed');
+            })
+            ->with(['crews.vessel']) // Eager load crews and their vessels
             ->orderBy('trip_date', 'desc')
-            ->orderBy('pick_up_time', 'desc')
             ->first();
 
         // Format user profile
@@ -133,39 +144,52 @@ class HomeController extends Controller
             ? $trip->trip_date 
             : Carbon::parse($trip->trip_date);
 
+        // Get the first crew member (or the one matching the status)
+        $firstCrew = $trip->crews->first();
+        $status = $firstCrew ? $firstCrew->status : 'unknown';
+        
+        // For completed trips, get the first completed crew
+        if ($isCompleted) {
+            $completedCrew = $trip->crews->where('status', 'completed')->first();
+            if ($completedCrew) {
+                $firstCrew = $completedCrew;
+                $status = 'completed';
+            }
+        }
+
         $formatted = [
             'id' => $trip->id,
-            'crew_name' => $trip->crews->first()->name ?? null,
-            'crew_phone' => $trip->crews->first()->phone ?? null,
-            'crew_address' => $trip->crews->first()->address ?? null,
-            'status' => $trip->status,
-            'status_label' => ucfirst(str_replace('_', ' ', $trip->status)),
+            'crew_name' => $firstCrew->name ?? null,
+            'crew_phone' => $firstCrew->phone ?? null,
+            'crew_address' => $firstCrew->address ?? null,
+            'status' => $status,
+            'status_label' => ucfirst(str_replace('_', ' ', $status)),
             'pickup' => [
-                'location' => $trip->from_location,
-                'time' => $trip->pick_up_time,
+                'location' => $firstCrew->from_location ?? null,
+                'time' => $firstCrew->pick_up_time ?? null,
                 'date' => $tripDate->format('Y-m-d'),
                 'formatted_date' => $tripDate->format('d/m/Y'),
             ],
             'drop' => [
-                'location' => $trip->to_location,
+                'location' => $firstCrew->to_location ?? null,
             ],
             'trip_date' => $tripDate->format('Y-m-d'),
             'formatted_trip_date' => $tripDate->format('d/m/Y'),
-            'vessel' => $trip->vessel ? [
-                'id' => $trip->vessel->id,
-                'name' => $trip->vessel->name,
+            'vessel' => $firstCrew && $firstCrew->vessel ? [
+                'id' => $firstCrew->vessel->id,
+                'name' => $firstCrew->vessel->name,
             ] : null,
         ];
 
         // Add completed trip specific fields
-        if ($isCompleted) {
-            $formatted['started_at'] = $trip->pick_up_time;
-            $formatted['completed_at'] = $trip->updated_at->format('H:i');
-            $formatted['completed_date'] = $trip->updated_at->format('Y-m-d');
+        if ($isCompleted && $firstCrew) {
+            $formatted['started_at'] = $firstCrew->pick_up_time;
+            $formatted['completed_at'] = $firstCrew->updated_at->format('H:i');
+            $formatted['completed_date'] = $firstCrew->updated_at->format('Y-m-d');
         } else {
             // For ongoing or next trips, add started_at if in progress
-            if ($trip->status === Trip::STATUS_IN_PROGRESS) {
-                $formatted['started_at'] = $trip->updated_at->format('H:i');
+            if ($status === 'in_progress' && $firstCrew) {
+                $formatted['started_at'] = $firstCrew->updated_at->format('H:i');
             }
         }
 
