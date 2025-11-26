@@ -23,81 +23,66 @@ class TripController extends Controller
         $driver = $request->user();
         $today = Carbon::today();
         
-        // Get all trip crews (jobs) for today's trips assigned to this driver
-        $jobs = TripCrew::whereHas('trip', function($q) use ($driver, $today) {
-                $q->where('driver_id', $driver->id)
-                  ->whereDate('trip_date', $today);
-            })
-            ->with(['trip', 'vessel'])
-            ->orderBy('pick_up_time', 'asc')
+        // Get all trips for today assigned to this driver with their crews (eager loaded to avoid N+1)
+        $trips = Trip::where('driver_id', $driver->id)
+            ->whereDate('trip_date', $today)
+            ->with(['crews' => function($q) {
+                $q->orderBy('pick_up_time', 'asc');
+            }])
             ->get();
 
-        // Calculate statistics
-        $totalJobs = $jobs->count();
-        $completedJobs = $jobs->where('status', 'completed')->count(); // Assuming status is on TripCrew now
-        $pendingJobs = $jobs->whereIn('status', ['assigned', 'in_progress'])->count();
-
-        // Format date
+        // Format date once (reused multiple times)
         $dateFormatted = $today->format('l, j F Y');
         $dateShort = $today->format('Y-m-d');
+        $dayName = $today->format('l');
+        $dayNumber = $today->format('j');
+        $month = $today->format('F');
+        $year = $today->format('Y');
 
-        // Categorize jobs
-        $pending = [];
-        $completed = [];
-
-        foreach ($jobs as $job) {
-            // Format pickup time
-            $pickupTime = null;
-            $pickupTimeFormatted = null;
+        // Process trips in a single pass using partition
+        [$completed, $pending] = $trips->partition(function($trip) {
+            $crews = $trip->crews;
+            $totalCrews = $crews->count();
             
-            if ($job->pick_up_time) {
-                try {
-                    $pickupTimeCarbon = Carbon::parse($job->pick_up_time);
-                    $pickupTime = $pickupTimeCarbon->format('H:i');
-                    $pickupTimeFormatted = $pickupTimeCarbon->format('g:i A');
-                } catch (\Exception $e) {
-                    $pickupTime = $job->pick_up_time;
-                    $pickupTimeFormatted = $job->pick_up_time;
-                }
-            }
+            // Trip is completed only when ALL crews are completed and has at least one crew
+            return $totalCrews > 0 && $crews->every(function($crew) {
+                return $crew->status === 'completed';
+            });
+        });
 
-            $jobData = [
-                'id' => $job->id, // This is TripCrew ID
-                'trip_id' => $job->trip_id,
-                'crew_name' => $job->name,
-                'crew_phone' => $job->phone,
-                'crew_address' => $job->address,
-                'status' => [
-                    'value' => $job->status,
-                    'label' => ucfirst(str_replace('_', ' ', $job->status)),
-                    'is_in_progress' => $job->status === 'in_progress',
-                    'is_completed' => $job->status === 'completed',
-                    'is_upcoming' => $job->status === 'assigned',
-                ],
-                'pickup' => [
-                    'address' => $job->from_location,
-                    'time' => $pickupTime,
-                    'time_formatted' => $pickupTimeFormatted,
-                ],
-                'drop' => [
-                    'address' => $job->to_location,
-                    'status' => $job->status === 'completed' 
-                        ? 'Completed' 
-                        : ($job->status === 'in_progress' ? 'In Progress' : 'Scheduled'),
-                ],
-                'vessel' => $job->vessel ? [
-                    'id' => $job->vessel->id,
-                    'name' => $job->vessel->name,
-                ] : null,
-                'remarks' => $job->remarks,
+        // Map completed trips to response format
+        $completedTrips = $completed->map(function($trip) use ($dateShort) {
+            return [
+                'trip_id' => $trip->id,
+                'trip_title' => $trip->title,
+                'trip_date' => $dateShort,
+                'crews' => $trip->crews->map(function($crew) {
+                    return [
+                        'id' => $crew->id,
+                        'name' => $crew->name,
+                        'phone' => $crew->phone,
+                        'address' => $crew->address,
+                    ];
+                })->values(),
             ];
+        })->values();
 
-            if ($job->status === 'completed') {
-                $completed[] = $jobData;
-            } else {
-                $pending[] = $jobData;
-            }
-        }
+        // Map pending trips to response format
+        $pendingTrips = $pending->map(function($trip) use ($dateShort) {
+            return [
+                'trip_id' => $trip->id,
+                'trip_title' => $trip->title,
+                'trip_date' => $dateShort,
+                'crews' => $trip->crews->map(function($crew) {
+                    return [
+                        'id' => $crew->id,
+                        'name' => $crew->name,
+                        'phone' => $crew->phone,
+                        'address' => $crew->address,
+                    ];
+                })->values(),
+            ];
+        })->values();
 
         return response()->json([
             'success' => true,
@@ -105,19 +90,19 @@ class TripController extends Controller
                 'date' => [
                     'date' => $dateShort,
                     'formatted' => $dateFormatted,
-                    'day' => $today->format('l'),
-                    'day_number' => $today->format('j'),
-                    'month' => $today->format('F'),
-                    'year' => $today->format('Y'),
+                    'day' => $dayName,
+                    'day_number' => $dayNumber,
+                    'month' => $month,
+                    'year' => $year,
                 ],
                 'summary' => [
-                    'total' => $totalJobs,
-                    'completed' => $completedJobs,
-                    'pending' => $pendingJobs,
+                    'total' => $trips->count(),
+                    'completed' => $completedTrips->count(),
+                    'pending' => $pendingTrips->count(),
                 ],
                 'tasks' => [
-                    'pending' => $pending,
-                    'completed' => $completed,
+                    'pending' => $pendingTrips->all(),
+                    'completed' => $completedTrips->all(),
                 ],
             ],
         ], 200);

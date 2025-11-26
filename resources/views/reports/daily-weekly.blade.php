@@ -114,7 +114,7 @@
                     </div>
                     <div class="flex-grow-1">
                         <p class="text-uppercase fw-medium text-muted mb-0 fs-12">Completed</p>
-                        <h3 class="mb-0 fw-bold">{{ $trips->where('status', \App\Models\Trip::STATUS_COMPLETED)->count() }}</h3>
+                        <h3 class="mb-0 fw-bold">{{ $trips->where('status', \App\Models\TripCrew::STATUS_COMPLETED)->count() }}</h3>
                     </div>
                 </div>
             </div>

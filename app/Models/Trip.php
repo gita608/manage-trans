@@ -27,22 +27,11 @@ class Trip extends Model
     }
 
     /**
-     * Trip status constants
-     */
-    const STATUS_ASSIGNED = 'assigned';
-    const STATUS_IN_PROGRESS = 'in_progress';
-    const STATUS_COMPLETED = 'completed';
-
-    /**
      * Get all available statuses
      */
     public static function getStatuses(): array
     {
-        return [
-            self::STATUS_ASSIGNED => 'Assigned',
-            self::STATUS_IN_PROGRESS => 'In Progress',
-            self::STATUS_COMPLETED => 'Completed',
-        ];
+        return TripCrew::getStatuses();
     }
 
     /**
@@ -53,23 +42,23 @@ class Trip extends Model
     public function getStatusAttribute(): string
     {
         if ($this->crews->isEmpty()) {
-            return self::STATUS_ASSIGNED;
+            return TripCrew::STATUS_ASSIGNED;
         }
         
         $total = $this->crews->count();
-        $completed = $this->crews->where('status', self::STATUS_COMPLETED)->count();
+        $completed = $this->crews->where('status', TripCrew::STATUS_COMPLETED)->count();
         
         if ($completed === $total) {
-            return self::STATUS_COMPLETED;
+            return TripCrew::STATUS_COMPLETED;
         }
         
-        $inProgress = $this->crews->where('status', self::STATUS_IN_PROGRESS)->count();
+        $inProgress = $this->crews->where('status', TripCrew::STATUS_IN_PROGRESS)->count();
         // If any crew is in progress OR completed (but not all), the trip is in progress
         if ($inProgress > 0 || $completed > 0) {
-            return self::STATUS_IN_PROGRESS;
+            return TripCrew::STATUS_IN_PROGRESS;
         }
         
-        return self::STATUS_ASSIGNED;
+        return TripCrew::STATUS_ASSIGNED;
     }
 
     /**

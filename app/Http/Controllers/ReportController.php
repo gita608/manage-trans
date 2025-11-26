@@ -60,9 +60,9 @@ class ReportController extends Controller
 
         // Calculate statistics
         $totalTrips = $trips->count();
-        $assignedTrips = $trips->where('status', Trip::STATUS_ASSIGNED)->count();
-        $inProgressTrips = $trips->where('status', Trip::STATUS_IN_PROGRESS)->count();
-        $completedTrips = $trips->where('status', Trip::STATUS_COMPLETED)->count();
+        $assignedTrips = $trips->where('status', \App\Models\TripCrew::STATUS_ASSIGNED)->count();
+        $inProgressTrips = $trips->where('status', \App\Models\TripCrew::STATUS_IN_PROGRESS)->count();
+        $completedTrips = $trips->where('status', \App\Models\TripCrew::STATUS_COMPLETED)->count();
 
         // Trips by status for chart
         $statusData = [
@@ -120,9 +120,9 @@ class ReportController extends Controller
             $driverStats[] = [
                 'driver' => $driver,
                 'total_trips' => $trips->count(),
-                'assigned' => $trips->where('status', Trip::STATUS_ASSIGNED)->count(),
-                'in_progress' => $trips->where('status', Trip::STATUS_IN_PROGRESS)->count(),
-                'completed' => $trips->where('status', Trip::STATUS_COMPLETED)->count(),
+                'assigned' => $trips->where('status', \App\Models\TripCrew::STATUS_ASSIGNED)->count(),
+                'in_progress' => $trips->where('status', \App\Models\TripCrew::STATUS_IN_PROGRESS)->count(),
+                'completed' => $trips->where('status', \App\Models\TripCrew::STATUS_COMPLETED)->count(),
             ];
         }
 
@@ -195,9 +195,9 @@ class ReportController extends Controller
             $dailyStats[] = [
                 'date' => $key,
                 'total' => $dayTrips->count(),
-                'assigned' => $dayTrips->where('status', Trip::STATUS_ASSIGNED)->count(),
-                'in_progress' => $dayTrips->where('status', Trip::STATUS_IN_PROGRESS)->count(),
-                'completed' => $dayTrips->where('status', Trip::STATUS_COMPLETED)->count(),
+                'assigned' => $dayTrips->where('status', \App\Models\TripCrew::STATUS_ASSIGNED)->count(),
+                'in_progress' => $dayTrips->where('status', \App\Models\TripCrew::STATUS_IN_PROGRESS)->count(),
+                'completed' => $dayTrips->where('status', \App\Models\TripCrew::STATUS_COMPLETED)->count(),
             ];
         }
 

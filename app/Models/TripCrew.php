@@ -29,4 +29,23 @@ class TripCrew extends Model
     {
         return $this->belongsTo(Vessel::class);
     }
+
+    /**
+     * Trip status constants
+     */
+    const STATUS_ASSIGNED = 'assigned';
+    const STATUS_IN_PROGRESS = 'in_progress';
+    const STATUS_COMPLETED = 'completed';
+
+    /**
+     * Get all available statuses
+     */
+    public static function getStatuses(): array
+    {
+        return [
+            self::STATUS_ASSIGNED => 'Assigned',
+            self::STATUS_IN_PROGRESS => 'In Progress',
+            self::STATUS_COMPLETED => 'Completed',
+        ];
+    }
 }
