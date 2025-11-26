@@ -36,8 +36,8 @@ use App\Http\Controllers\Api\TripController;
         
         // Trip Details Routes
         Route::get('/trips/{id}', [TripController::class, 'show'])->name('api.driver.trip.show');
-        Route::put('/trips/{id}/status', [TripController::class, 'updateStatus'])->name('api.driver.trip.update-status');
-        Route::put('/trips/{id}/crew', [TripController::class, 'updateCrewDetails'])->name('api.driver.trip.update-crew');
+        Route::put('/trips/{id}/crew/{crew_id}/status', [TripController::class, 'updateStatus'])->name('api.driver.trip.update-status');
+        Route::put('/trips/{id}/crew/{crew_id}', [TripController::class, 'updateCrewDetails'])->name('api.driver.trip.update-crew');
         
         // Trip Issue Routes
         Route::get('/trip-issue-types', [TripController::class, 'getIssueTypes'])->name('api.driver.trip-issue-types');

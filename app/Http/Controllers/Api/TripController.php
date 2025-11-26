@@ -218,21 +218,32 @@ class TripController extends Controller
      * Update job status.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param  int  $id Trip ID
+     * @param  int  $crew_id TripCrew ID
      * @return \Illuminate\Http\JsonResponse
      */
-    public function updateStatus(Request $request, $id)
+    public function updateStatus(Request $request, $id, $crew_id)
     {
         $driver = $request->user();
 
-        $job = TripCrew::whereHas('trip', function($q) use ($driver) {
-                $q->where('driver_id', $driver->id);
-            })->find($id);
+        // Verify trip belongs to the driver
+        $trip = Trip::where('driver_id', $driver->id)->find($id);
+
+        if (!$trip) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Trip not found or you do not have access to it.',
+            ], 404);
+        }
+
+        // Find the crew member and verify it belongs to this trip
+        $job = TripCrew::where('trip_id', $trip->id)
+            ->find($crew_id);
 
         if (!$job) {
             return response()->json([
                 'success' => false,
-                'message' => 'Job not found.',
+                'message' => 'Crew member not found or does not belong to this trip.',
             ], 404);
         }
 
@@ -353,6 +364,158 @@ class TripController extends Controller
         ]);
 
         return response()->json(['success' => true, 'message' => 'Expense submitted.'], 201);
+    }
+
+    /**
+     * Update crew details for a specific trip crew.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id Trip ID
+     * @param  int  $crew_id TripCrew ID
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateCrewDetails(Request $request, $id, $crew_id)
+    {
+        $driver = $request->user();
+
+        // Verify trip belongs to the driver
+        $trip = Trip::where('driver_id', $driver->id)->find($id);
+
+        if (!$trip) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Trip not found or you do not have access to it.',
+            ], 404);
+        }
+
+        // Find the crew member and verify it belongs to this trip
+        $crew = TripCrew::where('trip_id', $trip->id)
+            ->with('vessel')
+            ->find($crew_id);
+
+        if (!$crew) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Crew member not found or does not belong to this trip.',
+            ], 404);
+        }
+
+        // Map request fields (handle both crew_* and direct field names)
+        $requestData = $request->all();
+        
+        // Map crew_* prefixed fields to database fields
+        if (isset($requestData['crew_name'])) {
+            $requestData['name'] = $requestData['crew_name'];
+        }
+        if (isset($requestData['crew_phone'])) {
+            $requestData['phone'] = $requestData['crew_phone'];
+        }
+        if (isset($requestData['crew_address'])) {
+            $requestData['address'] = $requestData['crew_address'];
+        }
+
+        // Validate the request
+        $validator = Validator::make($requestData, [
+            'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:255'],
+            'address' => ['nullable', 'string'],
+            'vessel_id' => ['sometimes', 'nullable', 'exists:vessels,id'],
+            'pick_up_time' => ['sometimes', 'nullable'],
+            'from_location' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'to_location' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'flight_number' => ['nullable', 'string', 'max:255'],
+            'remarks' => ['nullable', 'string'],
+            'status' => ['sometimes', 'in:assigned,in_progress,completed'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        $oldValues = $crew->getOriginal();
+        $validated = $validator->validated();
+
+        // Remove crew_* prefixed fields if they exist (we've already mapped them)
+        unset($validated['crew_name'], $validated['crew_phone'], $validated['crew_address']);
+
+        // Update crew details
+        $crew->fill($validated);
+        $crew->save();
+
+        // Log activity if there were changes
+        $changes = array_diff_assoc($crew->getAttributes(), $oldValues);
+        if (!empty($changes)) {
+            ActivityLog::create([
+                'loggable_type' => Trip::class,
+                'loggable_id' => $trip->id,
+                'action' => 'updated',
+                'driver_id' => $driver->id,
+                'description' => "Crew #{$crew->id} details updated by driver {$driver->name}",
+            ]);
+        }
+
+        // Format pickup time for response
+        $pickupTime = null;
+        $pickupTimeFormatted = null;
+        if ($crew->pick_up_time) {
+            try {
+                $pickupTimeCarbon = Carbon::parse($crew->pick_up_time);
+                $pickupTime = $pickupTimeCarbon->format('H:i');
+                $pickupTimeFormatted = $pickupTimeCarbon->format('g:i A');
+            } catch (\Exception $e) {
+                $pickupTime = $crew->pick_up_time;
+                $pickupTimeFormatted = $crew->pick_up_time;
+            }
+        }
+
+        // Format trip date
+        $tripDate = $trip->trip_date instanceof \Carbon\Carbon 
+            ? $trip->trip_date 
+            : Carbon::parse($trip->trip_date);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Crew details updated successfully.',
+            'data' => [
+                'id' => $crew->id,
+                'trip_id' => $crew->trip_id,
+                'status' => [
+                    'value' => $crew->status,
+                    'label' => ucfirst(str_replace('_', ' ', $crew->status)),
+                    'is_ongoing' => $crew->status === 'in_progress',
+                    'is_completed' => $crew->status === 'completed',
+                ],
+                'crew_information' => [
+                    'name' => $crew->name,
+                    'phone' => $crew->phone,
+                    'address' => $crew->address,
+                ],
+                'trip_date' => [
+                    'date' => $tripDate->format('Y-m-d'),
+                    'formatted' => $tripDate->format('l, F j, Y'),
+                ],
+                'locations' => [
+                    'pickup' => [
+                        'address' => $crew->from_location,
+                        'time' => $pickupTime,
+                        'time_formatted' => $pickupTimeFormatted,
+                    ],
+                    'drop' => [
+                        'address' => $crew->to_location,
+                    ],
+                ],
+                'vessel' => $crew->vessel ? [
+                    'id' => $crew->vessel->id,
+                    'name' => $crew->vessel->name,
+                ] : null,
+                'remarks' => $crew->remarks,
+                'flight_number' => $crew->flight_number,
+            ],
+        ], 200);
     }
 }
 
