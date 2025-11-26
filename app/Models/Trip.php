@@ -46,6 +46,33 @@ class Trip extends Model
     }
 
     /**
+     * Get the trip status based on crews.
+     *
+     * @return string
+     */
+    public function getStatusAttribute(): string
+    {
+        if ($this->crews->isEmpty()) {
+            return self::STATUS_ASSIGNED;
+        }
+        
+        $total = $this->crews->count();
+        $completed = $this->crews->where('status', self::STATUS_COMPLETED)->count();
+        
+        if ($completed === $total) {
+            return self::STATUS_COMPLETED;
+        }
+        
+        $inProgress = $this->crews->where('status', self::STATUS_IN_PROGRESS)->count();
+        // If any crew is in progress OR completed (but not all), the trip is in progress
+        if ($inProgress > 0 || $completed > 0) {
+            return self::STATUS_IN_PROGRESS;
+        }
+        
+        return self::STATUS_ASSIGNED;
+    }
+
+    /**
      * Get status badge color class based on crew statuses
      */
     public function getStatusBadgeClass(): string
