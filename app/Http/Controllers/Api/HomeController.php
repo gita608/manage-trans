@@ -135,9 +135,9 @@ class HomeController extends Controller
 
         $formatted = [
             'id' => $trip->id,
-            'crew_name' => $trip->crew_name,
-            'crew_phone' => $trip->crew_phone ?? null,
-            'crew_address' => $trip->crew_address ?? null,
+            'crew_name' => $trip->crews->first()->name ?? null,
+            'crew_phone' => $trip->crews->first()->phone ?? null,
+            'crew_address' => $trip->crews->first()->address ?? null,
             'status' => $trip->status,
             'status_label' => ucfirst(str_replace('_', ' ', $trip->status)),
             'pickup' => [

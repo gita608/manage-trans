@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Trip;
+use App\Models\TripCrew;
 use App\Models\Driver;
 use App\Models\Vessel;
 use App\Services\TextractService;
@@ -18,7 +19,45 @@ class TripController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Trip::with(['driver', 'vessel']);
+        $query = Trip::with(['driver', 'crews.vessel']);
+
+        // Date Filtering Logic
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
+        $dateRange = $request->input('date_range');
+
+        // Handle preset ranges
+        if ($dateRange) {
+            switch ($dateRange) {
+                case 'today':
+                    $dateFrom = $dateTo = today()->format('Y-m-d');
+                    break;
+                case 'yesterday':
+                    $dateFrom = $dateTo = today()->subDay()->format('Y-m-d');
+                    break;
+                case 'last_7_days':
+                    $dateFrom = today()->subDays(6)->format('Y-m-d');
+                    $dateTo = today()->format('Y-m-d');
+                    break;
+                case 'this_month':
+                    $dateFrom = today()->startOfMonth()->format('Y-m-d');
+                    $dateTo = today()->endOfMonth()->format('Y-m-d');
+                    break;
+            }
+        }
+
+        // Apply date filter
+        if ($dateFrom && $dateTo) {
+            $query->whereBetween('trip_date', [$dateFrom, $dateTo]);
+        } elseif ($request->has('date') && $request->date) {
+            // Legacy/Single date support
+            $query->whereDate('trip_date', $request->date);
+        } else {
+            // Default to today if no specific date filter
+            if (!$dateFrom && !$dateTo && !$request->has('date')) {
+                $query->whereDate('trip_date', today());
+            }
+        }
 
         if ($request->has('driver') && $request->driver) {
             $query->whereHas('driver', function ($q) use ($request) {
@@ -32,8 +71,11 @@ class TripController extends Controller
             });
         }
 
-        if ($request->has('date') && $request->date) {
-            $query->whereDate('trip_date', $request->date);
+        // Add status filter
+        if ($request->has('status') && $request->status) {
+            $query->whereHas('crews', function ($q) use ($request) {
+                $q->where('status', $request->status);
+            });
         }
 
         $trips = $query->latest('created_at')
@@ -42,7 +84,21 @@ class TripController extends Controller
         $drivers = Driver::orderBy('name')->get();
         $vessels = Vessel::orderBy('name')->get();
 
-        return view('trips.index', compact('trips', 'drivers', 'vessels'));
+        // Calculate statistics for overview cards
+        $stats = [
+            'total_trips' => Trip::whereDate('trip_date', today())->count(),
+            'total_jobs' => TripCrew::whereHas('trip', function ($q) {
+                $q->whereDate('trip_date', today());
+            })->count(),
+            'jobs_in_progress' => TripCrew::whereHas('trip', function ($q) {
+                $q->whereDate('trip_date', today());
+            })->where('status', 'in_progress')->count(),
+            'jobs_completed' => TripCrew::whereHas('trip', function ($q) {
+                $q->whereDate('trip_date', today());
+            })->where('status', 'completed')->count(),
+        ];
+
+        return view('trips.index', compact('trips', 'drivers', 'vessels', 'stats'));
     }
 
     /**
@@ -51,7 +107,7 @@ class TripController extends Controller
     public function create()
     {
         $drivers = Driver::orderBy('name')->get();
-        $vessels = Vessel::orderBy('name')->get();
+        $vessels = Vessel::orderBy('name')->get(); // Still needed for dynamic select
         return view('trips.create', compact('drivers', 'vessels'));
     }
 
@@ -61,21 +117,33 @@ class TripController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'crew_name' => ['required', 'string', 'max:255'],
             'driver_id' => ['required', 'exists:drivers,id'],
-            'vessel_id' => ['required', 'exists:vessels,id'],
             'trip_date' => ['required', 'date'],
-            'pick_up_time' => ['required'],
-            'from_location' => ['required', 'string', 'max:255'],
-            'to_location' => ['required', 'string', 'max:255'],
-            'crew_phone' => ['nullable', 'string', 'max:255'],
-            'crew_address' => ['nullable', 'string'],
+            'title' => ['nullable', 'string', 'max:255'],
+            'crews' => ['required', 'array', 'min:1'],
+            'crews.*.vessel_id' => ['required', 'exists:vessels,id'],
+            'crews.*.pick_up_time' => ['required'],
+            'crews.*.from_location' => ['required', 'string', 'max:255'],
+            'crews.*.to_location' => ['required', 'string', 'max:255'],
+            'crews.*.flight_number' => ['nullable', 'string', 'max:255'],
+            'crews.*.remarks' => ['nullable', 'string'],
+            'crews.*.name' => ['required', 'string', 'max:255'],
+            'crews.*.phone' => ['nullable', 'string', 'max:255'],
+            'crews.*.address' => ['nullable', 'string'],
         ]);
 
-        // Set default status to assigned
-        $validated['status'] = Trip::STATUS_ASSIGNED;
+        // Auto-generate trip title based on driver and date
+        $tripTitle = Trip::generateTripTitle($validated['driver_id'], $validated['trip_date']);
 
-        Trip::create($validated);
+        $trip = Trip::create([
+            'driver_id' => $validated['driver_id'],
+            'trip_date' => $validated['trip_date'],
+            'title' => $tripTitle,
+        ]);
+
+        foreach ($request->crews as $crewData) {
+            $trip->crews()->create(array_merge($crewData, ['status' => 'assigned']));
+        }
 
         return redirect()->route('trips.index')->with('success', 'Trip created successfully!');
     }
@@ -85,7 +153,7 @@ class TripController extends Controller
      */
     public function show(Trip $trip)
     {
-        $trip->load(['driver', 'vessel', 'activityLogs.user', 'activityLogs.driver', 'tripIssues.issueType', 'tripIssues.driver', 'tripExpenses.expenseType', 'tripExpenses.driver']);
+        $trip->load(['driver', 'crews.vessel', 'activityLogs.user', 'activityLogs.driver', 'tripIssues.issueType', 'tripIssues.driver', 'tripExpenses.expenseType', 'tripExpenses.driver']);
         return view('trips.show', compact('trip'));
     }
 
@@ -105,21 +173,66 @@ class TripController extends Controller
     public function update(Request $request, Trip $trip)
     {
         $validated = $request->validate([
-            'crew_name' => ['required', 'string', 'max:255'],
             'driver_id' => ['required', 'exists:drivers,id'],
-            'vessel_id' => ['required', 'exists:vessels,id'],
             'trip_date' => ['required', 'date'],
-            'pick_up_time' => ['required'],
-            'from_location' => ['required', 'string', 'max:255'],
-            'to_location' => ['required', 'string', 'max:255'],
-            'crew_phone' => ['nullable', 'string', 'max:255'],
-            'crew_address' => ['nullable', 'string'],
+            'title' => ['nullable', 'string', 'max:255'],
+            'crews' => ['required', 'array', 'min:1'],
+            'crews.*.vessel_id' => ['required', 'exists:vessels,id'],
+            'crews.*.pick_up_time' => ['required'],
+            'crews.*.from_location' => ['required', 'string', 'max:255'],
+            'crews.*.to_location' => ['required', 'string', 'max:255'],
+            'crews.*.flight_number' => ['nullable', 'string', 'max:255'],
+            'crews.*.remarks' => ['nullable', 'string'],
+            'crews.*.name' => ['required', 'string', 'max:255'],
+            'crews.*.phone' => ['nullable', 'string', 'max:255'],
+            'crews.*.address' => ['nullable', 'string'],
         ]);
 
-        // Keep existing status, don't update it through the form
-        $trip->update($validated);
+        // Auto-generate trip title if driver or date changed
+        $driverChanged = $trip->driver_id != $validated['driver_id'];
+        $dateChanged = $trip->trip_date->format('Y-m-d') != $validated['trip_date'];
+        
+        $tripTitle = $trip->title;
+        if ($driverChanged || $dateChanged) {
+            // Regenerate title for new driver/date combination
+            $tripTitle = Trip::generateTripTitle($validated['driver_id'], $validated['trip_date'], $trip->id);
+        }
+
+        $trip->update([
+            'driver_id' => $validated['driver_id'],
+            'trip_date' => $validated['trip_date'],
+            'title' => $tripTitle,
+        ]);
+
+        // Sync crews: delete all and recreate
+        // Note: In a real app, we might want to update existing IDs to preserve history/logs linked to specific crews
+        // But for this refactor, full sync is simpler.
+        $trip->crews()->delete();
+        
+        foreach ($request->crews as $crewData) {
+            // Preserve status if we were editing specific crew status (not implemented in edit form yet, so default to assigned)
+            $trip->crews()->create(array_merge($crewData, ['status' => 'assigned']));
+        }
 
         return redirect()->route('trips.index')->with('success', 'Trip updated successfully!');
+    }
+
+    /**
+     * Generate trip title based on driver and date
+     */
+    public function generateTitle(Request $request)
+    {
+        $request->validate([
+            'driver_id' => ['required', 'exists:drivers,id'],
+            'trip_date' => ['required', 'date'],
+        ]);
+
+        $title = Trip::generateTripTitle(
+            $request->driver_id,
+            $request->trip_date
+        );
+
+        return response()->json(['title' => $title]);
     }
 
     /**
@@ -169,32 +282,19 @@ class TripController extends Controller
                     ->with('error', 'No table data found in the image. Please ensure the image contains a clear table.');
             }
 
-            // Parse and create trips from extracted data
-            $created = $this->createTripsFromTableData($tableRows, $request->trip_date);
+            // Parse data for review
+            $parsedData = $this->parseTableData($tableRows, $request->trip_date);
 
-            if ($created['success'] > 0) {
-                $message = "Successfully created {$created['success']} trip(s) from the image.";
-                
-                // Add info about auto-created drivers and vessels
-                $additionalInfo = [];
-                if ($created['drivers_created'] > 0) {
-                    $additionalInfo[] = "{$created['drivers_created']} driver(s) auto-created";
-                }
-                if ($created['vessels_created'] > 0) {
-                    $additionalInfo[] = "{$created['vessels_created']} vessel(s) auto-created";
-                }
-                if (!empty($additionalInfo)) {
-                    $message .= " (" . implode(', ', $additionalInfo) . ")";
-                }
-                
-                if ($created['failed'] > 0) {
-                    $message .= " {$created['failed']} trip(s) could not be created.";
-                }
-                return redirect()->route('trips.index')->with('success', $message);
-            } else {
+            if (empty($parsedData)) {
                 return redirect()->route('trips.index')
-                    ->with('error', 'No trips could be created. Please check the image format and ensure it contains valid table data.');
+                    ->with('error', 'No valid trip data found in the image.');
             }
+
+            $drivers = Driver::orderBy('name')->get();
+            $vessels = Vessel::orderBy('name')->get();
+
+            return view('trips.review-extraction', compact('parsedData', 'drivers', 'vessels'));
+
         } catch (\Exception $e) {
             return redirect()->route('trips.index')
                 ->with('error', 'Failed to extract data from image: ' . $e->getMessage());
@@ -202,33 +302,121 @@ class TripController extends Controller
     }
 
     /**
-     * Create trips from extracted table data
+     * Store bulk trips from review page
      */
-    protected function createTripsFromTableData(array $tableRows, $defaultDate = null)
+    public function storeBulk(Request $request)
     {
-        $success = 0;
-        $failed = 0;
-        $driversCreated = 0;
-        $vesselsCreated = 0;
+        $request->validate([
+            'trips' => ['required', 'array'],
+            'trips.*.selected' => ['nullable'], // Checkbox
+            'trips.*.driver_id' => ['nullable'], // Can be "new:Name" or ID
+            'trips.*.vessel_id' => ['nullable'], // Can be "new:Name" or ID
+            'trips.*.trip_date' => ['required', 'date'],
+            'trips.*.pick_up_time' => ['required'],
+            'trips.*.flight_number' => ['nullable', 'string'],
+            'trips.*.crew_name' => ['required', 'string'],
+            'trips.*.from_location' => ['required', 'string'],
+            'trips.*.to_location' => ['required', 'string'],
+        ]);
+
+        $createdCount = 0;
+        
+        // Group items by Driver + Date to create consolidated trips
+        $groupedTrips = [];
+
+        foreach ($request->trips as $index => $tripData) {
+            // Skip if not selected
+            if (!isset($tripData['selected'])) {
+                continue;
+            }
+
+            // Resolve Driver
+            $driverId = $tripData['driver_id'] ?? null;
+            
+            if (!$driverId) {
+                continue; // Skip if no driver selected
+            }
+
+            // Resolve Vessel
+            $vesselId = null;
+            if (!empty($tripData['vessel_id'])) {
+                if (str_starts_with($tripData['vessel_id'], 'new:')) {
+                    $newVesselName = substr($tripData['vessel_id'], 4);
+                    $vessel = Vessel::firstOrCreate(['name' => $newVesselName]);
+                    $vesselId = $vessel->id;
+                } else {
+                    $vesselId = $tripData['vessel_id'];
+                }
+            } else {
+                continue; // Skip if no vessel
+            }
+
+            $date = $tripData['trip_date'];
+            $key = $driverId . '_' . $date;
+
+            if (!isset($groupedTrips[$key])) {
+                $groupedTrips[$key] = [
+                    'driver_id' => $driverId,
+                    'trip_date' => $date,
+                    'crews' => []
+                ];
+            }
+
+            $groupedTrips[$key]['crews'][] = [
+                'vessel_id' => $vesselId,
+                'pick_up_time' => $tripData['pick_up_time'],
+                'flight_number' => $tripData['flight_number'] ?? null,
+                'name' => $tripData['crew_name'],
+                'from_location' => $tripData['from_location'],
+                'to_location' => $tripData['to_location'],
+                'remarks' => $tripData['remarks'] ?? null,
+                'status' => 'assigned'
+            ];
+        }
+
+        // Create Trips and Crews
+        foreach ($groupedTrips as $group) {
+            // Generate title
+            $title = Trip::generateTripTitle($group['driver_id'], $group['trip_date']);
+
+            $trip = Trip::create([
+                'driver_id' => $group['driver_id'],
+                'trip_date' => $group['trip_date'],
+                'title' => $title,
+            ]);
+
+            foreach ($group['crews'] as $crewData) {
+                $trip->crews()->create($crewData);
+            }
+            
+            $createdCount++;
+        }
+
+        if ($createdCount > 0) {
+            return redirect()->route('trips.index')->with('success', "Successfully created {$createdCount} trip(s).");
+        }
+
+        return redirect()->route('trips.index')->with('warning', 'No trips were selected or created.');
+    }
+
+    /**
+     * Parse table data from Textract results
+     */
+    protected function parseTableData(array $tableRows, $defaultDate = null)
+    {
+        $parsedTrips = [];
         $tripDate = $defaultDate ? Carbon::parse($defaultDate) : Carbon::today();
 
         if (empty($tableRows)) {
-            return [
-                'success' => 0,
-                'failed' => 0,
-                'drivers_created' => 0,
-                'vessels_created' => 0,
-            ];
+            return [];
         }
 
         // Try to identify header row and date
         $headerRowIndex = 0;
         $dataStartIndex = 1;
         
-        // Check first row for date pattern (might be header with date)
         if (!empty($tableRows[0])) {
             $firstRowText = implode(' ', array_map('trim', $tableRows[0]));
-            // Try to parse date from first row (e.g., "Monday, 18 August 2025")
             if (preg_match('/(\d{1,2})\s+(\w+)\s+(\d{4})/', $firstRowText, $matches)) {
                 try {
                     $parsedDate = Carbon::createFromFormat('d F Y', $matches[1] . ' ' . $matches[2] . ' ' . $matches[3]);
@@ -236,128 +424,51 @@ class TripController extends Controller
                     $headerRowIndex = 0;
                     $dataStartIndex = 1;
                 } catch (\Exception $e) {
-                    // Keep default date if parsing fails
+                    // Keep default date
                 }
             }
         }
 
-        // Process data rows (skip header)
         for ($i = $dataStartIndex; $i < count($tableRows); $i++) {
             $row = $tableRows[$i];
             
-            // Skip if row is too short or empty
-            if (count($row) < 3) {
-                $failed++;
-                continue;
-            }
+            if (count($row) < 3) continue;
 
-            // Expected columns: CREW NAME, DRIVER NAME, VESSEL NAME, PICK-UP TIME, FROM, TO, FOLLOW UP
-            // Handle cases where columns might be in different positions
             $crewName = trim($row[0] ?? '');
-            $driverName = trim($row[1] ?? '');
+            // $driverName = trim($row[1] ?? ''); // Driver is now manually selected
             $vesselName = trim($row[2] ?? '');
             $pickUpTime = trim($row[3] ?? '');
             $fromLocation = trim($row[4] ?? '');
             $toLocation = trim($row[5] ?? '');
             $followUp = trim($row[6] ?? '');
 
-            // Skip header rows - check if row contains header-like text
-            if ($this->isHeaderRow($row)) {
-                continue; // Skip header row, don't count as failed
-            }
+            if ($this->isHeaderRow($row)) continue;
+            // if (empty($crewName) && empty($driverName) && empty($vesselName)) continue;
+            if (empty($crewName) && empty($vesselName)) continue;
 
-            // Skip empty rows (check essential fields)
-            if (empty($crewName) && empty($driverName) && empty($vesselName)) {
-                $failed++;
-                continue;
-            }
-
-            // Skip if essential fields are missing
-            if (empty($crewName) || empty($driverName) || empty($vesselName)) {
-                $failed++;
-                continue;
-            }
-
-            // Find or create driver by name (case-insensitive, exact match first, then partial)
-            $driver = Driver::whereRaw('LOWER(name) = ?', [strtolower($driverName)])->first();
-            
-            // If exact match not found, try partial match
-            if (!$driver) {
-                $driver = Driver::whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($driverName) . '%'])->first();
-            }
-            
-            // If still not found, create a new driver (default to internal type)
-            if (!$driver) {
-                try {
-                    $driver = Driver::create([
-                        'name' => $driverName,
-                        'type' => Driver::TYPE_INTERNAL, // Default to internal for auto-created drivers
-                    ]);
-                    $driversCreated++;
-                    Log::info('Auto-created driver: ' . $driverName);
-                } catch (\Exception $e) {
-                    Log::error('Failed to create driver: ' . $e->getMessage(), ['driver_name' => $driverName]);
-                    $failed++;
-                    continue;
-                }
-            }
-
-            // Find or create vessel by name (case-insensitive, exact match first, then partial)
+            // Find vessel match
             $vessel = Vessel::whereRaw('LOWER(name) = ?', [strtolower($vesselName)])->first();
-            
-            // If exact match not found, try partial match
             if (!$vessel) {
                 $vessel = Vessel::whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($vesselName) . '%'])->first();
             }
-            
-            // If still not found, create a new vessel
-            if (!$vessel) {
-                try {
-                    $vessel = Vessel::create([
-                        'name' => $vesselName,
-                    ]);
-                    $vesselsCreated++;
-                    Log::info('Auto-created vessel: ' . $vesselName);
-                } catch (\Exception $e) {
-                    Log::error('Failed to create vessel: ' . $e->getMessage(), ['vessel_name' => $vesselName]);
-                    $failed++;
-                    continue;
-                }
-            }
 
-            // Parse pick-up time (e.g., "0300PM" -> "15:00")
             $parsedTime = $this->parsePickUpTime($pickUpTime);
 
-            // Create trip
-            try {
-                Trip::create([
-                    'crew_name' => $crewName,
-                    'driver_id' => $driver->id,
-                    'vessel_id' => $vessel->id,
-                    'trip_date' => $tripDate->format('Y-m-d'),
-                    'pick_up_time' => $parsedTime,
-                    'from_location' => $fromLocation ?: 'N/A',
-                    'to_location' => $toLocation ?: 'N/A',
-                    'status' => Trip::STATUS_ASSIGNED,
-                ]);
-                $success++;
-            } catch (\Exception $e) {
-                Log::error('Failed to create trip from extracted data: ' . $e->getMessage(), [
-                    'row' => $row,
-                    'crew_name' => $crewName,
-                    'driver_name' => $driverName,
-                    'vessel_name' => $vesselName,
-                ]);
-                $failed++;
-            }
+            $parsedTrips[] = [
+                'trip_date' => $tripDate->format('Y-m-d'),
+                'pick_up_time' => $parsedTime,
+                'driver_name' => null, // Force manual selection
+                'driver_id' => null,
+                'vessel_name' => $vesselName,
+                'vessel_id' => $vessel ? $vessel->id : null,
+                'crew_name' => $crewName,
+                'from_location' => $fromLocation ?: 'N/A',
+                'to_location' => $toLocation ?: 'N/A',
+                'remarks' => $followUp,
+            ];
         }
 
-        return [
-            'success' => $success,
-            'failed' => $failed,
-            'drivers_created' => $driversCreated,
-            'vessels_created' => $vesselsCreated,
-        ];
+        return $parsedTrips;
     }
 
     /**

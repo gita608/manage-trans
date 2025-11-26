@@ -236,9 +236,16 @@ class DriverAuthController extends Controller
             ->map(function ($trip) {
                 return [
                     'id' => $trip->id,
-                    'crew_name' => $trip->crew_name,
-                    'crew_phone' => $trip->crew_phone,
-                    'crew_address' => $trip->crew_address,
+                    'crew_name' => $trip->crews->first()->name ?? null,
+                    'crew_phone' => $trip->crews->first()->phone ?? null,
+                    'crew_address' => $trip->crews->first()->address ?? null,
+                    'crews' => $trip->crews->map(function($crew) {
+                        return [
+                            'name' => $crew->name,
+                            'phone' => $crew->phone,
+                            'address' => $crew->address,
+                        ];
+                    }),
                     'trip_date' => $trip->trip_date->format('d/m/Y'),
                     'pick_up_time' => $trip->pick_up_time,
                     'from_location' => $trip->from_location,

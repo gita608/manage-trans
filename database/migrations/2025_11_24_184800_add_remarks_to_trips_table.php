@@ -11,14 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('settings')) {
-            Schema::create('settings', function (Blueprint $table) {
-                $table->id();
-                $table->string('key')->unique();
-                $table->text('value')->nullable();
-                $table->timestamps();
-            });
-        }
+        Schema::table('trips', function (Blueprint $table) {
+            $table->text('remarks')->nullable()->after('crew_address');
+        });
     }
 
     /**
@@ -26,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('settings');
+        Schema::table('trips', function (Blueprint $table) {
+            $table->dropColumn('remarks');
+        });
     }
 };

@@ -11,14 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('settings')) {
-            Schema::create('settings', function (Blueprint $table) {
-                $table->id();
-                $table->string('key')->unique();
-                $table->text('value')->nullable();
-                $table->timestamps();
-            });
-        }
+        Schema::table('trip_crews', function (Blueprint $table) {
+            $table->string('flight_number')->nullable()->after('to_location');
+        });
     }
 
     /**
@@ -26,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('settings');
+        Schema::table('trip_crews', function (Blueprint $table) {
+            $table->dropColumn('flight_number');
+        });
     }
 };

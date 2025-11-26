@@ -71,141 +71,126 @@
                 <!-- Tab Content -->
                 <div class="tab-content">
                     <!-- Trip Information Tab -->
+                    <!-- Trip Information Tab -->
                     <div class="tab-pane fade show active" id="tripInfo" role="tabpanel">
-                        <div class="row g-4">
-                            <!-- Main Trip Details -->
-                            <div class="col-md-6 col-lg-4">
-                                <div class="card border shadow-none h-100 mb-0 bg-light-subtle">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center mb-3">
-                                            <div class="avatar-sm flex-shrink-0 me-3">
-                                                <span class="avatar-title bg-primary-subtle text-primary rounded-circle fs-3">
-                                                    <i class="ri-calendar-event-line"></i>
+                        @php
+                            $totalJobs = $trip->crews->count();
+                            $completedJobs = $trip->crews->where('status', 'completed')->count();
+                            $inProgressJobs = $trip->crews->where('status', 'in_progress')->count();
+                            
+                            // Determine overall status
+                            if ($completedJobs === $totalJobs && $totalJobs > 0) {
+                                $statusBadge = 'success';
+                                $statusText = 'All Completed';
+                            } elseif ($inProgressJobs > 0) {
+                                $statusBadge = 'warning';
+                                $statusText = 'In Progress';
+                            } else {
+                                $statusBadge = 'primary';
+                                $statusText = 'Pending';
+                            }
+                        @endphp
+
+                        <div class="card border shadow-none mb-4 bg-light-subtle">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <p class="text-muted mb-1 text-uppercase fw-medium fs-12">Driver</p>
+                                        <h6 class="mb-0 fs-14">{{ $trip->driver->name }}</h6>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <p class="text-muted mb-1 text-uppercase fw-medium fs-12">Date</p>
+                                        <h6 class="mb-0 fs-14">{{ $trip->trip_date instanceof \Carbon\Carbon ? $trip->trip_date->format('d M, Y') : \Carbon\Carbon::parse($trip->trip_date)->format('d M, Y') }}</h6>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <p class="text-muted mb-1 text-uppercase fw-medium fs-12">Title</p>
+                                        <h6 class="mb-0 fs-14">{{ $trip->title ?? 'N/A' }}</h6>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <p class="text-muted mb-1 text-uppercase fw-medium fs-12">Status</p>
+                                        <span class="badge bg-{{ $statusBadge }} fs-12">{{ $statusText }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h5 class="mb-0">Crew Details</h5>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-nowrap align-middle mb-0 table-hover table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th scope="col" style="width: 50px;">#</th>
+                                        <th scope="col">Crew Name</th>
+                                        <th scope="col">Contact</th>
+                                        <th scope="col">Vessel</th>
+                                        <th scope="col">Pick-up Time</th>
+                                        <th scope="col">Route</th>
+                                        <th scope="col">Flight No</th>
+                                        <th scope="col">Status</th>
+                                        <th scope="col">Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($trip->crews as $index => $crew)
+                                        <tr>
+                                            <td class="text-center fw-medium">{{ $index + 1 }}</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-xs bg-light rounded-circle text-center d-flex align-items-center justify-content-center me-2">
+                                                        <span class="text-primary fw-medium">{{ substr($crew->name, 0, 2) }}</span>
+                                                    </div>
+                                                    <div>
+                                                        <h6 class="mb-0">{{ $crew->name }}</h6>
+                                                        @if($crew->address)
+                                                            <small class="text-muted text-truncate d-block" style="max-width: 150px;" title="{{ $crew->address }}">{{ $crew->address }}</small>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                @if($crew->phone)
+                                                    <a href="tel:{{ $crew->phone }}" class="text-body">{{ $crew->phone }}</a>
+                                                @else
+                                                    <span class="text-muted">-</span>
+                                                @endif
+                                            </td>
+                                            <td>{{ $crew->vessel->name ?? 'Unknown' }}</td>
+                                            <td>{{ \Carbon\Carbon::parse($crew->pick_up_time)->format('h:i A') }}</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="text-truncate" style="max-width: 100px;" title="{{ $crew->from_location }}">{{ $crew->from_location }}</span>
+                                                    <i class="ri-arrow-right-line mx-2 text-muted"></i>
+                                                    <span class="text-truncate" style="max-width: 100px;" title="{{ $crew->to_location }}">{{ $crew->to_location }}</span>
+                                                </div>
+                                            </td>
+                                            <td>{{ $crew->flight_number ?? '-' }}</td>
+                                            <td>
+                                                <span class="badge bg-{{ $crew->status === 'completed' ? 'success' : ($crew->status === 'in_progress' ? 'warning' : 'primary') }}">
+                                                    {{ ucfirst(str_replace('_', ' ', $crew->status)) }}
                                                 </span>
-                                            </div>
-                                            <h5 class="card-title mb-0">Trip Schedule</h5>
-                                        </div>
-                                        <div class="vstack gap-3">
-                                            <div>
-                                                <p class="text-muted mb-1">Trip Date</p>
-                                                <h6 class="mb-0">{{ $trip->trip_date->format('l, F d, Y') }}</h6>
-                                            </div>
-                                            <div>
-                                                <p class="text-muted mb-1">Pick-up Time</p>
-                                                <h6 class="mb-0">{{ \Carbon\Carbon::parse($trip->pick_up_time)->format('h:i A') }}</h6>
-                                            </div>
-                                            <div>
-                                                <p class="text-muted mb-1">Status</p>
-                                                <span class="badge {{ $trip->getStatusBadgeClass() }} fs-12">{{ ucfirst(str_replace('_', ' ', $trip->status)) }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Route Information -->
-                            <div class="col-md-6 col-lg-4">
-                                <div class="card border shadow-none h-100 mb-0 bg-light-subtle">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center mb-3">
-                                            <div class="avatar-sm flex-shrink-0 me-3">
-                                                <span class="avatar-title bg-info-subtle text-info rounded-circle fs-3">
-                                                    <i class="ri-map-pin-route-line"></i>
-                                                </span>
-                                            </div>
-                                            <h5 class="card-title mb-0">Route Details</h5>
-                                        </div>
-                                        <div class="position-relative pb-3">
-                                            <div class="d-flex mb-4">
-                                                <div class="flex-shrink-0 me-3">
-                                                    <i class="ri-map-pin-fill text-success fs-5"></i>
-                                                </div>
-                                                <div>
-                                                    <p class="text-muted mb-1">From</p>
-                                                    <h6 class="mb-0">{{ $trip->from_location }}</h6>
-                                                </div>
-                                            </div>
-                                            <div class="border-start border-dashed position-absolute" style="left: 9px; top: 24px; bottom: 24px; border-left-width: 2px !important;"></div>
-                                            <div class="d-flex">
-                                                <div class="flex-shrink-0 me-3">
-                                                    <i class="ri-map-pin-fill text-danger fs-5"></i>
-                                                </div>
-                                                <div>
-                                                    <p class="text-muted mb-1">To</p>
-                                                    <h6 class="mb-0">{{ $trip->to_location }}</h6>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Personnel & Vessel -->
-                            <div class="col-md-6 col-lg-4">
-                                <div class="card border shadow-none h-100 mb-0 bg-light-subtle">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center mb-3">
-                                            <div class="avatar-sm flex-shrink-0 me-3">
-                                                <span class="avatar-title bg-success-subtle text-success rounded-circle fs-3">
-                                                    <i class="ri-ship-line"></i>
-                                                </span>
-                                            </div>
-                                            <h5 class="card-title mb-0">Assignment</h5>
-                                        </div>
-                                        <div class="vstack gap-3">
-                                            <div class="d-flex align-items-center">
-                                                <div class="flex-grow-1">
-                                                    <p class="text-muted mb-1">Vessel</p>
-                                                    <h6 class="mb-0">{{ $trip->vessel->name }}</h6>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex align-items-center">
-                                                <div class="flex-grow-1">
-                                                    <p class="text-muted mb-1">Driver</p>
-                                                    <h6 class="mb-0">{{ $trip->driver->name }}</h6>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Crew Information -->
-                            <div class="col-12">
-                                <div class="card border shadow-none mb-0">
-                                    <div class="card-header bg-light-subtle">
-                                        <h5 class="card-title mb-0"><i class="ri-user-star-line me-2"></i>Crew Information</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row g-3">
-                                            <div class="col-md-4">
-                                                <p class="text-muted mb-1">Crew Name</p>
-                                                <h6 class="mb-0">{{ $trip->crew_name }}</h6>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <p class="text-muted mb-1">Phone Number</p>
-                                                <h6 class="mb-0">{{ $trip->crew_phone ?? '-' }}</h6>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <p class="text-muted mb-1">Address</p>
-                                                <h6 class="mb-0">{{ $trip->crew_address ?? '-' }}</h6>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Metadata -->
-                            <div class="col-12">
-                                <div class="d-flex gap-4 text-muted small">
-                                    <div>
-                                        <i class="ri-time-line me-1"></i> Created: {{ $trip->created_at->format('M d, Y h:i A') }}
-                                    </div>
-                                    <div>
-                                        <i class="ri-refresh-line me-1"></i> Last Updated: {{ $trip->updated_at->format('M d, Y h:i A') }}
-                                    </div>
-                                </div>
-                            </div>
+                                            </td>
+                                            <td>
+                                                @if($crew->remarks)
+                                                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $crew->remarks }}">
+                                                        <i class="ri-message-2-line fs-16"></i>
+                                                    </button>
+                                                @else
+                                                    <span class="text-muted">-</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="9" class="text-center py-4">
+                                                <p class="text-muted mb-0">No crew assigned to this trip.</p>
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
@@ -333,7 +318,7 @@
                                     <div class="card-body">
                                         @if($trip->tripIssues->count() > 0)
                                             <div class="table-responsive">
-                                                <table class="table table-nowrap table-hover align-middle mb-0">
+                                                <table class="table table-nowrap table-hover align-middle mb-0 table-bordered">
                                                     <thead class="table-light">
                                                         <tr>
                                                             <th scope="col">Type</th>
@@ -380,7 +365,7 @@
                                     <div class="card-body">
                                         @if($trip->tripExpenses->count() > 0)
                                             <div class="table-responsive">
-                                                <table class="table table-nowrap table-hover align-middle mb-0">
+                                                <table class="table table-nowrap table-hover align-middle mb-0 table-bordered">
                                                     <thead class="table-light">
                                                         <tr>
                                                             <th scope="col">Type</th>
@@ -559,4 +544,15 @@
     </div>
 @endforeach
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    });
+</script>
+@endpush
 

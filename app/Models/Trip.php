@@ -16,17 +16,15 @@ class Trip extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'crew_name',
         'driver_id',
-        'vessel_id',
         'trip_date',
-        'pick_up_time',
-        'from_location',
-        'to_location',
-        'crew_phone',
-        'crew_address',
-        'status',
+        'title',
     ];
+
+    public function crews()
+    {
+        return $this->hasMany(TripCrew::class);
+    }
 
     /**
      * Trip status constants
@@ -105,6 +103,34 @@ class Trip extends Model
     }
 
     /**
+     * Generate trip title based on driver and date
+     * Format: "Trip 1", "Trip 2", etc. for each driver per day
+     * 
+     * @param int $driverId
+     * @param string|Carbon $tripDate
+     * @param int|null $excludeTripId Trip ID to exclude from count (for updates)
+     * @return string
+     */
+    public static function generateTripTitle($driverId, $tripDate, $excludeTripId = null): string
+    {
+        // Count existing trips for this driver on this date
+        $query = self::where('driver_id', $driverId)
+            ->whereDate('trip_date', $tripDate);
+        
+        // Exclude current trip if updating
+        if ($excludeTripId) {
+            $query->where('id', '!=', $excludeTripId);
+        }
+        
+        $tripCount = $query->count();
+        
+        // Next trip number is count + 1
+        $tripNumber = $tripCount + 1;
+        
+        return "Trip {$tripNumber}";
+    }
+
+    /**
      * Get a custom human-readable description of the activity.
      * This method is called by the LogsActivity trait for complex cases.
      *
@@ -117,7 +143,6 @@ class Trip extends Model
     {
         // Custom descriptions for Trip model
         if ($action === 'created') {
-            $crewName = $this->crew_name ?? 'Unknown';
             $driverId = $this->driver_id ?? null;
             $vesselId = $this->vessel_id ?? null;
             
@@ -134,7 +159,7 @@ class Trip extends Model
                 $vesselName = $vessel->name ?? 'Unknown';
             }
             
-            return "Trip created for crew '{$crewName}' with driver '{$driverName}' and vessel '{$vesselName}'";
+            return "Trip created with driver '{$driverName}' and vessel '{$vesselName}'";
         }
         
         if ($action === 'updated') {
@@ -143,11 +168,6 @@ class Trip extends Model
                 $oldStatus = $oldValues['status'] ?? 'unknown';
                 $newStatus = $newValues['status'];
                 $changes[] = "status changed from '{$oldStatus}' to '{$newStatus}'";
-            }
-            if (isset($newValues['crew_name'])) {
-                $oldName = $oldValues['crew_name'] ?? 'unknown';
-                $newName = $newValues['crew_name'];
-                $changes[] = "crew name changed from '{$oldName}' to '{$newName}'";
             }
             if (isset($newValues['driver_id'])) {
                 $oldDriver = Driver::find($oldValues['driver_id'] ?? null);
@@ -171,7 +191,7 @@ class Trip extends Model
         }
         
         if ($action === 'deleted') {
-            return "Trip deleted for crew '{$this->crew_name}'";
+            return "Trip deleted";
         }
         
         // Fallback to default description

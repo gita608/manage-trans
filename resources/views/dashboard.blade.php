@@ -250,10 +250,10 @@
                                                         <div class="d-flex align-items-center">
                                                             <div class="avatar-xs flex-shrink-0 me-2">
                                                                 <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
-                                                                    {{ substr($trip->crew_name, 0, 1) }}
+                                                                    {{ substr($trip->crews->first()->name ?? '?', 0, 1) }}
                                                                 </span>
                                                             </div>
-                                                            <div class="fw-medium">{{ $trip->crew_name }}</div>
+                                                            <div class="fw-medium">{{ $trip->crews->first()->name ?? 'Unknown' }}</div>
                                                         </div>
                                                     </td>
                                                     <td>{{ $trip->driver->name ?? 'N/A' }}</td>

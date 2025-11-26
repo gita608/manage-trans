@@ -100,6 +100,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/trips/create', [TripController::class, 'create'])->name('trips.create');
         Route::post('/trips', [TripController::class, 'store'])->name('trips.store');
         Route::post('/trips/extract-from-image', [TripController::class, 'extractFromImage'])->name('trips.extract-from-image');
+        Route::post('/trips/bulk-store', [TripController::class, 'storeBulk'])->name('trips.store-bulk');
+        Route::get('/trips/generate-title', [TripController::class, 'generateTitle'])->name('trips.generate-title');
     });
     
     Route::middleware(['permission:view_trips'])->group(function () {

@@ -226,8 +226,11 @@
                             <tr>
                                 <td>{{ $trip->trip_date->format('M d, Y') }}</td>
                                 <td>
-                                    <span class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ $trip->crew_name }}">
-                                        {{ $trip->crew_name }}
+                                    <span class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ $trip->crews->pluck('name')->join(', ') }}">
+                                        {{ $trip->crews->first()->name ?? '-' }}
+                                        @if($trip->crews->count() > 1)
+                                            <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-1">+{{ $trip->crews->count() - 1 }}</span>
+                                        @endif
                                     </span>
                                 </td>
                                 <td>{{ $trip->driver->name }}</td>
