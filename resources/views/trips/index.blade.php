@@ -82,7 +82,7 @@
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1">
                         <p class="text-uppercase fw-medium text-muted mb-2">In Progress</p>
-                        <h4 class="mb-0">{{ $stats['jobs_in_progress'] }}</h4>
+                        <h4 class="mb-0">{{ $stats['trips_in_progress'] }}</h4>
                     </div>
                     <div class="flex-shrink-0">
                         <div class="avatar-sm">
@@ -101,8 +101,8 @@
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1">
-                        <p class="text-uppercase fw-medium text-muted mb-2">Completed</p>
-                        <h4 class="mb-0">{{ $stats['jobs_completed'] }}</h4>
+                        <p class="text-uppercase fw-medium text-muted mb-2">Completed Trips</p>
+                        <h4 class="mb-0">{{ $stats['trips_completed'] }}</h4>
                     </div>
                     <div class="flex-shrink-0">
                         <div class="avatar-sm">
