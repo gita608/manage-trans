@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Driver;
+use App\Models\DriverLocation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -292,6 +293,43 @@ class DriverAuthController extends Controller
                 'force_android_version' => '1.0.0',
                 'force_ios_version' => '1.0.0',
             ],
+        ], 200);
+    }
+
+    /**
+     * Update driver's current location.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateLocation(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        $driver = $request->user();
+
+        // Update or create location record (one row per driver)
+        DriverLocation::updateOrCreate(
+            ['driver_id' => $driver->id],
+            [
+                'latitude' => $request->latitude,
+                'longitude' => $request->longitude,
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Location updated successfully.',
         ], 200);
     }
 }

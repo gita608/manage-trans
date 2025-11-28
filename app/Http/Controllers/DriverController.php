@@ -79,6 +79,7 @@ class DriverController extends Controller
      */
     public function show(Driver $driver)
     {
+        $driver->load('latestLocation');
         return view('drivers.show', compact('driver'));
     }
 
@@ -179,5 +180,47 @@ class DriverController extends Controller
         $document->delete();
         
         return back()->with('success', 'Document deleted successfully!');
+    }
+
+    /**
+     * Display the driver locations map.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function map()
+    {
+        return view('drivers.map');
+    }
+
+    /**
+     * Get all driver locations for the map (API endpoint).
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function locations(Request $request)
+    {
+        $drivers = Driver::with('latestLocation')
+            ->whereHas('latestLocation')
+            ->get()
+            ->map(function($driver) {
+                $location = $driver->latestLocation;
+                return [
+                    'id' => $driver->id,
+                    'name' => $driver->name,
+                    'type' => $driver->type,
+                    'type_label' => $driver->getTypeLabel(),
+                    'contact' => $driver->contact,
+                    'latitude' => (float) $location->latitude,
+                    'longitude' => (float) $location->longitude,
+                    'updated_at' => $location->updated_at->format('Y-m-d H:i:s'),
+                    'updated_at_human' => $location->updated_at->diffForHumans(),
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'drivers' => $drivers,
+        ]);
     }
 }

@@ -50,9 +50,18 @@
 
                 @if(auth()->user()->hasPermission('view_drivers'))
                 <li class="nav-item">
-                    <a class="nav-link menu-link {{ request()->routeIs('drivers.*') ? 'active' : '' }}"
+                    <a class="nav-link menu-link {{ request()->routeIs('drivers.*') && !request()->routeIs('drivers.map') ? 'active' : '' }}"
                         href="{{ route('drivers.index') }}">
                         <i class="ri-taxi-line"></i> <span>Drivers</span>
+                    </a>
+                </li>
+                @endif
+
+                @if(auth()->user()->hasPermission('view_drivers'))
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('drivers.map') ? 'active' : '' }}"
+                        href="{{ route('drivers.map') }}">
+                        <i class="ri-map-pin-line"></i> <span>Driver Locations</span>
                     </a>
                 </li>
                 @endif

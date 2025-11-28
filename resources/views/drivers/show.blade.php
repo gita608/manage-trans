@@ -109,6 +109,41 @@
                     </div>
                 </div>
 
+                <!-- Location Section -->
+                @if($driver->latestLocation)
+                    <div class="border-top pt-4 mt-4">
+                        <h5 class="card-title mb-3">
+                            <i class="ri-map-pin-line align-middle me-1"></i> Current Location
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div id="driverMap" style="height: 400px; width: 100%; border-radius: 8px;"></div>
+                                <div class="mt-3">
+                                    <p class="text-muted mb-1">
+                                        <strong>Last Updated:</strong> {{ $driver->latestLocation->updated_at->format('M d, Y h:i A') }}
+                                        <span class="badge bg-{{ $driver->latestLocation->updated_at->diffInMinutes(now()) < 5 ? 'success' : 'warning' }} ms-2">
+                                            {{ $driver->latestLocation->updated_at->diffForHumans() }}
+                                        </span>
+                                    </p>
+                                    <p class="text-muted mb-0">
+                                        <strong>Coordinates:</strong> {{ number_format($driver->latestLocation->latitude, 6) }}, {{ number_format($driver->latestLocation->longitude, 6) }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <div class="border-top pt-4 mt-4">
+                        <h5 class="card-title mb-3">
+                            <i class="ri-map-pin-line align-middle me-1"></i> Current Location
+                        </h5>
+                        <div class="alert alert-info mb-0">
+                            <i class="ri-information-line align-middle me-1"></i>
+                            No location data available for this driver yet.
+                        </div>
+                    </div>
+                @endif
+
                 <!-- Documents Section -->
                 @if($driver->documents->count() > 0)
                     <div class="border-top pt-4 mt-4">
@@ -148,4 +183,65 @@
         </div>
     </div>
 </div>
+
+@if($driver->latestLocation)
+@push('styles')
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""/>
+@endpush
+
+@push('scripts')
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const lat = {{ $driver->latestLocation->latitude }};
+        const lng = {{ $driver->latestLocation->longitude }};
+        
+        // Initialize map
+        const map = L.map('driverMap').setView([lat, lng], 13);
+
+        // Add default OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        // Create custom icon
+        const markerColor = {{ $driver->type }} === 1 ? '#0d6efd' : '#0dcaf0';
+        const customIcon = L.divIcon({
+            className: 'custom-marker',
+            html: `<div style="
+                background-color: ${markerColor};
+                width: 30px;
+                height: 30px;
+                border-radius: 50% 50% 50% 0;
+                transform: rotate(-45deg);
+                border: 3px solid white;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            "></div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 30],
+        });
+
+        // Add marker
+        const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
+        
+        // Add popup
+        marker.bindPopup(`
+            <div>
+                <h6>{{ $driver->name }}</h6>
+                <p class="mb-1"><strong>Type:</strong> {{ $driver->getTypeLabel() }}</p>
+                <p class="mb-0"><strong>Last Updated:</strong> {{ $driver->latestLocation->updated_at->format('M d, Y h:i A') }}</p>
+            </div>
+        `).openPopup();
+    });
+</script>
+@endpush
+@endif
 @endsection

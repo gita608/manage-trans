@@ -31,6 +31,9 @@ use App\Http\Controllers\Api\TripController;
         Route::get('/home', [HomeController::class, 'index'])->name('api.driver.home');
         Route::get('/trips', [DriverAuthController::class, 'trips'])->name('api.driver.trips');
         
+        // Location Route
+        Route::post('/location/update', [DriverAuthController::class, 'updateLocation'])->name('api.driver.location.update');
+        
         // Schedule Route
         Route::get('/schedule', [TripController::class, 'schedule'])->name('api.driver.schedule');
         

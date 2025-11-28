@@ -104,6 +104,26 @@ class Driver extends Authenticatable
     }
 
     /**
+     * Get all locations for the driver.
+     *
+     * @return HasMany
+     */
+    public function locations(): HasMany
+    {
+        return $this->hasMany(DriverLocation::class);
+    }
+
+    /**
+     * Get the latest location for the driver.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function latestLocation()
+    {
+        return $this->hasOne(DriverLocation::class)->latestOfMany();
+    }
+
+    /**
      * Get activity configuration for this model.
      *
      * @return array
