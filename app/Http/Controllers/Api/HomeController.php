@@ -148,14 +148,28 @@ class HomeController extends Controller
             $firstCrew = $crews->first();
         }
 
+        // Format all crews with their basic details
+        $formattedCrews = $crews->map(function ($crew) {
+            return [
+                'name' => $crew->name,
+                'phone' => $crew->phone,
+                'vessel' => $crew->vessel->name,
+                'status' => $crew->status,
+                'flight_number' => $crew->flight_number,
+                'remarks' => $crew->remarks,
+                'pick_up_time' => $crew->pick_up_time ? Carbon::parse($crew->pick_up_time)->subHours(12)->format('h:i A') : null,
+                'from_location' => $crew->from_location,
+                'to_location' => $crew->to_location,
+            ];
+        })->toArray();
+
         $formatted = [
             'trip_id' => $trip->id,
             'trip_title' => $trip->title,
             'trip_date' => $tripDate->format('Y-m-d'),
-            'vessel' => $firstCrew && $firstCrew->relationLoaded('vessel') && $firstCrew->vessel ? [
-                'id' => $firstCrew->vessel->id,
-                'name' => $firstCrew->vessel->name,
-            ] : null,
+
+            'crews' => $formattedCrews,
+            'total_crew_count' => $crews->count(),
         ];
 
         if ($isCompleted && $firstCrew) {
