@@ -132,21 +132,6 @@ class HomeController extends Controller
     {
         $crews = $trip->crews;
         $tripDate = $trip->trip_date instanceof Carbon ? $trip->trip_date : Carbon::parse($trip->trip_date);
-        
-        // Determine trip status and first crew based on crews collection
-        if ($crews->isEmpty()) {
-            $status = 'unknown';
-            $firstCrew = null;
-        } elseif ($isCompleted || $trip->isCompleted()) {
-            $status = 'completed';
-            $firstCrew = $crews->first();
-        } elseif ($crews->contains('status', TripCrew::STATUS_IN_PROGRESS)) {
-            $status = 'in_progress';
-            $firstCrew = $crews->firstWhere('status', TripCrew::STATUS_IN_PROGRESS) ?? $crews->first();
-        } else {
-            $status = 'assigned';
-            $firstCrew = $crews->first();
-        }
 
         // Format all crews with their basic details
         $formattedCrews = $crews->map(function ($crew) {
@@ -166,19 +151,10 @@ class HomeController extends Controller
         $formatted = [
             'trip_id' => $trip->id,
             'trip_title' => $trip->title,
-            'trip_date' => $tripDate->format('Y-m-d'),
-
+            'trip_date' => $tripDate->format(format: 'd-m-Y'),
             'crews' => $formattedCrews,
             'total_crew_count' => $crews->count(),
         ];
-
-        if ($isCompleted && $firstCrew) {
-            $formatted['started_at'] = $firstCrew->pick_up_time;
-            $formatted['completed_at'] = $firstCrew->updated_at->format('H:i');
-            $formatted['completed_date'] = $firstCrew->updated_at->format('Y-m-d');
-        } elseif ($status === 'in_progress' && $firstCrew) {
-            $formatted['started_at'] = $firstCrew->updated_at->format('H:i');
-        }
 
         return $formatted;
     }
