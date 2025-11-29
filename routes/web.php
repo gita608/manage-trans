@@ -48,7 +48,7 @@ Route::middleware(['auth'])->group(function () {
     // Driver Routes (order matters - specific routes before parameterized routes)
     Route::middleware(['permission:view_drivers'])->group(function () {
         Route::get('/drivers', [DriverController::class, 'index'])->name('drivers.index');
-        Route::get('/drivers/map', [DriverController::class, 'map'])->name('drivers.map');
+        Route::get('/drivers/map', [DriverController::class, 'map'])->name('drivers.map'); 
         Route::get('/api/drivers/locations', [DriverController::class, 'locations'])->name('api.drivers.locations');
     });
     
