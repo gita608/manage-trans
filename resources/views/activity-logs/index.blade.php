@@ -83,7 +83,7 @@
 
                 <!-- Activity Logs Table -->
                 <div class="table-responsive">
-                    <table class="table table-nowrap align-middle mb-0">
+                    <table id="activity-logs-table" class="table table-nowrap align-middle mb-0 datatable">
                         <thead class="table-light">
                             <tr>
                                 <th>Date & Time</th>
@@ -92,7 +92,7 @@
                                 <th>Model Type</th>
                                 <th>Description</th>
                                 <th>IP Address</th>
-                                <th class="text-center">Details</th>
+                                <th class="text-center no-export">Details</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -240,12 +240,21 @@
                     </table>
                 </div>
 
-                <!-- Pagination -->
-                @if($logs->hasPages())
-                    <div class="mt-3">
-                        {{ $logs->links() }}
-                    </div>
-                @endif
+                @include('partials.datatable', ['selector' => '#activity-logs-table'])
+
+                @push('scripts')
+                <script>
+                    $(document).ready(function() {
+                        // Set default sort order for activity logs (newest first)
+                        setTimeout(function() {
+                            var table = $('#activity-logs-table').DataTable();
+                            if (table) {
+                                table.order([0, 'desc']).draw();
+                            }
+                        }, 100);
+                    });
+                </script>
+                @endpush
             </div>
         </div>
     </div>

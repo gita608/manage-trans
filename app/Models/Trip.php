@@ -253,7 +253,8 @@ class Trip extends Model
                 $driverName = $driver ? $driver->name : 'Unknown';
             }
             
-            return "Trip created for driver '{$driverName}'";
+            $tripTitle = $this->title ? " '{$this->title}'" : '';
+            return "Trip{$tripTitle} created for driver '{$driverName}'";
         }
         
         if ($action === 'updated') {

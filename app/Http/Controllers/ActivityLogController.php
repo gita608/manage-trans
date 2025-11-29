@@ -37,7 +37,7 @@ class ActivityLogController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $logs = $query->latest()->paginate(50);
+        $logs = $query->latest()->get();
 
         // Get unique model types for filter
         $modelTypes = ActivityLog::select('loggable_type')

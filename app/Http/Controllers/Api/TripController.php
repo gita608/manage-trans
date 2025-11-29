@@ -428,12 +428,13 @@ class TripController extends Controller
         // Log activity if there were changes
         $changes = array_diff_assoc($crew->getAttributes(), $oldValues);
         if (!empty($changes)) {
+            $crewName = $crew->name ?: "Crew #{$crew->id}";
             ActivityLog::create([
                 'loggable_type' => Trip::class,
                 'loggable_id' => $trip->id,
                 'action' => 'updated',
                 'driver_id' => $driver->id,
-                'description' => "Crew '{$crew->name}' details updated by driver {$driver->name}",
+                'description' => "Crew '{$crewName}' details updated by driver {$driver->name}",
             ]);
         }
 
