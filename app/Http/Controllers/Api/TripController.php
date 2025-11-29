@@ -245,7 +245,7 @@ class TripController extends Controller
                 'loggable_id' => $job->trip_id,
                 'action' => 'updated',
                 'driver_id' => $driver->id,
-                'description' => "Job #{$job->id} status changed from {$oldStatus} to {$job->status} by driver {$driver->name}",
+                'description' => "Crew '{$job->name}' status changed from {$oldStatus} to {$job->status} by driver {$driver->name}",
             ]);
         }
 
@@ -433,7 +433,7 @@ class TripController extends Controller
                 'loggable_id' => $trip->id,
                 'action' => 'updated',
                 'driver_id' => $driver->id,
-                'description' => "Crew #{$crew->id} details updated by driver {$driver->name}",
+                'description' => "Crew '{$crew->name}' details updated by driver {$driver->name}",
             ]);
         }
 
