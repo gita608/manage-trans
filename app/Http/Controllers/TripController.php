@@ -108,21 +108,11 @@ class TripController extends Controller
         // Calculate statistics for overview cards based on the filtered trips
         $tripIds = $trips->pluck('id');
         
-        // Count completed trips (trips where all crews are completed)
-        $completedTrips = $trips->filter(function ($trip) {
-            return $trip->isCompleted();
-        })->count();
-        
-        // Count in-progress trips (trips with at least one crew in progress but not all completed)
-        $inProgressTrips = $trips->filter(function ($trip) {
-            return $trip->status === TripCrew::STATUS_IN_PROGRESS;
-        })->count();
-        
         $stats = [
             'total_trips' => $trips->count(),
             'total_jobs' => $tripIds->isEmpty() ? 0 : TripCrew::whereIn('trip_id', $tripIds)->count(),
-            'trips_in_progress' => $inProgressTrips, // Trips that are in progress
-            'trips_completed' => $completedTrips, // Trips where all crews are completed
+            'jobs_in_progress' => $tripIds->isEmpty() ? 0 : TripCrew::whereIn('trip_id', $tripIds)
+                ->where('status', TripCrew::STATUS_IN_PROGRESS)->count(),
             'jobs_completed' => $tripIds->isEmpty() ? 0 : TripCrew::whereIn('trip_id', $tripIds)
                 ->where('status', TripCrew::STATUS_COMPLETED)->count(),
         ];
@@ -363,7 +353,6 @@ class TripController extends Controller
             'trips.*.pick_up_time' => ['required'],
             'trips.*.flight_number' => ['nullable', 'string'],
             'trips.*.crew_name' => ['required', 'string'],
-            'trips.*.crew_phone' => ['nullable', 'string', 'max:255'],
             'trips.*.from_location' => ['required', 'string'],
             'trips.*.to_location' => ['required', 'string'],
         ]);
@@ -416,7 +405,6 @@ class TripController extends Controller
                 'pick_up_time' => $tripData['pick_up_time'],
                 'flight_number' => $tripData['flight_number'] ?? null,
                 'name' => $tripData['crew_name'],
-                'phone' => $tripData['crew_phone'] ?? null,
                 'from_location' => $tripData['from_location'],
                 'to_location' => $tripData['to_location'],
                 'remarks' => $tripData['remarks'] ?? null,
@@ -491,8 +479,6 @@ class TripController extends Controller
             $fromLocation = trim($row[4] ?? '');
             $toLocation = trim($row[5] ?? '');
             $followUp = trim($row[6] ?? '');
-            // Phone number is not extracted from image - users will enter manually
-            $crewPhone = null;
 
             if ($this->isHeaderRow($row)) continue;
             // if (empty($crewName) && empty($driverName) && empty($vesselName)) continue;
@@ -514,7 +500,6 @@ class TripController extends Controller
                 'vessel_name' => $vesselName,
                 'vessel_id' => $vessel ? $vessel->id : null,
                 'crew_name' => $crewName,
-                'crew_phone' => $crewPhone ?: null,
                 'from_location' => $fromLocation ?: 'N/A',
                 'to_location' => $toLocation ?: 'N/A',
                 'remarks' => $followUp,

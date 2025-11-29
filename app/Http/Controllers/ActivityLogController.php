@@ -12,7 +12,7 @@ class ActivityLogController extends Controller
      */
     public function index(Request $request)
     {
-        $query = ActivityLog::with(['user', 'driver']);
+        $query = ActivityLog::with('user');
 
         // Filter by user if requested
         if ($request->filled('user_id')) {
@@ -37,7 +37,7 @@ class ActivityLogController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $logs = $query->latest()->get();
+        $logs = $query->latest()->paginate(50);
 
         // Get unique model types for filter
         $modelTypes = ActivityLog::select('loggable_type')

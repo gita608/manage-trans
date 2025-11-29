@@ -116,7 +116,7 @@ class TripController extends Controller
 
         // Find trip assigned to this driver
         $trip = Trip::where('driver_id', $driver->id)
-            ->with(['crews.vessel'])
+            ->with(['crews.vessel', 'tripIssues.issueType', 'tripIssues.driver', 'tripExpenses.expenseType', 'tripExpenses.driver'])
             ->find($id);
 
         if (!$trip) {
@@ -179,6 +179,45 @@ class TripController extends Controller
             ];
         }
 
+        // Format trip issues
+        $issues = [];
+        foreach ($trip->tripIssues as $issue) {
+            $issues[] = [
+                'id' => $issue->id,
+                'issue_type' => [
+                    'id' => $issue->issueType->id ?? null,
+                    'title' => $issue->issueType->title ?? 'Unknown',
+                ],
+                'description' => $issue->description,
+                'created_at' => [
+                    'date' => $issue->created_at->format('Y-m-d'),
+                    'formatted' => $issue->created_at->format('M d, Y h:i A'),
+                    'timestamp' => $issue->created_at->timestamp,
+                ],
+            ];
+        }
+
+        // Format trip expenses
+        $expenses = [];
+        $totalExpenseAmount = 0;
+        foreach ($trip->tripExpenses as $expense) {
+            $totalExpenseAmount += $expense->amount;
+            $expenses[] = [
+                'id' => $expense->id,
+                'expense_type' => [
+                    'id' => $expense->expenseType->id ?? null,
+                    'title' => $expense->expenseType->title ?? 'Unknown',
+                ],
+                'amount' => (float) $expense->amount,
+                'receipt' => $expense->receipt ? asset('storage/' . $expense->receipt) : null,
+                'created_at' => [
+                    'date' => $expense->created_at->format('Y-m-d'),
+                    'formatted' => $expense->created_at->format('M d, Y h:i A'),
+                    'timestamp' => $expense->created_at->timestamp,
+                ],
+            ];
+        }
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -189,6 +228,15 @@ class TripController extends Controller
                     'formatted' => $tripDate->format('l, F j, Y'),
                 ],
                 'crews' => $crews,
+                'issues' => [
+                    'data' => $issues,
+                    'total' => count($issues),
+                ],
+                'expenses' => [
+                    'data' => $expenses,
+                    'total' => count($expenses),
+                    'total_amount' => (float) $totalExpenseAmount,
+                ],
             ],
         ], 200);
     }
@@ -245,7 +293,7 @@ class TripController extends Controller
                 'loggable_id' => $job->trip_id,
                 'action' => 'updated',
                 'driver_id' => $driver->id,
-                'description' => "Crew '{$job->name}' status changed from {$oldStatus} to {$job->status} by driver {$driver->name}",
+                'description' => "Job #{$job->id} status changed from {$oldStatus} to {$job->status} by driver {$driver->name}",
             ]);
         }
 
@@ -428,13 +476,12 @@ class TripController extends Controller
         // Log activity if there were changes
         $changes = array_diff_assoc($crew->getAttributes(), $oldValues);
         if (!empty($changes)) {
-            $crewName = $crew->name ?: "Crew #{$crew->id}";
             ActivityLog::create([
                 'loggable_type' => Trip::class,
                 'loggable_id' => $trip->id,
                 'action' => 'updated',
                 'driver_id' => $driver->id,
-                'description' => "Crew '{$crewName}' details updated by driver {$driver->name}",
+                'description' => "Crew #{$crew->id} details updated by driver {$driver->name}",
             ]);
         }
 

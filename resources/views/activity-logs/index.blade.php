@@ -83,7 +83,7 @@
 
                 <!-- Activity Logs Table -->
                 <div class="table-responsive">
-                    <table id="activity-logs-table" class="table table-nowrap align-middle mb-0 datatable">
+                    <table class="table table-nowrap align-middle mb-0">
                         <thead class="table-light">
                             <tr>
                                 <th>Date & Time</th>
@@ -92,7 +92,7 @@
                                 <th>Model Type</th>
                                 <th>Description</th>
                                 <th>IP Address</th>
-                                <th class="text-center no-export">Details</th>
+                                <th class="text-center">Details</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -109,14 +109,6 @@
                                                     <strong>{{ $log->user->name }}</strong>
                                                     <br>
                                                     <small class="text-muted">{{ $log->user->email }}</small>
-                                                </div>
-                                            </div>
-                                        @elseif($log->driver)
-                                            <div class="d-flex align-items-center">
-                                                <div>
-                                                    <strong>{{ $log->driver->name }}</strong>
-                                                    <br>
-                                                    <small class="text-muted">Driver</small>
                                                 </div>
                                             </div>
                                         @else
@@ -172,13 +164,7 @@
                                                     </div>
                                                     <div class="col-md-6">
                                                         <strong>User:</strong><br>
-                                                        @if($log->user)
-                                                            {{ $log->user->name }}
-                                                        @elseif($log->driver)
-                                                            {{ $log->driver->name }} <small class="text-muted">(Driver)</small>
-                                                        @else
-                                                            System
-                                                        @endif
+                                                        {{ $log->user ? $log->user->name : 'System' }}
                                                     </div>
                                                 </div>
                                                 <div class="row mb-3">
@@ -240,21 +226,12 @@
                     </table>
                 </div>
 
-                @include('partials.datatable', ['selector' => '#activity-logs-table'])
-
-                @push('scripts')
-                <script>
-                    $(document).ready(function() {
-                        // Set default sort order for activity logs (newest first)
-                        setTimeout(function() {
-                            var table = $('#activity-logs-table').DataTable();
-                            if (table) {
-                                table.order([0, 'desc']).draw();
-                            }
-                        }, 100);
-                    });
-                </script>
-                @endpush
+                <!-- Pagination -->
+                @if($logs->hasPages())
+                    <div class="mt-3">
+                        {{ $logs->links() }}
+                    </div>
+                @endif
             </div>
         </div>
     </div>
