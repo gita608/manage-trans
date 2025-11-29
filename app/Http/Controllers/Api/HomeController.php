@@ -105,7 +105,7 @@ class HomeController extends Controller
                     'id' => $driver->id,
                     'name' => $driver->name ?? 'Guest',
                     'phone' => $driver->contact ?? 'No phone number',
-                    'photo' => $driver->photo,
+                    'photo' => $driver->photo ? asset('storage/' . $driver->photo) : null,
                     'email' => $driver->email,
                 ],
                 'statistics' => [
