@@ -108,9 +108,21 @@ class TripController extends Controller
         // Calculate statistics for overview cards based on the filtered trips
         $tripIds = $trips->pluck('id');
         
+        // Count trips in progress (trips with at least one crew in progress but not all completed)
+        $tripsInProgress = $trips->filter(function ($trip) {
+            return $trip->status === TripCrew::STATUS_IN_PROGRESS;
+        })->count();
+        
+        // Count completed trips (trips where all crews are completed)
+        $tripsCompleted = $trips->filter(function ($trip) {
+            return $trip->isCompleted();
+        })->count();
+        
         $stats = [
             'total_trips' => $trips->count(),
             'total_jobs' => $tripIds->isEmpty() ? 0 : TripCrew::whereIn('trip_id', $tripIds)->count(),
+            'trips_in_progress' => $tripsInProgress,
+            'trips_completed' => $tripsCompleted,
             'jobs_in_progress' => $tripIds->isEmpty() ? 0 : TripCrew::whereIn('trip_id', $tripIds)
                 ->where('status', TripCrew::STATUS_IN_PROGRESS)->count(),
             'jobs_completed' => $tripIds->isEmpty() ? 0 : TripCrew::whereIn('trip_id', $tripIds)
