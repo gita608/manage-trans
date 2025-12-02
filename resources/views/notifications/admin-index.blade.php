@@ -44,9 +44,11 @@
                             <p class="text-muted mb-0 small">Send a notification to a driver or all drivers</p>
                         </div>
                     </div>
-                    <a href="{{ route('notifications.create') }}" class="btn btn-primary">
-                        <i class="ri-add-line me-1"></i> Send Notification
-                    </a>
+                    @if(auth()->user()->hasPermission('create_notifications'))
+                        <a href="{{ route('notifications.create') }}" class="btn btn-primary">
+                            <i class="ri-add-line me-1"></i> Send Notification
+                        </a>
+                    @endif
                 </div>
             </div>
         </div>

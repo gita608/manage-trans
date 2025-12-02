@@ -197,7 +197,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Send Notification Routes
-    Route::middleware(['permission:send_notifications'])->group(function () {
+    Route::middleware(['permission:create_notifications'])->group(function () {
         Route::get('/notifications/admin', [NotificationController::class, 'adminIndex'])->name('notifications.admin-index');
         Route::get('/notifications/create', [NotificationController::class, 'create'])->name('notifications.create');
         Route::post('/notifications', [NotificationController::class, 'store'])->name('notifications.store');

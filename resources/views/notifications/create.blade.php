@@ -3,6 +3,14 @@
 @section('title', 'Send Notification | ' . config('app.name'))
 
 @section('content')
+@if(!auth()->user()->hasPermission('create_notifications'))
+    <div class="alert alert-danger">
+        <i class="ri-error-warning-line me-2"></i>You do not have permission to create notifications.
+    </div>
+    <div class="text-center mt-4">
+        <a href="{{ route('notifications.admin-index') }}" class="btn btn-secondary">Go Back</a>
+    </div>
+@else
 <!-- start page title -->
 <div class="row">
     <div class="col-12">
@@ -106,5 +114,6 @@
         </div>
     </div>
 </div>
+@endif
 @endsection
 

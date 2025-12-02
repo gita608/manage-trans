@@ -55,7 +55,7 @@ class PermissionSeeder extends Seeder
             
             // Notifications
             ['name' => 'view_notifications', 'display_name' => 'View Notifications', 'category' => 'notifications', 'description' => 'View notifications'],
-            ['name' => 'send_notifications', 'display_name' => 'Send Notifications', 'category' => 'notifications', 'description' => 'Send notifications to drivers'],
+            ['name' => 'create_notifications', 'display_name' => 'Create Notifications', 'category' => 'notifications', 'description' => 'Create and send notifications to drivers'],
             
             // Reports
             ['name' => 'view_reports', 'display_name' => 'View Reports', 'category' => 'reports', 'description' => 'View and access reports'],
