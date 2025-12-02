@@ -360,12 +360,10 @@ class TripController extends Controller
         $driver = $request->user();
         
         // $id is TripCrew ID (Job ID)
-        $job = TripCrew::whereHas('trip', function($q) use ($driver) {
-            $q->where('driver_id', $driver->id);
-        })->find($id);
+        $trip = Trip::where('driver_id', $driver->id)->find($id);   
 
-        if (!$job) {
-            return response()->json(['success' => false, 'message' => 'Job not found.'], 404);
+        if (!$trip) {
+            return response()->json(['success' => false, 'message' => 'Trip not found.'], 404);
         }
 
         $validator = Validator::make($request->all(), [
@@ -384,7 +382,7 @@ class TripController extends Controller
         }
 
         \App\Models\TripExpense::create([
-            'trip_id' => $job->trip_id,
+            'trip_id' => $trip->id,
             'driver_id' => $driver->id,
             'expense_type_id' => $request->expense_type_id,
             'amount' => $request->amount,
