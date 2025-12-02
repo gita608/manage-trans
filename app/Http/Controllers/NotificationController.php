@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notification;
+use App\Models\Driver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -47,5 +48,69 @@ class NotificationController extends Controller
         ]);
         Cache::forget('notifications.unread.' . Auth::id());
         return redirect()->back()->with('success', 'All notifications marked as read');
+    }
+
+    /**
+     * Show the admin list of all driver notifications.
+     */
+    public function adminIndex()
+    {
+        $notifications = Notification::whereNotNull('driver_id')
+            ->with(['driver', 'user'])
+            ->latest()
+            ->paginate(20);
+        return view('notifications.admin-index', compact('notifications'));
+    }
+
+    /**
+     * Show the form for creating a new notification.
+     */
+    public function create()
+    {
+        $drivers = Driver::orderBy('name')->get();
+        return view('notifications.create', compact('drivers'));
+    }
+
+    /**
+     * Store a newly created notification.
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'driver_id' => ['nullable', 'exists:drivers,id'],
+            'title' => ['required', 'string', 'max:255'],
+            'message' => ['required', 'string'],
+        ]);
+
+        // If driver_id is null, send to all drivers
+        if (empty($validated['driver_id'])) {
+            // Get all drivers
+            $drivers = Driver::all();
+            
+            // Create notification for each driver
+            foreach ($drivers as $driver) {
+                Notification::create([
+                    'user_id' => Auth::id(),
+                    'driver_id' => $driver->id,
+                    'title' => $validated['title'],
+                    'message' => $validated['message'],
+                ]);
+            }
+            
+            $message = "Notification sent to all {$drivers->count()} drivers successfully!";
+        } else {
+            // Send to specific driver
+            Notification::create([
+                'user_id' => Auth::id(),
+                'driver_id' => $validated['driver_id'],
+                'title' => $validated['title'],
+                'message' => $validated['message'],
+            ]);
+            
+            $driver = Driver::find($validated['driver_id']);
+            $message = "Notification sent to {$driver->name} successfully!";
+        }
+
+        return redirect()->route('notifications.admin-index')->with('success', $message);
     }
 }

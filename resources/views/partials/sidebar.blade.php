@@ -129,6 +129,15 @@
                 </li>
                 @endif
 
+                @if(auth()->user()->hasPermission('send_notifications'))
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('notifications.admin-index') || request()->routeIs('notifications.create') || request()->routeIs('notifications.store') ? 'active' : '' }}"
+                        href="{{ route('notifications.admin-index') }}">
+                        <i class="ri-notification-3-line"></i> <span>Driver Notifications</span>
+                    </a>
+                </li>
+                @endif
+
                 @if(auth()->user()->hasPermission('manage_permissions'))
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('permissions.*') ? 'active' : '' }}"

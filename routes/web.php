@@ -14,6 +14,7 @@ use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TripIssueTypeController;
 use App\Http\Controllers\TripExpenseTypeController;
+use App\Http\Controllers\NotificationController;
 
 // Root route - show login for guests, redirect to dashboard if authenticated
 Route::get('/', [AuthController::class, 'root'])->name('home');
@@ -188,11 +189,18 @@ Route::middleware(['auth'])->group(function () {
 
     // Notification Routes
     Route::middleware(['permission:view_notifications'])->group(function () {
-        Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
-        Route::get('/notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
-        Route::get('/notifications/recent', [App\Http\Controllers\NotificationController::class, 'getRecent'])->name('notifications.recent');
-        Route::post('/notifications/{notification}/mark-as-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
-        Route::post('/notifications/mark-all-as-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
+        Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
+        Route::get('/notifications/recent', [NotificationController::class, 'getRecent'])->name('notifications.recent');
+        Route::post('/notifications/{notification}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
+        Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
+    });
+
+    // Send Notification Routes
+    Route::middleware(['permission:send_notifications'])->group(function () {
+        Route::get('/notifications/admin', [NotificationController::class, 'adminIndex'])->name('notifications.admin-index');
+        Route::get('/notifications/create', [NotificationController::class, 'create'])->name('notifications.create');
+        Route::post('/notifications', [NotificationController::class, 'store'])->name('notifications.store');
     });
 
     // Permission Routes (Admin only)
