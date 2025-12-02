@@ -181,7 +181,9 @@ class TripController extends Controller
 
         // Format trip issues
         $issues = [];
-        foreach ($trip->tripIssues as $issue) {
+        $tripIssues = $trip->tripIssues()->with(['issueType', 'driver'])->get();
+        foreach ($tripIssues as $issue) {
+            $createdAt = $issue->created_at ? Carbon::parse($issue->created_at) : null;
             $issues[] = [
                 'id' => $issue->id,
                 'issue_type' => [
@@ -189,19 +191,21 @@ class TripController extends Controller
                     'title' => $issue->issueType->title ?? 'Unknown',
                 ],
                 'description' => $issue->description,
-                'created_at' => [
-                    'date' => $issue->created_at->format('Y-m-d'),
-                    'formatted' => $issue->created_at->format('M d, Y h:i A'),
-                    'timestamp' => $issue->created_at->timestamp,
-                ],
+                'created_at' => $createdAt ? [
+                    'date' => $createdAt->format('Y-m-d'),
+                    'formatted' => $createdAt->format('M d, Y h:i A'),
+                    'timestamp' => $createdAt->timestamp,
+                ] : null,
             ];
         }
 
         // Format trip expenses
         $expenses = [];
         $totalExpenseAmount = 0;
-        foreach ($trip->tripExpenses as $expense) {
+        $tripExpenses = $trip->tripExpenses()->with(['expenseType', 'driver'])->get();
+        foreach ($tripExpenses as $expense) {
             $totalExpenseAmount += $expense->amount;
+            $createdAt = $expense->created_at ? Carbon::parse($expense->created_at) : null;
             $expenses[] = [
                 'id' => $expense->id,
                 'expense_type' => [
@@ -210,11 +214,11 @@ class TripController extends Controller
                 ],
                 'amount' => (float) $expense->amount,
                 'receipt' => $expense->receipt ? asset('storage/' . $expense->receipt) : null,
-                'created_at' => [
-                    'date' => $expense->created_at->format('Y-m-d'),
-                    'formatted' => $expense->created_at->format('M d, Y h:i A'),
-                    'timestamp' => $expense->created_at->timestamp,
-                ],
+                'created_at' => $createdAt ? [
+                    'date' => $createdAt->format('Y-m-d'),
+                    'formatted' => $createdAt->format('M d, Y h:i A'),
+                    'timestamp' => $createdAt->timestamp,
+                ] : null,
             ];
         }
 
