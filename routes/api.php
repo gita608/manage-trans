@@ -37,6 +37,10 @@ use App\Http\Controllers\Api\TripController;
         // Schedule Route
         Route::get('/schedule', [TripController::class, 'schedule'])->name('api.driver.schedule');
         
+        // Daily Activity Routes
+        Route::get('/daily-activity', [TripController::class, 'dailyActivity'])->name('api.driver.daily-activity');
+        Route::post('/daily-activity', [TripController::class, 'storeDailyActivity'])->name('api.driver.daily-activity.store');
+        
         // Trip Details Routes
         Route::get('/trips/{id}', [TripController::class, 'show'])->name('api.driver.trip.show');
         Route::put('/trips/{id}/crew/{crew_id}/status', [TripController::class, 'updateStatus'])->name('api.driver.trip.update-status');

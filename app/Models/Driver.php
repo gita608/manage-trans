@@ -124,6 +124,16 @@ class Driver extends Authenticatable
     }
 
     /**
+     * Get the daily activities for the driver.
+     *
+     * @return HasMany
+     */
+    public function dailyActivities(): HasMany
+    {
+        return $this->hasMany(DailyActivity::class);
+    }
+
+    /**
      * Get activity configuration for this model.
      *
      * @return array

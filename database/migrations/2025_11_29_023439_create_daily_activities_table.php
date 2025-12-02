@@ -13,7 +13,14 @@ return new class extends Migration
     {
         Schema::create('daily_activities', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('driver_id')->constrained('drivers')->onDelete('cascade');
+            $table->string('image')->nullable();
+            $table->text('note')->nullable();
+            $table->date('activity_date');
             $table->timestamps();
+
+            $table->index('driver_id');
+            $table->index('activity_date');
         });
     }
 

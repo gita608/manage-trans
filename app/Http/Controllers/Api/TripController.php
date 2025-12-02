@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
+use App\Models\DailyActivity;
 use App\Models\Trip;
 use App\Models\TripCrew;
 use Carbon\Carbon;
@@ -542,6 +543,136 @@ class TripController extends Controller
                 'flight_number' => $crew->flight_number,
             ],
         ], 200);
+    }
+
+    /**
+     * Get today's daily activities for the authenticated driver.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function dailyActivity(Request $request)
+    {
+        $driver = $request->user();
+        $today = Carbon::today();
+        
+        // Get all daily activities for today where this driver is the owner
+        $activities = DailyActivity::where('driver_id', $driver->id)
+            ->whereDate('activity_date', $today)
+            ->with('driver')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Format activities for response
+        $formattedActivities = $activities->map(function($activity) {
+            $createdAt = $activity->created_at ? Carbon::parse($activity->created_at) : null;
+            $activityDate = $activity->activity_date ? Carbon::parse($activity->activity_date) : null;
+            
+            return [
+                'id' => $activity->id,
+                'image' => $activity->image ? asset('storage/' . $activity->image) : null,
+                'note' => $activity->note,
+                'activity_date' => $activityDate ? [
+                    'date' => $activityDate->format('Y-m-d'),
+                    'formatted' => $activityDate->format('l, F j, Y'),
+                ] : null,
+                'created_at' => $createdAt ? [
+                    'date' => $createdAt->format('Y-m-d'),
+                    'time' => $createdAt->format('H:i:s'),
+                    'formatted' => $createdAt->format('M d, Y h:i A'),
+                    'timestamp' => $createdAt->timestamp,
+                ] : null,
+            ];
+        })->values();
+
+        // Format date information
+        $dateFormatted = $today->format('l, j F Y');
+        $dateShort = $today->format('Y-m-d');
+        $dayName = $today->format('l');
+        $dayNumber = $today->format('j');
+        $month = $today->format('F');
+        $year = $today->format('Y');
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'date' => [
+                    'date' => $dateShort,
+                    'formatted' => $dateFormatted,
+                    'day' => $dayName,
+                    'day_number' => $dayNumber,
+                    'month' => $month,
+                    'year' => $year,
+                ],
+                'summary' => [
+                    'total' => $activities->count(),
+                ],
+                'activities' => $formattedActivities->all(),
+            ],
+        ], 200);
+    }
+
+    /**
+     * Store a new daily activity for the authenticated driver.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function storeDailyActivity(Request $request)
+    {
+        $driver = $request->user();
+        $today = Carbon::today();
+
+        $validator = Validator::make($request->all(), [
+            'image' => ['required', 'image', 'mimes:jpeg,jpg,png,gif', 'max:5120'], // Max 5MB
+            'note' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        // Store the image
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('daily-activities', 'public');
+        }
+
+        // Create daily activity
+        $activity = DailyActivity::create([
+            'driver_id' => $driver->id,
+            'image' => $imagePath,
+            'note' => $request->note,
+            'activity_date' => $today,
+        ]);
+
+        // Format the response
+        $createdAt = $activity->created_at ? Carbon::parse($activity->created_at) : null;
+        $activityDate = $activity->activity_date ? Carbon::parse($activity->activity_date) : null;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Daily activity created successfully.',
+            'data' => [
+                'id' => $activity->id,
+                'image' => $activity->image ? asset('storage/' . $activity->image) : null,
+                'note' => $activity->note,
+                'activity_date' => $activityDate ? [
+                    'date' => $activityDate->format('Y-m-d'),
+                    'formatted' => $activityDate->format('l, F j, Y'),
+                ] : null,
+                'created_at' => $createdAt ? [
+                    'date' => $createdAt->format('Y-m-d'),
+                    'time' => $createdAt->format('H:i:s'),
+                    'formatted' => $createdAt->format('M d, Y h:i A'),
+                    'timestamp' => $createdAt->timestamp,
+                ] : null,
+            ],
+        ], 201);
     }
 }
 
