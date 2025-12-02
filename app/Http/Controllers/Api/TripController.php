@@ -323,13 +323,10 @@ class TripController extends Controller
     {
         $driver = $request->user();
         
-        // $id is TripCrew ID (Job ID)
-        $job = TripCrew::whereHas('trip', function($q) use ($driver) {
-            $q->where('driver_id', $driver->id);
-        })->find($id);
+        $trip = Trip::where('driver_id', $driver->id)->find($id);
 
-        if (!$job) {
-            return response()->json(['success' => false, 'message' => 'Job not found.'], 404);
+        if (!$trip) {
+            return response()->json(['success' => false, 'message' => 'Trip not found.'], 404);
         }
 
         $validator = Validator::make($request->all(), [
@@ -343,10 +340,10 @@ class TripController extends Controller
 
         // Create issue linked to the parent Trip
         $issue = \App\Models\TripIssue::create([
-            'trip_id' => $job->trip_id,
+            'trip_id' => $trip->id,
             'driver_id' => $driver->id,
             'issue_type_id' => $request->issue_type_id,
-            'description' => "Job #{$job->id}: " . $request->description,
+            'description' => "Trip #{$trip->id}: " . $request->description,
         ]);
 
         return response()->json(['success' => true, 'message' => 'Issue submitted.'], 201);
