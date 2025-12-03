@@ -8,7 +8,9 @@
         <i class="ri-error-warning-line me-2"></i>You do not have permission to create notifications.
     </div>
     <div class="text-center mt-4">
-        <a href="{{ route('notifications.admin-index') }}" class="btn btn-secondary">Go Back</a>
+        {{-- Temporarily commented out to debug route issue --}}
+        {{-- <a href="{{ route('notifications.admin-index') }}" class="btn btn-secondary">Go Back</a> --}}
+        <a href="{{ route('dashboard') }}" class="btn btn-secondary">Go Back</a>
     </div>
 @else
 <!-- start page title -->
@@ -107,7 +109,9 @@
                         <button class="btn btn-primary" type="submit">
                             <i class="ri-send-plane-line me-1"></i>Send Notification
                         </button>
-                        <a href="{{ route('notifications.admin-index') }}" class="btn btn-secondary">Cancel</a>
+                        {{-- Temporarily commented out to debug route issue --}}
+                        {{-- <a href="{{ route('notifications.admin-index') }}" class="btn btn-secondary">Cancel</a> --}}
+                        <a href="{{ route('dashboard') }}" class="btn btn-secondary">Cancel</a>
                     </div>
                 </form>
             </div>

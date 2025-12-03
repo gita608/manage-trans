@@ -129,14 +129,15 @@
                 </li>
                 @endif
 
-                @if(auth()->user()->hasPermission('view_notifications'))
+                {{-- Temporarily commented out to debug route issue --}}
+                {{-- @if(auth()->user()->hasPermission('view_notifications'))
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('notifications.admin-index') ? 'active' : '' }}"
                         href="{{ route('notifications.admin-index') }}">
                         <i class="ri-notification-3-line"></i> <span>Notifications</span>
                     </a>
                 </li>
-                @endif
+                @endif --}}
                 
                 @if(auth()->user()->hasPermission('manage_permissions'))
                 <li class="nav-item">
