@@ -84,6 +84,76 @@ class Trip extends Model
     }
 
     /**
+     * Check if the trip is completed (all crews are completed)
+     *
+     * @return bool
+     */
+    public function isCompleted(): bool
+    {
+        if ($this->crews->isEmpty()) {
+            return false;
+        }
+        
+        $total = $this->crews->count();
+        $completed = $this->crews->where('status', TripCrew::STATUS_COMPLETED)->count();
+        
+        return $completed === $total;
+    }
+
+    /**
+     * Get the count of completed crews
+     *
+     * @return int
+     */
+    public function getCompletedCrewsCount(): int
+    {
+        return $this->crews->where('status', TripCrew::STATUS_COMPLETED)->count();
+    }
+
+    /**
+     * Get the count of in-progress crews
+     *
+     * @return int
+     */
+    public function getInProgressCrewsCount(): int
+    {
+        return $this->crews->where('status', TripCrew::STATUS_IN_PROGRESS)->count();
+    }
+
+    /**
+     * Get status badge color class (without 'bg-' prefix)
+     *
+     * @return string
+     */
+    public function getStatusBadge(): string
+    {
+        $badgeClass = $this->getStatusBadgeClass();
+        // Remove 'bg-' prefix if present
+        return str_replace('bg-', '', $badgeClass);
+    }
+
+    /**
+     * Get human-readable status text
+     *
+     * @return string
+     */
+    public function getStatusText(): string
+    {
+        $status = $this->status; // Uses the getStatusAttribute() accessor
+        
+        switch ($status) {
+            case TripCrew::STATUS_COMPLETED:
+                return 'Completed';
+            case TripCrew::STATUS_IN_PROGRESS:
+                return 'In Progress';
+            case TripCrew::STATUS_ASSIGNED:
+                return 'Assigned';
+            default:
+                return ucfirst($status);
+        }
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
