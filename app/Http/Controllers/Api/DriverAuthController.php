@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Driver;
 use App\Models\DriverLocation;
+use App\Models\TripCrew;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -103,7 +104,7 @@ class DriverAuthController extends Controller
         $completedTrips = $driver->trips()
             ->get()
             ->filter(function($trip) {
-                return \App\Models\Trip::checkTripCompletionStatus($trip->id) === 'completed';
+                return $trip->status === TripCrew::STATUS_COMPLETED;
             })
             ->count();
 
