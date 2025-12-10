@@ -41,4 +41,9 @@ return [
         ],
     ],
 
+    'firebase' => [
+        'credentials_path' => env('FIREBASE_CREDENTIALS_PATH', storage_path('app/firebase-service-account.json')),
+        'project_id' => env('FIREBASE_PROJECT_ID', 'managetrans-fc138'),
+    ],
+
 ];

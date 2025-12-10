@@ -34,6 +34,9 @@ use App\Http\Controllers\Api\TripController;
         // Location Route
         Route::post('/location/update', [DriverAuthController::class, 'updateLocation'])->name('api.driver.location.update');
         
+        // Notification Token Route
+        Route::post('/notification-token/update', [DriverAuthController::class, 'updateNotificationToken'])->name('api.driver.notification-token.update');
+        
         // Schedule Route
         Route::get('/schedule', [TripController::class, 'schedule'])->name('api.driver.schedule');
         

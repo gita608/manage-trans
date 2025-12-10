@@ -333,4 +333,33 @@ class DriverAuthController extends Controller
             'message' => 'Location updated successfully.',
         ], 200);
     }
+
+    /**
+     * Update driver's notification token.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateNotificationToken(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'notification_token' => ['required', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        $driver = $request->user();
+        $driver->notification_token = $request->notification_token;
+        $driver->saveQuietly(); // Use saveQuietly to avoid triggering activity logs
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Notification token updated successfully.',
+        ], 200);
+    }
 }

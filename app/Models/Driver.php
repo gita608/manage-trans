@@ -34,6 +34,7 @@ class Driver extends Authenticatable
         'vehicle_info',
         'age',
         'photo',
+        'notification_token',
     ];
 
     /**
