@@ -4,12 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Models\Notification;
 use App\Models\Driver;
+use App\Services\FirebaseNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
 class NotificationController extends Controller
 {
+    protected $firebaseService;
+
+    public function __construct(FirebaseNotificationService $firebaseService)
+    {
+        $this->firebaseService = $firebaseService;
+    }
+
     public function index()
     {
         $notifications = Auth::user()->notifications()->latest()->paginate(20);
@@ -82,24 +90,41 @@ class NotificationController extends Controller
             'message' => ['required', 'string'],
         ]);
 
+        $pushSent = 0;
+        $pushFailed = 0;
+
         // If driver_id is null, send to all drivers
         if (empty($validated['driver_id'])) {
             // Get all drivers
             $drivers = Driver::all();
             
-            // Create notification for each driver
+            // Create notification for each driver and send push notification
             foreach ($drivers as $driver) {
+                // Create database notification
                 Notification::create([
                     'user_id' => Auth::id(),
                     'driver_id' => $driver->id,
                     'title' => $validated['title'],
                     'message' => $validated['message'],
                 ]);
+
+                // Send push notification
+                if ($this->firebaseService->sendToDriver($driver, $validated['title'], $validated['message'])) {
+                    $pushSent++;
+                } else {
+                    $pushFailed++;
+                }
             }
             
             $message = "Notification sent to all {$drivers->count()} drivers successfully!";
+            if ($pushFailed > 0) {
+                $message .= " ({$pushSent} push notifications sent, {$pushFailed} failed)";
+            }
         } else {
             // Send to specific driver
+            $driver = Driver::find($validated['driver_id']);
+            
+            // Create database notification
             Notification::create([
                 'user_id' => Auth::id(),
                 'driver_id' => $validated['driver_id'],
@@ -107,7 +132,9 @@ class NotificationController extends Controller
                 'message' => $validated['message'],
             ]);
             
-            $driver = Driver::find($validated['driver_id']);
+            // Send push notification
+            $this->firebaseService->sendToDriver($driver, $validated['title'], $validated['message']);
+            
             $message = "Notification sent to {$driver->name} successfully!";
         }
 
