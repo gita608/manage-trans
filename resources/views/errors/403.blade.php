@@ -9,10 +9,10 @@
     <!-- App favicon -->
     <link rel="shortcut icon" href="{{ getSetting('favicon') ? asset('storage/' . getSetting('favicon')) : asset('assets/images/favicon.ico') }}">
 
+    <!-- Dark Mode Persistence Fix - MUST load before layout.js -->
+    <script src="{{ asset('assets/js/dark-mode-fix.js') }}"></script>
     <!-- Layout config Js -->
     <script src="{{ asset('assets/js/layout.js') }}"></script>
-    <!-- Dark Mode Persistence Fix -->
-    <script src="{{ asset('assets/js/dark-mode-fix.js') }}"></script>
     <!-- Bootstrap Css -->
     <link href="{{ asset('assets/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css" />
     <!-- Icons Css -->
@@ -102,6 +102,8 @@
     <script src="{{ asset('assets/libs/feather-icons/feather.min.js') }}"></script>
     <script src="{{ asset('assets/js/pages/plugins/lord-icon-2.1.0.js') }}"></script>
     <script src="{{ asset('assets/js/plugins.js') }}"></script>
+    <!-- App.js Compatibility Wrapper - Must load before app.js -->
+    <script src="{{ asset('assets/js/app-compat.js') }}"></script>
     <script src="{{ asset('assets/js/app.js') }}"></script>
 </body>
 

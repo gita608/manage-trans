@@ -10,10 +10,10 @@
     <!-- App favicon -->
     <link rel="shortcut icon" href="{{ asset('assets/images/favicon.ico') }}">
 
+    <!-- Dark Mode Persistence Fix - MUST load before layout.js -->
+    <script src="{{ asset('assets/js/dark-mode-fix.js') }}"></script>
     <!-- Layout config Js -->
     <script src="{{ asset('assets/js/layout.js') }}"></script>
-    <!-- Dark Mode Persistence Fix -->
-    <script src="{{ asset('assets/js/dark-mode-fix.js') }}"></script>
     <!-- Bootstrap Css -->
     <link href="{{ asset('assets/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css" />
     <!-- Icons Css -->
@@ -607,6 +607,8 @@
     <!-- Counter Up -->
     <script src="{{ asset('assets/libs/counterup/counterup.min.js') }}"></script>
 
+    <!-- App.js Compatibility Wrapper - Must load before app.js -->
+    <script src="{{ asset('assets/js/app-compat.js') }}"></script>
     <!-- App js -->
     <script src="{{ asset('assets/js/app.js') }}"></script>
 </body>

@@ -16,10 +16,10 @@
     <!--Swiper slider css-->
     <link href="{{ asset('assets/libs/swiper/swiper-bundle.min.css') }}" rel="stylesheet" type="text/css" />
  
+    <!-- Dark Mode Persistence Fix - MUST load before layout.js -->
+    <script src="{{ asset('assets/js/dark-mode-fix.js') }}"></script>
     <!-- Layout config Js -->
     <script src="{{ asset('assets/js/layout.js') }}"></script>
-    <!-- Dark Mode Persistence Fix -->
-    <script src="{{ asset('assets/js/dark-mode-fix.js') }}"></script>
     <!-- Bootstrap Css -->
     <link href="{{ asset('assets/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css" />
     <!-- Icons Css -->
@@ -384,6 +384,8 @@
     <script src="{{ asset('assets/js/pages/dashboard-ecommerce.init.js') }}"></script>
 
     <!-- App js -->
+    <!-- App.js Compatibility Wrapper - Must load before app.js -->
+    <script src="{{ asset('assets/js/app-compat.js') }}"></script>
     <script src="{{ asset('assets/js/app.js') }}"></script>
     </body>
 
