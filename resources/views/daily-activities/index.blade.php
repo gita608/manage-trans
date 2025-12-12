@@ -89,7 +89,18 @@
         <div class="card border shadow-sm">
             <div class="card-header border-bottom">
                 <div class="d-flex align-items-center justify-content-between">
-                    <h5 class="card-title mb-0">Daily Activities</h5>
+                    <div>
+                        <h5 class="card-title mb-0">Daily Activities</h5>
+                        @if(!request()->filled('date_range') && !request()->filled('date_from') && !request()->filled('date_to'))
+                            <small class="text-muted">
+                                <i class="ri-information-line me-1"></i>Showing today's activities. Use filters to view previous data.
+                            </small>
+                        @else
+                            <small class="text-muted">
+                                <i class="ri-filter-line me-1"></i>Filtered results
+                            </small>
+                        @endif
+                    </div>
                     <div class="d-flex gap-2">
                         <button type="button" class="btn btn-soft-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#filterSection">
                             <i class="ri-filter-3-line me-1"></i> Filters
@@ -119,7 +130,7 @@
                                 <i class="ri-calendar-line me-1"></i>Date Range
                             </label>
                             <select name="date_range" class="form-select">
-                                <option value="">Custom Range</option>
+                                <option value="">View Previous Data</option>
                                 <option value="today" {{ request('date_range') == 'today' ? 'selected' : '' }}>Today</option>
                                 <option value="yesterday" {{ request('date_range') == 'yesterday' ? 'selected' : '' }}>Yesterday</option>
                                 <option value="last_7_days" {{ request('date_range') == 'last_7_days' ? 'selected' : '' }}>Last 7 Days</option>

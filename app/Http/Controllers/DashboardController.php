@@ -79,9 +79,10 @@ class DashboardController extends Controller
         $totalDailyActivities = DailyActivity::count();
         $todayDailyActivities = DailyActivity::whereDate('activity_date', now()->toDateString())->count();
         
-        // Get recent daily activities
+        // Get recent daily activities (today only)
         $recentDailyActivities = DailyActivity::with('driver')
-            ->latest()
+            ->whereDate('activity_date', now()->toDateString())
+            ->latest('created_at')
             ->take(10)
             ->get();
         

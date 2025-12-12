@@ -455,7 +455,17 @@
                         <div class="col-12">
                             <div class="card border-0 shadow-sm">
                                 <div class="card-header border-bottom">
-                                    <h6 class="card-title mb-0 fw-semibold">Recent Daily Activities</h6>
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <h6 class="card-title mb-0 fw-semibold">Today's Daily Activities</h6>
+                                            <small class="text-muted">
+                                                <i class="ri-information-line me-1"></i>Showing today's activities only
+                                            </small>
+                                        </div>
+                                        <a href="{{ route('daily-activities.index') }}" class="btn btn-sm btn-soft-primary">
+                                            View All <i class="ri-arrow-right-line align-middle ms-1"></i>
+                                        </a>
+                                    </div>
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">

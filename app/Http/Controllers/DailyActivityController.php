@@ -16,19 +16,6 @@ class DailyActivityController extends Controller
     {
         $query = DailyActivity::with('driver');
 
-        // Filter by driver
-        if ($request->filled('driver_id')) {
-            $query->where('driver_id', $request->driver_id);
-        }
-
-        // Filter by activity date range
-        if ($request->filled('date_from')) {
-            $query->whereDate('activity_date', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $query->whereDate('activity_date', '<=', $request->date_to);
-        }
-
         // Filter by date range preset
         if ($request->filled('date_range')) {
             switch ($request->date_range) {
@@ -50,6 +37,22 @@ class DailyActivityController extends Controller
                           ->whereYear('activity_date', now()->subMonth()->year);
                     break;
             }
+        } elseif ($request->filled('date_from') || $request->filled('date_to')) {
+            // Filter by activity date range
+            if ($request->filled('date_from')) {
+                $query->whereDate('activity_date', '>=', $request->date_from);
+            }
+            if ($request->filled('date_to')) {
+                $query->whereDate('activity_date', '<=', $request->date_to);
+            }
+        } else {
+            // Default to today if no date filter is applied
+            $query->whereDate('activity_date', today());
+        }
+
+        // Filter by driver
+        if ($request->filled('driver_id')) {
+            $query->where('driver_id', $request->driver_id);
         }
 
         // Filter by has note
