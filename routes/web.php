@@ -15,6 +15,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TripIssueTypeController;
 use App\Http\Controllers\TripExpenseTypeController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\DailyActivityController;
 
 // Root route - show login for guests, redirect to dashboard if authenticated
 Route::get('/', [AuthController::class, 'root'])->name('home');
@@ -223,5 +224,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/reports/trip-expenses', [ReportController::class, 'tripExpenses'])->name('reports.trip-expenses');
         Route::get('/reports/driver-performance', [ReportController::class, 'driverPerformance'])->name('reports.driver-performance');
         Route::get('/reports/daily-weekly', [ReportController::class, 'dailyWeekly'])->name('reports.daily-weekly');
+    });
+
+    // Daily Activity Routes
+    Route::middleware(['permission:view_drivers'])->group(function () {
+        Route::get('/daily-activities', [DailyActivityController::class, 'index'])->name('daily-activities.index');
     });
 });

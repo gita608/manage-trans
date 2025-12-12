@@ -167,6 +167,33 @@
                         </div>
                     </div>
 
+                    <!-- Daily Activities Statistics -->
+                    <div class="row g-3 mt-2">
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card card-animate border shadow-sm position-relative">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="avatar-sm flex-shrink-0 me-3">
+                                            <span class="avatar-title bg-secondary-subtle text-secondary rounded">
+                                                <i class="ri-calendar-check-line fs-4"></i>
+                                            </span>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <p class="text-uppercase fw-medium text-muted mb-0 fs-12">DAILY ACTIVITIES</p>
+                                        </div>
+                                    </div>
+                                    <h3 class="mb-3 fw-bold">
+                                        <span class="counter-value" data-target="{{ $totalDailyActivities }}">0</span>
+                                    </h3>
+                                    <p class="text-muted mb-2 small">
+                                        <i class="ri-calendar-todo-line me-1"></i>
+                                        <span class="fw-medium">{{ $todayDailyActivities }}</span> today
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Trip Status & Recent Activity -->
                     <div class="row mt-4">
                         <div class="col-12 mb-2">
@@ -406,6 +433,83 @@
                                                     <td colspan="3" class="text-center text-muted py-3">
                                                         <i class="ri-user-line fs-3 mb-2 d-block"></i>
                                                         No drivers found
+                                                    </td>
+                                                </tr>
+                                                @endforelse
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Daily Activities -->
+                    <div class="row mt-4">
+                        <div class="col-12 mb-2">
+                            <h5 class="text-muted">Daily Activities</h5>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header border-bottom">
+                                    <h6 class="card-title mb-0 fw-semibold">Recent Daily Activities</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover table-nowrap align-middle mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th class="ps-4">Driver</th>
+                                                    <th>Activity Date</th>
+                                                    <th>Note</th>
+                                                    <th>Image</th>
+                                                    <th class="pe-4">Created At</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @forelse($recentDailyActivities as $activity)
+                                                <tr>
+                                                    <td class="ps-4">
+                                                        <div class="d-flex align-items-center">
+                                                            @if($activity->driver && $activity->driver->photo)
+                                                                <img src="{{ asset('storage/' . $activity->driver->photo) }}" alt="{{ $activity->driver->name }}" class="rounded-circle avatar-xs me-2">
+                                                            @else
+                                                                <div class="avatar-xs rounded-circle bg-primary-subtle d-flex align-items-center justify-content-center me-2">
+                                                                    <span class="text-primary small">{{ $activity->driver ? substr($activity->driver->name, 0, 1) : '?' }}</span>
+                                                                </div>
+                                                            @endif
+                                                            <span class="fw-medium">{{ $activity->driver->name ?? 'Unknown Driver' }}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <small>{{ $activity->activity_date ? $activity->activity_date->format('M d, Y') : 'N/A' }}</small>
+                                                    </td>
+                                                    <td>
+                                                        <span class="text-truncate d-inline-block" style="max-width: 200px;" title="{{ $activity->note }}">
+                                                            {{ $activity->note ? Str::limit($activity->note, 50) : 'No note' }}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        @if($activity->image)
+                                                            <a href="{{ asset('storage/' . $activity->image) }}" target="_blank" class="btn btn-sm btn-soft-primary">
+                                                                <i class="ri-image-line me-1"></i>View
+                                                            </a>
+                                                        @else
+                                                            <span class="text-muted small">No image</span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="pe-4">
+                                                        <small class="text-muted">{{ $activity->created_at->diffForHumans() }}</small>
+                                                    </td>
+                                                </tr>
+                                                @empty
+                                                <tr>
+                                                    <td colspan="5" class="text-center text-muted py-4">
+                                                        <i class="ri-calendar-check-line fs-3 mb-2 d-block"></i>
+                                                        No daily activities found
                                                     </td>
                                                 </tr>
                                                 @endforelse

@@ -9,6 +9,7 @@ use App\Models\Trip;
 use App\Models\TripCrew;
 use App\Models\User;
 use App\Models\ActivityLog;
+use App\Models\DailyActivity;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -74,6 +75,16 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
         
+        // Get daily activity statistics
+        $totalDailyActivities = DailyActivity::count();
+        $todayDailyActivities = DailyActivity::whereDate('activity_date', now()->toDateString())->count();
+        
+        // Get recent daily activities
+        $recentDailyActivities = DailyActivity::with('driver')
+            ->latest()
+            ->take(10)
+            ->get();
+        
         return view('dashboard', compact(
             'totalDrivers',
             'totalVessels',
@@ -87,7 +98,10 @@ class DashboardController extends Controller
             'tripsByMonth',
             'busiestDriver',
             'busiestDriverCompletedTrips',
-            'topDrivers'
+            'topDrivers',
+            'totalDailyActivities',
+            'todayDailyActivities',
+            'recentDailyActivities'
         ));
     }
 }

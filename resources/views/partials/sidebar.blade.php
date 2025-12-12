@@ -111,6 +111,15 @@
                 </li>
                 @endif
 
+                @if(auth()->user()->hasPermission('view_drivers'))
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('daily-activities.*') ? 'active' : '' }}"
+                        href="{{ route('daily-activities.index') }}">
+                        <i class="ri-calendar-check-line"></i> <span>Daily Activities</span>
+                    </a>
+                </li>
+                @endif
+
                 @if(auth()->user()->hasPermission('view_activity_logs'))
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('activity-logs') ? 'active' : '' }}"
