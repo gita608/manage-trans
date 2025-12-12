@@ -28,6 +28,10 @@ class SettingsController extends Controller
                 'key' => 'favicon',
                 'value' => getSetting('favicon', '')
             ],
+            'app_timezone' => (object) [
+                'key' => 'app_timezone',
+                'value' => getSetting('app_timezone', config('app.timezone', 'Asia/Dubai'))
+            ],
             'enable_signup' => (object) [
                 'key' => 'enable_signup',
                 'value' => getSetting('enable_signup', 'true')
@@ -38,7 +42,20 @@ class SettingsController extends Controller
             ]
         ];
 
-        return view('settings.index', compact('settings'));
+        // Get all available timezones
+        $timezones = \DateTimeZone::listIdentifiers();
+        $timezoneGroups = [];
+        foreach ($timezones as $timezone) {
+            $parts = explode('/', $timezone);
+            $region = $parts[0];
+            if (!isset($timezoneGroups[$region])) {
+                $timezoneGroups[$region] = [];
+            }
+            $timezoneGroups[$region][] = $timezone;
+        }
+        ksort($timezoneGroups);
+
+        return view('settings.index', compact('settings', 'timezoneGroups'));
     }
 
     /**
@@ -58,6 +75,7 @@ class SettingsController extends Controller
             'app_name' => 'nullable|string|max:255',
             'app_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'favicon' => 'nullable|image|mimes:ico,png|max:1024',
+            'app_timezone' => 'nullable|string|max:255',
             'enable_forgot_password' => 'nullable|boolean'
         ]);
 
@@ -65,6 +83,7 @@ class SettingsController extends Controller
         $oldAppName = getSetting('app_name', config('app.name'));
         $oldLogo = getSetting('app_logo', '');
         $oldFavicon = getSetting('favicon', '');
+        $oldTimezone = getSetting('app_timezone', config('app.timezone', 'Asia/Dubai'));
         $oldEnableSignup = getSetting('enable_signup', 'true');
         $oldEnableForgotPassword = getSetting('enable_forgot_password', 'true');
 
@@ -75,6 +94,13 @@ class SettingsController extends Controller
         // Update app_name setting
         if ($request->filled('app_name')) {
             updateSetting('app_name', $request->app_name);
+        }
+
+        // Update app_timezone setting
+        if ($request->filled('app_timezone')) {
+            updateSetting('app_timezone', $request->app_timezone);
+            // Clear config cache to apply new timezone immediately
+            \Illuminate\Support\Facades\Artisan::call('config:clear');
         }
 
         // Update app_logo setting
@@ -116,6 +142,11 @@ class SettingsController extends Controller
             $oldValues['app_name'] = $oldAppName;
             $newValues['app_name'] = $request->app_name;
             $changes[] = 'app_name';
+        }
+        if ($request->filled('app_timezone') && $request->app_timezone !== $oldTimezone) {
+            $oldValues['app_timezone'] = $oldTimezone;
+            $newValues['app_timezone'] = $request->app_timezone;
+            $changes[] = 'app_timezone';
         }
         if ($logoPath) {
             $oldValues['app_logo'] = $oldLogo;

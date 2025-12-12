@@ -80,7 +80,7 @@
                         @enderror
                     </div>
 
-                    <div class="mb-0">
+                    <div class="mb-4">
                         <label for="favicon" class="form-label fw-semibold">
                             <i class="ri-file-image-line me-1 text-muted"></i>Favicon
                         </label>
@@ -101,6 +101,31 @@
                             <i class="ri-information-line"></i> Accepted formats: ICO, PNG | Recommended size: 32x32px or 16x16px
                         </small>
                         @error('favicon')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="mb-0">
+                        <label for="app_timezone" class="form-label fw-semibold">
+                            <i class="ri-time-zone-line me-1 text-muted"></i>Application Timezone
+                        </label>
+                        <select class="form-select @error('app_timezone') is-invalid @enderror" 
+                                name="app_timezone" id="app_timezone">
+                            @foreach($timezoneGroups as $region => $regionTimezones)
+                                <optgroup label="{{ $region }}">
+                                    @foreach($regionTimezones as $timezone)
+                                        <option value="{{ $timezone }}" 
+                                                {{ $settings['app_timezone']->value == $timezone ? 'selected' : '' }}>
+                                            {{ str_replace('_', ' ', $timezone) }}
+                                        </option>
+                                    @endforeach
+                                </optgroup>
+                            @endforeach
+                        </select>
+                        <small class="text-muted d-block mt-1">
+                            <i class="ri-information-line"></i> This timezone will be used throughout the entire application for all date and time displays.
+                        </small>
+                        @error('app_timezone')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>

@@ -42,3 +42,47 @@ if (!function_exists('updateSetting')) {
         }
     }
 }
+
+if (!function_exists('getAppTimezone')) {
+    /**
+     * Get the application timezone from settings or config.
+     *
+     * @return string
+     */
+    function getAppTimezone()
+    {
+        return getSetting('app_timezone', config('app.timezone', 'Asia/Dubai'));
+    }
+}
+
+if (!function_exists('formatDate')) {
+    /**
+     * Format a date using the application timezone.
+     *
+     * @param mixed $date
+     * @param string $format
+     * @return string
+     */
+    function formatDate($date, $format = 'M d, Y h:i A')
+    {
+        if (!$date) {
+            return 'N/A';
+        }
+        
+        try {
+            $timezone = getAppTimezone();
+            $timezoneObj = new \DateTimeZone($timezone);
+            
+            if ($date instanceof \Carbon\Carbon) {
+                return $date->setTimezone($timezoneObj)->format($format);
+            }
+            if ($date instanceof \DateTime) {
+                $date->setTimezone($timezoneObj);
+                return $date->format($format);
+            }
+            return \Carbon\Carbon::parse($date)->setTimezone($timezoneObj)->format($format);
+        } catch (\Exception $e) {
+            return 'Invalid Date';
+        }
+    }
+}

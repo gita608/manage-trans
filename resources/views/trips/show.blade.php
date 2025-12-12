@@ -223,23 +223,14 @@
                                             </div>
                                         </div>
                                         <div class="flex-grow-1">
-                                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                            <div class="d-flex justify-content-between align-items-start">
                                                 <div>
-                                                    <h5 class="fs-14 mb-1">{{ $log->description }}</h5>
-                                                    <p class="text-muted small mb-0">
-                                                        <i class="ri-user-line me-1"></i> {{ $userName }}
-                                                    </p>
+                                                    <p class="mb-1">{{ $log->description }}</p>
+                                                    <small class="text-muted">
+                                                        <i class="ri-user-line me-1"></i>{{ $userName }} · 
+                                                        <i class="ri-time-line me-1"></i>{{ formatDate($log->created_at) }}
+                                                    </small>
                                                 </div>
-                                                <div class="text-end">
-                                                    <small class="text-muted d-block">{{ $log->created_at->format('M d, Y') }}</small>
-                                                    <small class="text-muted">{{ $log->created_at->format('h:i A') }}</small>
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="mt-2">
-                                                <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" data-bs-toggle="modal" data-bs-target="#logModal{{ $log->id }}">
-                                                    View Details <i class="ri-arrow-right-line ms-1"></i>
-                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -464,7 +455,7 @@
                         <div class="flex-grow-1">
                             <h5 class="fs-16 mb-1">{{ $log->description }}</h5>
                             <p class="text-muted mb-0">
-                                by <span class="fw-semibold">{{ $userName }}</span> on {{ $log->created_at->format('M d, Y h:i A') }}
+                                by <span class="fw-semibold">{{ $userName }}</span> on {{ formatDate($log->created_at) }}
                             </p>
                         </div>
                     </div>

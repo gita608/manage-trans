@@ -99,8 +99,8 @@
                             @forelse($logs as $log)
                                 <tr>
                                     <td>
-                                        <div>{{ $log->created_at->format('M d, Y') }}</div>
-                                        <small class="text-muted">{{ $log->created_at->format('h:i A') }}</small>
+                                        <div>{{ formatDate($log->created_at, 'M d, Y') }}</div>
+                                        <small class="text-muted">{{ formatDate($log->created_at, 'h:i A') }}</small>
                                     </td>
                                     <td>
                                         @if($log->driver)
@@ -168,7 +168,7 @@
                                                 <div class="row mb-3">
                                                     <div class="col-md-6">
                                                         <strong>Date & Time:</strong><br>
-                                                        {{ $log->created_at->format('F d, Y h:i A') }}
+                                                        {{ formatDate($log->created_at, 'F d, Y h:i A') }}
                                                     </div>
                                                     <div class="col-md-6">
                                                         <strong>User/Driver:</strong><br>
