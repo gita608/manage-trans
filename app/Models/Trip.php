@@ -19,6 +19,7 @@ class Trip extends Model
         'driver_id',
         'trip_date',
         'title',
+        'status',
     ];
 
     public function crews()
@@ -34,91 +35,36 @@ class Trip extends Model
         return TripCrew::getStatuses();
     }
 
-    /**
-     * Get the trip status based on crews.
-     *
-     * @return string
-     */
-    public function getStatusAttribute(): string
-    {
-        if ($this->crews->isEmpty()) {
-            return TripCrew::STATUS_ASSIGNED;
-        }
-        
-        $total = $this->crews->count();
-        $completed = $this->crews->where('status', TripCrew::STATUS_COMPLETED)->count();
-        
-        if ($completed === $total) {
-            return TripCrew::STATUS_COMPLETED;
-        }
-        
-        $inProgress = $this->crews->where('status', TripCrew::STATUS_IN_PROGRESS)->count();
-        // If any crew is in progress OR completed (but not all), the trip is in progress
-        if ($inProgress > 0 || $completed > 0) {
-            return TripCrew::STATUS_IN_PROGRESS;
-        }
-        
-        return TripCrew::STATUS_ASSIGNED;
-    }
+    // Removed getStatusAttribute() - status is now a real database column
 
     /**
-     * Get status badge color class based on crew statuses
+     * Get status badge color class based on trip status
      */
     public function getStatusBadgeClass(): string
     {
-        $totalCrews = $this->crews->count();
-        if ($totalCrews === 0) {
-            return 'bg-secondary';
-        }
-        
-        $completedCrews = $this->crews->where('status', 'completed')->count();
-        $inProgressCrews = $this->crews->where('status', 'in_progress')->count();
-        
-        if ($completedCrews === $totalCrews) {
-            return 'bg-success';
-        } elseif ($inProgressCrews > 0) {
-            return 'bg-info';
-        } else {
-            return 'bg-warning';
+        switch ($this->status) {
+            case TripCrew::STATUS_COMPLETED:
+                return 'bg-success';
+            case TripCrew::STATUS_IN_PROGRESS:
+                return 'bg-info';
+            case TripCrew::STATUS_ASSIGNED:
+                return 'bg-warning';
+            default:
+                return 'bg-secondary';
         }
     }
 
     /**
-     * Check if the trip is completed (all crews are completed)
+     * Check if the trip is completed
      *
      * @return bool
      */
     public function isCompleted(): bool
     {
-        if ($this->crews->isEmpty()) {
-            return false;
-        }
-        
-        $total = $this->crews->count();
-        $completed = $this->crews->where('status', TripCrew::STATUS_COMPLETED)->count();
-        
-        return $completed === $total;
+        return $this->status === TripCrew::STATUS_COMPLETED;
     }
 
-    /**
-     * Get the count of completed crews
-     *
-     * @return int
-     */
-    public function getCompletedCrewsCount(): int
-    {
-        return $this->crews->where('status', TripCrew::STATUS_COMPLETED)->count();
-    }
-
-    /**
-     * Get the count of in-progress crews
-     *
-     * @return int
-     */
-    public function getInProgressCrewsCount(): int
-    {
-        return $this->crews->where('status', TripCrew::STATUS_IN_PROGRESS)->count();
-    }
+    // Removed getCompletedCrewsCount() and getInProgressCrewsCount() - crews no longer have status
 
     /**
      * Get status badge color class (without 'bg-' prefix)
@@ -139,9 +85,7 @@ class Trip extends Model
      */
     public function getStatusText(): string
     {
-        $status = $this->status; // Uses the getStatusAttribute() accessor
-        
-        switch ($status) {
+        switch ($this->status) {
             case TripCrew::STATUS_COMPLETED:
                 return 'Completed';
             case TripCrew::STATUS_IN_PROGRESS:
@@ -149,7 +93,7 @@ class Trip extends Model
             case TripCrew::STATUS_ASSIGNED:
                 return 'Assigned';
             default:
-                return ucfirst($status);
+                return ucfirst($this->status ?? 'Unknown');
         }
     }
 

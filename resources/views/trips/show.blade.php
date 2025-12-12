@@ -76,7 +76,6 @@
                         @php
                             $totalJobs = $tripStatus['totalJobs'];
                             $isCompleted = $tripStatus['isCompleted'];
-                            $inProgressJobs = $tripStatus['inProgressJobs'];
                             $statusBadge = $tripStatus['statusBadge'];
                             $statusText = $tripStatus['statusText'];
                         @endphp
@@ -119,7 +118,6 @@
                                         <th scope="col">Pick-up Time</th>
                                         <th scope="col">Route</th>
                                         <th scope="col">Flight No</th>
-                                        <th scope="col">Status</th>
                                         <th scope="col">Remarks</th>
                                     </tr>
                                 </thead>
@@ -157,11 +155,6 @@
                                                 </div>
                                             </td>
                                             <td>{{ $crew->flight_number ?? '-' }}</td>
-                                            <td>
-                                                <span class="badge bg-{{ $crew->status === 'completed' ? 'success' : ($crew->status === 'in_progress' ? 'warning' : 'primary') }}">
-                                                    {{ ucfirst(str_replace('_', ' ', $crew->status)) }}
-                                                </span>
-                                            </td>
                                             <td>
                                                 @if($crew->remarks)
                                                     <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $crew->remarks }}">

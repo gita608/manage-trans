@@ -27,10 +27,10 @@ class DashboardController extends Controller
         $totalTrips = Trip::count();
         $totalStaff = User::where('role', User::ROLE_STAFF)->count();
         
-        // Get crew statistics (status is on trip_crews, not trips)
-        $assignedTrips = TripCrew::where('status', TripCrew::STATUS_ASSIGNED)->count();
-        $inProgressTrips = TripCrew::where('status', TripCrew::STATUS_IN_PROGRESS)->count();
-        $completedTrips = TripCrew::where('status', TripCrew::STATUS_COMPLETED)->count();
+        // Get trip statistics (status is now on trips table)
+        $assignedTrips = Trip::where('status', TripCrew::STATUS_ASSIGNED)->count();
+        $inProgressTrips = Trip::where('status', TripCrew::STATUS_IN_PROGRESS)->count();
+        $completedTrips = Trip::where('status', TripCrew::STATUS_COMPLETED)->count();
         
         // Get recent trips
         $recentTrips = Trip::with(['driver', 'crews.vessel'])
@@ -64,9 +64,9 @@ class DashboardController extends Controller
         // Calculate completed trips count for busiest driver
         $busiestDriverCompletedTrips = 0;
         if ($busiestDriver) {
-            $busiestDriverCompletedTrips = TripCrew::whereHas('trip', function($q) use ($busiestDriver) {
-                $q->where('driver_id', $busiestDriver->id);
-            })->where('status', TripCrew::STATUS_COMPLETED)->count();
+            $busiestDriverCompletedTrips = Trip::where('driver_id', $busiestDriver->id)
+                ->where('status', TripCrew::STATUS_COMPLETED)
+                ->count();
         }
         
         // Get top 5 busiest drivers

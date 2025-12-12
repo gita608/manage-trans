@@ -27,12 +27,9 @@ class HomeController extends Controller
         
         $totalTrips = $tripsQuery->count();
         
-        // Count completed trips: trips where all crews are completed (total_crews = completed_crews > 0)
+        // Count completed trips: trips with completed status
         $completedTrips = $tripsQuery->clone()
-            ->whereHas('crews')
-            ->whereDoesntHave('crews', function($q) {
-                $q->where('status', '!=', TripCrew::STATUS_COMPLETED);
-            })
+            ->where('status', TripCrew::STATUS_COMPLETED)
             ->count();
         
         $todayTrips = $tripsQuery->clone()
@@ -44,30 +41,16 @@ class HomeController extends Controller
             ->whereMonth('trip_date', $now->month)
             ->count();
 
-        // Fetch ongoing trip - trip with in_progress crews but not all completed
+        // Fetch ongoing trip - trip with in_progress status
         $ongoingTrip = $driver->trips()
-            ->whereHas('crews', function($q) {
-                $q->where('status', TripCrew::STATUS_IN_PROGRESS);
-            })
-            ->whereHas('crews', function($q) {
-                $q->where('status', '!=', TripCrew::STATUS_COMPLETED);
-            })
+            ->where('status', TripCrew::STATUS_IN_PROGRESS)
             ->with(['crews.vessel'])
             ->orderBy('trip_date', 'desc')
-            ->get()
-            ->first(function($trip) {
-                if ($trip->crews->isEmpty()) {
-                    return false;
-                }
-                $hasInProgress = $trip->crews->contains('status', TripCrew::STATUS_IN_PROGRESS);
-                return $hasInProgress && !$trip->isCompleted();
-            });
+            ->first();
 
-        // Next trip - trip with assigned crews, scheduled for future, not all completed
+        // Next trip - trip with assigned status, scheduled for future
         $nextTrip = $driver->trips()
-            ->whereHas('crews', function($q) {
-                $q->where('status', TripCrew::STATUS_ASSIGNED);
-            })
+            ->where('status', TripCrew::STATUS_ASSIGNED)
             ->where(function ($query) use ($today, $now) {
                 $query->whereDate('trip_date', '>', $today)
                     ->orWhere(function ($q) use ($today, $now) {
@@ -79,21 +62,11 @@ class HomeController extends Controller
             })
             ->with(['crews.vessel'])
             ->orderBy('trip_date', 'asc')
-            ->get()
-            ->first(function($trip) {
-                if ($trip->crews->isEmpty()) {
-                    return false;
-                }
-                $hasAssigned = $trip->crews->contains('status', TripCrew::STATUS_ASSIGNED);
-                return !$trip->isCompleted() && $hasAssigned;
-            });
+            ->first();
 
-        // Last completed trip - trip where ALL crews are completed
+        // Last completed trip - trip with completed status
         $lastCompletedTrip = $driver->trips()
-            ->whereHas('crews')
-            ->whereDoesntHave('crews', function($q) {
-                $q->where('status', '!=', TripCrew::STATUS_COMPLETED);
-            })
+            ->where('status', TripCrew::STATUS_COMPLETED)
             ->with(['crews.vessel'])
             ->orderBy('trip_date', 'desc')
             ->first();
@@ -139,7 +112,6 @@ class HomeController extends Controller
                 'name' => $crew->name,
                 'phone' => $crew->phone,
                 'vessel' => $crew->vessel->name,
-                'status' => $crew->status,
                 'flight_number' => $crew->flight_number,
                 'remarks' => $crew->remarks,
                 'pick_up_time' => $crew->pick_up_time ? Carbon::parse($crew->pick_up_time)->subHours(12)->format('h:i A') : null,
@@ -152,6 +124,7 @@ class HomeController extends Controller
             'trip_id' => $trip->id,
             'trip_title' => $trip->title,
             'trip_date' => $tripDate->format(format: 'd-m-Y'),
+            'status' => $trip->status,
             'crews' => $formattedCrews,
             'total_crew_count' => $crews->count(),
         ];

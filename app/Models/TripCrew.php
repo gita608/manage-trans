@@ -17,7 +17,8 @@ class TripCrew extends Model
         'to_location',
         'flight_number',
         'remarks',
-        'status',
+        // Note: status is now stored on trips table, not trip_crews
+        // Keeping constants here for backward compatibility
     ];
 
     public function trip()

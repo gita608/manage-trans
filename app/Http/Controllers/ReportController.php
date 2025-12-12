@@ -58,7 +58,7 @@ class ReportController extends Controller
 
         $trips = $query->latest('trip_date')->latest('created_at')->get();
 
-        // Calculate statistics
+        // Calculate statistics (status is now on trips table)
         $totalTrips = $trips->count();
         $assignedTrips = $trips->where('status', \App\Models\TripCrew::STATUS_ASSIGNED)->count();
         $inProgressTrips = $trips->where('status', \App\Models\TripCrew::STATUS_IN_PROGRESS)->count();

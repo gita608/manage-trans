@@ -146,12 +146,6 @@ class TripController extends Controller
             $crews[] = [
                 'id' => $crew->id,
                 'trip_id' => $crew->trip_id,
-                'status' => [
-                    'value' => $crew->status,
-                    'label' => ucfirst(str_replace('_', ' ', $crew->status)),
-                    'is_ongoing' => $crew->status === 'in_progress',
-                    'is_completed' => $crew->status === 'completed',
-                ],
                 'crew_information' => [
                     'name' => $crew->name,
                     'phone' => $crew->phone,
@@ -232,6 +226,12 @@ class TripController extends Controller
                     'date' => $tripDate->format('Y-m-d'),
                     'formatted' => $tripDate->format('l, F j, Y'),
                 ],
+                'status' => [
+                    'value' => $trip->status,
+                    'label' => ucfirst(str_replace('_', ' ', $trip->status)),
+                    'is_ongoing' => $trip->status === 'in_progress',
+                    'is_completed' => $trip->status === 'completed',
+                ],
                 'crews' => $crews,
                 'issues' => [
                     'data' => $issues,
@@ -247,35 +247,23 @@ class TripController extends Controller
     }
 
     /**
-     * Update job status.
+     * Update trip status.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id Trip ID
-     * @param  int  $crew_id TripCrew ID
      * @return \Illuminate\Http\JsonResponse
      */
-    public function updateStatus(Request $request, $id, $crew_id)
+    public function updateStatus(Request $request, $id)
     {
         $driver = $request->user();
 
         // Verify trip belongs to the driver
-        $trip = Trip::where('driver_id', $driver->id)->find($id);
+        $trip = Trip::where('id', $id)->find($id);
 
         if (!$trip) {
             return response()->json([
                 'success' => false,
                 'message' => 'Trip not found or you do not have access to it.',
-            ], 404);
-        }
-
-        // Find the crew member and verify it belongs to this trip
-        $job = TripCrew::where('trip_id', $trip->id)
-            ->find($crew_id);
-
-        if (!$job) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Crew member not found or does not belong to this trip.',
             ], 404);
         }
 
@@ -287,27 +275,30 @@ class TripController extends Controller
             return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
         }
 
-        $oldStatus = $job->status;
-        $job->status = $request->status;
-        $job->save();
+        $oldStatus = $trip->status;
+        $trip->status = $request->status;
+        // Use saveQuietly() to prevent automatic logging from LogsActivity trait
+        // We'll log manually with driver_id instead
+        $trip->saveQuietly();
 
-        // Log activity on the parent Trip
-        if ($oldStatus !== $job->status) {
+        // Log activity on the Trip with driver_id (not user_id)
+        if ($oldStatus !== $trip->status) {
             ActivityLog::create([
                 'loggable_type' => Trip::class,
-                'loggable_id' => $job->trip_id,
+                'loggable_id' => $trip->id,
                 'action' => 'updated',
                 'driver_id' => $driver->id,
-                'description' => "Job #{$job->id} status changed from {$oldStatus} to {$job->status} by driver {$driver->name}",
+                'user_id' => null, // Explicitly set to null since this is driver action
+                'description' => "Trip #{$trip->id} status changed from {$oldStatus} to {$trip->status} by driver {$driver->name}",
             ]);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Status updated successfully.',
+            'message' => 'Trip status updated successfully.',
             'data' => [
-                'id' => $job->id,
-                'status' => $job->status,
+                'trip_id' => $trip->id,
+                'status' => $trip->status,
             ],
         ]);
     }
@@ -452,7 +443,7 @@ class TripController extends Controller
             'to_location' => ['sometimes', 'nullable', 'string', 'max:255'],
             'flight_number' => ['nullable', 'string', 'max:255'],
             'remarks' => ['nullable', 'string'],
-            'status' => ['sometimes', 'in:assigned,in_progress,completed'],
+            // Note: status is now on trips table, not trip_crews
         ]);
 
         if ($validator->fails()) {
@@ -510,12 +501,6 @@ class TripController extends Controller
             'data' => [
                 'id' => $crew->id,
                 'trip_id' => $crew->trip_id,
-                'status' => [
-                    'value' => $crew->status,
-                    'label' => ucfirst(str_replace('_', ' ', $crew->status)),
-                    'is_ongoing' => $crew->status === 'in_progress',
-                    'is_completed' => $crew->status === 'completed',
-                ],
                 'crew_information' => [
                     'name' => $crew->name,
                     'phone' => $crew->phone,

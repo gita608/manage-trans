@@ -71,11 +71,9 @@ class TripController extends Controller
             });
         }
 
-        // Add status filter
+        // Add status filter (status is now on trips table)
         if ($request->has('status') && $request->status) {
-            $query->whereHas('crews', function ($q) use ($request) {
-                $q->where('status', $request->status);
-            });
+            $query->where('status', $request->status);
         }
 
         $trips = $query->latest('created_at')
@@ -85,16 +83,10 @@ class TripController extends Controller
         $trips = $trips->map(function ($trip) {
             $totalJobs = $trip->crews->count();
             $isCompleted = $trip->isCompleted();
-            $completedJobs = $trip->getCompletedCrewsCount();
-            $inProgressJobs = $trip->getInProgressCrewsCount();
-            $progressPercent = $totalJobs > 0 ? ($completedJobs / $totalJobs) * 100 : 0;
             
             $trip->tripStatus = [
                 'totalJobs' => $totalJobs,
                 'isCompleted' => $isCompleted,
-                'completedJobs' => $completedJobs,
-                'inProgressJobs' => $inProgressJobs,
-                'progressPercent' => $progressPercent,
                 'statusBadge' => $trip->getStatusBadge(),
                 'statusText' => $trip->getStatusText(),
             ];
@@ -123,10 +115,6 @@ class TripController extends Controller
             'total_jobs' => $tripIds->isEmpty() ? 0 : TripCrew::whereIn('trip_id', $tripIds)->count(),
             'trips_in_progress' => $tripsInProgress,
             'trips_completed' => $tripsCompleted,
-            'jobs_in_progress' => $tripIds->isEmpty() ? 0 : TripCrew::whereIn('trip_id', $tripIds)
-                ->where('status', TripCrew::STATUS_IN_PROGRESS)->count(),
-            'jobs_completed' => $tripIds->isEmpty() ? 0 : TripCrew::whereIn('trip_id', $tripIds)
-                ->where('status', TripCrew::STATUS_COMPLETED)->count(),
         ];
 
         return view('trips.index', compact('trips', 'drivers', 'vessels', 'stats'));
@@ -170,10 +158,11 @@ class TripController extends Controller
             'driver_id' => $validated['driver_id'],
             'trip_date' => $validated['trip_date'],
             'title' => $tripTitle,
+            'status' => TripCrew::STATUS_ASSIGNED, // Set trip status to assigned
         ]);
 
         foreach ($request->crews as $crewData) {
-            $trip->crews()->create(array_merge($crewData, ['status' => 'assigned']));
+            $trip->crews()->create($crewData); // No status field - status is on trips
         }
 
         return redirect()->route('trips.index')->with('success', 'Trip created successfully!');
@@ -189,14 +178,10 @@ class TripController extends Controller
         // Calculate trip status data
         $totalJobs = $trip->crews->count();
         $isCompleted = $trip->isCompleted();
-        $completedJobs = $trip->getCompletedCrewsCount();
-        $inProgressJobs = $trip->getInProgressCrewsCount();
         
         $tripStatus = [
             'totalJobs' => $totalJobs,
             'isCompleted' => $isCompleted,
-            'completedJobs' => $completedJobs,
-            'inProgressJobs' => $inProgressJobs,
             'statusBadge' => $trip->getStatusBadge(),
             'statusText' => $trip->getStatusText(),
         ];
@@ -260,8 +245,8 @@ class TripController extends Controller
         $trip->crews()->delete();
         
         foreach ($request->crews as $crewData) {
-            // Preserve status if we were editing specific crew status (not implemented in edit form yet, so default to assigned)
-            $trip->crews()->create(array_merge($crewData, ['status' => 'assigned']));
+            // No status field - status is on trips table
+            $trip->crews()->create($crewData);
         }
 
         return redirect()->route('trips.index')->with('success', 'Trip updated successfully!');
@@ -420,7 +405,7 @@ class TripController extends Controller
                 'from_location' => $tripData['from_location'],
                 'to_location' => $tripData['to_location'],
                 'remarks' => $tripData['remarks'] ?? null,
-                'status' => 'assigned'
+                // No status field - status is on trips table
             ];
         }
 
@@ -433,6 +418,7 @@ class TripController extends Controller
                 'driver_id' => $group['driver_id'],
                 'trip_date' => $group['trip_date'],
                 'title' => $title,
+                'status' => TripCrew::STATUS_ASSIGNED, // Set trip status to assigned
             ]);
 
             foreach ($group['crews'] as $crewData) {

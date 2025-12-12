@@ -98,20 +98,17 @@ class DriverAuthController extends Controller
     {
         $driver = $request->user();
 
-        // Get trip statistics
+        // Get trip statistics (status is now on trips table)
         $totalTrips = $driver->trips()->count();
-        // Completed trips: All crews are completed
+        // Completed trips: trips with completed status
         $completedTrips = $driver->trips()
-            ->get()
-            ->filter(function($trip) {
-                return $trip->status === TripCrew::STATUS_COMPLETED;
-            })
+            ->where('status', TripCrew::STATUS_COMPLETED)
             ->count();
 
-        // Pending trips: Has at least one crew not completed (assigned or in_progress)
-        $pendingTrips = $driver->trips()->whereHas('crews', function ($query) {
-            $query->whereIn('status', [\App\Models\TripCrew::STATUS_ASSIGNED, \App\Models\TripCrew::STATUS_IN_PROGRESS]);
-        })->count();
+        // Pending trips: trips with assigned or in_progress status
+        $pendingTrips = $driver->trips()
+            ->whereIn('status', [TripCrew::STATUS_ASSIGNED, TripCrew::STATUS_IN_PROGRESS])
+            ->count();
 
         return response()->json([
             'success' => true,

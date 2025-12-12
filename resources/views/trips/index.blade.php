@@ -363,29 +363,14 @@
                                             @php
                                                 $totalJobs = $trip->tripStatus['totalJobs'];
                                                 $isCompleted = $trip->tripStatus['isCompleted'];
-                                                $completedJobs = $trip->tripStatus['completedJobs'];
-                                                $inProgressJobs = $trip->tripStatus['inProgressJobs'];
-                                                $progressPercent = $trip->tripStatus['progressPercent'];
                                                 $statusBadge = $trip->tripStatus['statusBadge'];
                                                 $statusText = $trip->tripStatus['statusText'];
                                             @endphp
                                             
                                             <div class="d-flex align-items-center gap-2 mb-2">
                                                 <span class="badge bg-{{ $statusBadge }}">{{ $statusText }}</span>
-                                                <small class="text-muted">{{ $completedJobs }}/{{ $totalJobs }} completed</small>
+                                                <small class="text-muted">{{ $totalJobs }} crew(s)</small>
                                             </div>
-                                            
-                                            @if($totalJobs > 0)
-                                                <div class="progress animated-progress custom-progress progress-sm">
-                                                    <div class="progress-bar bg-{{ $statusBadge }}" role="progressbar" 
-                                                         style="width: {{ $progressPercent }}%" 
-                                                         aria-valuenow="{{ $progressPercent }}" 
-                                                         aria-valuemin="0" 
-                                                         aria-valuemax="100"></div>
-                                                </div>
-                                            @else
-                                                <small class="text-muted">No crew assigned</small>
-                                            @endif
                                         </td>
                                         <td>
 
@@ -419,7 +404,6 @@
                                                                 <th>Vessel</th>
                                                                 <th>Pick-up Time</th>
                                                                 <th>Route</th>
-                                                                <th>Status</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
@@ -432,11 +416,6 @@
                                                                         <span class="text-truncate d-inline-block" style="max-width: 100px;" title="{{ $crew->from_location }}">{{ $crew->from_location }}</span>
                                                                         <i class="ri-arrow-right-line mx-1 text-muted fs-10"></i>
                                                                         <span class="text-truncate d-inline-block" style="max-width: 100px;" title="{{ $crew->to_location }}">{{ $crew->to_location }}</span>
-                                                                    </td>
-                                                                    <td>
-                                                                        <span class="badge bg-{{ $crew->status === 'completed' ? 'success' : ($crew->status === 'in_progress' ? 'warning' : 'primary') }} badge-border">
-                                                                            {{ ucfirst(str_replace('_', ' ', $crew->status)) }}
-                                                                        </span>
                                                                     </td>
                                                                 </tr>
                                                             @endforeach
