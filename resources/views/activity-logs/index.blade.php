@@ -225,13 +225,6 @@
                         </tbody>
                     </table>
                 </div>
-
-                <!-- Pagination -->
-                @if($logs->hasPages())
-                    <div class="mt-3">
-                        {{ $logs->links() }}
-                    </div>
-                @endif
             </div>
         </div>
     </div>
