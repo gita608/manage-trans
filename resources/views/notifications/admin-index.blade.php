@@ -58,7 +58,14 @@
     <div class="col-lg-12">
         <div class="card border shadow-sm">
             <div class="card-header border-bottom">
-                <h5 class="card-title mb-0"><i class="ri-notification-3-line me-2"></i>All Driver Notifications</h5>
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h5 class="card-title mb-0"><i class="ri-notification-3-line me-2"></i>Today's Driver Notifications</h5>
+                        <small class="text-muted">
+                            <i class="ri-information-line me-1"></i>Showing today's notifications only
+                        </small>
+                    </div>
+                </div>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -165,13 +172,6 @@
                         </tbody>
                     </table>
                 </div>
-
-                <!-- Pagination -->
-                @if($notifications->hasPages())
-                    <div class="mt-3">
-                        {{ $notifications->links() }}
-                    </div>
-                @endif
 
                 @include('partials.datatable', ['selector' => '#notifications-table'])
             </div>

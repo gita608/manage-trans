@@ -65,9 +65,10 @@ class NotificationController extends Controller
     public function adminIndex()
     {
         $notifications = Notification::whereNotNull('driver_id')
+            ->whereDate('created_at', today())
             ->with(['driver', 'user'])
-            ->latest()
-            ->paginate(20);
+            ->latest('created_at')
+            ->get();
         return view('notifications.admin-index', compact('notifications'));
     }
 
