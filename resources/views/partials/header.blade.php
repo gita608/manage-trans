@@ -168,7 +168,7 @@
                     <button type="button" class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle" id="page-header-notifications-dropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false">
                         <i class='bx bx-bell fs-22'></i>
                         @php
-                            $unreadCount = auth()->user()->notifications()->where('is_read', false)->count();
+                            $unreadCount = auth()->check() && auth()->user() ? auth()->user()->notifications()->where('is_read', false)->count() : 0;
                         @endphp
                         @if($unreadCount > 0)
                             <span class="position-absolute topbar-badge fs-10 translate-middle badge rounded-pill bg-danger">{{ $unreadCount }}<span class="visually-hidden">unread messages</span></span>
@@ -194,7 +194,7 @@
                                 <ul class="nav nav-tabs dropdown-tabs nav-tabs-custom" data-dropdown-tabs="true" id="notificationItemsTab" role="tablist">
                                     <li class="nav-item waves-effect waves-light">
                                         <a class="nav-link active" data-bs-toggle="tab" href="#all-noti-tab" role="tab" aria-selected="true">
-                                            All ({{ auth()->user()->notifications()->count() }})
+                                            All ({{ auth()->check() && auth()->user() ? auth()->user()->notifications()->count() : 0 }})
                                         </a>
                                     </li>
                                 </ul>
@@ -206,7 +206,7 @@
                             <div class="tab-pane fade show active py-2 ps-2" id="all-noti-tab" role="tabpanel">
                                 <div data-simplebar style="max-height: 300px;" class="pe-2">
                                     @php
-                                        $recentNotifications = auth()->user()->notifications()->orderBy('created_at', 'desc')->limit(5)->get();
+                                        $recentNotifications = auth()->check() && auth()->user() ? auth()->user()->notifications()->orderBy('created_at', 'desc')->limit(5)->get() : collect([]);
                                     @endphp
                                     
                                     @forelse($recentNotifications as $notification)
@@ -249,21 +249,21 @@
                 <div class="dropdown ms-sm-3 header-item topbar-user">
                     <button type="button" class="btn" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <span class="d-flex align-items-center">
-                            @if(auth()->user()->photo ?? null)
+                            @if(auth()->check() && auth()->user() && auth()->user()->photo)
                                 <img class="rounded-circle header-profile-user" src="{{ asset('storage/' . auth()->user()->photo) }}" alt="Header Avatar">
                             @else
                                 <div class="rounded-circle header-profile-user bg-primary-subtle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; min-width: 32px;">
-                                    <span class="text-primary fw-semibold">{{ substr(auth()->user()->name ?? 'U', 0, 1) }}</span>
+                                    <span class="text-primary fw-semibold">{{ substr(auth()->check() && auth()->user() ? (auth()->user()->name ?? 'U') : 'U', 0, 1) }}</span>
                                 </div>
                             @endif
                             <span class="text-start ms-xl-2">
-                                <span class="d-none d-xl-inline-block ms-1 fw-medium user-name-text">{{ auth()->user()->name ?? 'User' }}</span>
+                                <span class="d-none d-xl-inline-block ms-1 fw-medium user-name-text">{{ auth()->check() && auth()->user() ? (auth()->user()->name ?? 'User') : 'User' }}</span>
                             </span>
                         </span>
                     </button>
                     <div class="dropdown-menu dropdown-menu-end">
                         <!-- item-->
-                        <h6 class="dropdown-header">Welcome {{ auth()->user()->name ?? 'User' }}!</h6>
+                        <h6 class="dropdown-header">Welcome {{ auth()->check() && auth()->user() ? (auth()->user()->name ?? 'User') : 'User' }}!</h6>
                         <a class="dropdown-item" href="{{ route('profile.show') }}"><i class="mdi mdi-account-circle text-muted fs-16 align-middle me-1"></i> <span class="align-middle">Profile</span></a>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
