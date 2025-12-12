@@ -731,12 +731,12 @@
         }
     };
 
-    // Check if location is recent (within last 5 minutes)
+    // Check if location is recent (within last 24 hours / 1 day)
     function isRecent(updatedAt) {
         const updated = new Date(updatedAt);
         const now = new Date();
-        const diffMinutes = (now - updated) / (1000 * 60);
-        return diffMinutes < 5;
+        const diffHours = (now - updated) / (1000 * 60 * 60); // Convert to hours
+        return diffHours < 24; // 24 hours = 1 day
     }
 
     // Search functionality
