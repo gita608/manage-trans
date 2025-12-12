@@ -116,9 +116,10 @@ class TripController extends Controller
         $driver = $request->user();
 
         // Find trip assigned to this driver
-        $trip = Trip::where('driver_id', $driver->id)
+        $trip = Trip::where('id', $id)
+            ->where('driver_id', $driver->id)
             ->with(['crews.vessel', 'tripIssues.issueType', 'tripIssues.driver', 'tripExpenses.expenseType', 'tripExpenses.driver'])
-            ->find($id);
+            ->first();
 
         if (!$trip) {
             return response()->json([
@@ -258,7 +259,9 @@ class TripController extends Controller
         $driver = $request->user();
 
         // Verify trip belongs to the driver
-        $trip = Trip::where('id', $id)->find($id);
+        $trip = Trip::where('id', $id)
+            ->where('driver_id', $driver->id)
+            ->first();
 
         if (!$trip) {
             return response()->json([
