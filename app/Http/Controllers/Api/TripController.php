@@ -42,7 +42,7 @@ class TripController extends Controller
 
         // Process trips in a single pass using partition
         [$completed, $pending] = $trips->partition(function($trip) {
-            return Trip::checkTripCompletionStatus($trip->id) === 'completed';
+            return $trip->isCompleted();
         });
 
         // Map completed trips to response format
