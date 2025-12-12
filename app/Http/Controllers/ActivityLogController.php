@@ -12,7 +12,7 @@ class ActivityLogController extends Controller
      */
     public function index(Request $request)
     {
-        $query = ActivityLog::with('user');
+        $query = ActivityLog::with('user')->latest();
 
         // Filter by user if requested
         if ($request->filled('user_id')) {
