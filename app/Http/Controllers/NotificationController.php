@@ -8,7 +8,6 @@ use App\Services\FirebaseNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 
 class NotificationController extends Controller
 {
@@ -92,16 +91,6 @@ class NotificationController extends Controller
             'message' => ['required', 'string'],
         ]);
 
-        $logContext = [
-            'user_id' => Auth::id(),
-            'user_name' => Auth::user()->name,
-            'title' => $validated['title'],
-            'message_preview' => substr($validated['message'], 0, 100),
-            'target' => empty($validated['driver_id']) ? 'all_drivers' : 'specific_driver',
-        ];
-
-        Log::info('Notification creation started', $logContext);
-
         $pushSent = 0;
         $pushFailed = 0;
         $driversWithoutToken = 0;
@@ -111,58 +100,29 @@ class NotificationController extends Controller
             // Get all drivers
             $drivers = Driver::all();
             
-            Log::info('Sending notification to all drivers', array_merge($logContext, [
-                'total_drivers' => $drivers->count(),
-            ]));
-            
             // Create notification for each driver and send push notification
             foreach ($drivers as $driver) {
                 // Create database notification
-                $notification = Notification::create([
+                Notification::create([
                     'user_id' => Auth::id(),
                     'driver_id' => $driver->id,
                     'title' => $validated['title'],
                     'message' => $validated['message'],
                 ]);
 
-                Log::debug('Database notification created', [
-                    'notification_id' => $notification->id,
-                    'driver_id' => $driver->id,
-                    'driver_name' => $driver->name,
-                ]);
-
                 // Check if driver has notification token
                 if (!$driver->notification_token) {
                     $driversWithoutToken++;
-                    Log::warning('Driver has no notification token, skipping push', [
-                        'driver_id' => $driver->id,
-                        'driver_name' => $driver->name,
-                    ]);
                     continue;
                 }
 
                 // Send push notification
                 if ($this->firebaseService->sendToDriver($driver, $validated['title'], $validated['message'])) {
                     $pushSent++;
-                    Log::info('Push notification sent successfully', [
-                        'driver_id' => $driver->id,
-                        'driver_name' => $driver->name,
-                    ]);
                 } else {
                     $pushFailed++;
-                    Log::error('Push notification failed', [
-                        'driver_id' => $driver->id,
-                        'driver_name' => $driver->name,
-                    ]);
                 }
             }
-            
-            Log::info('Notification sending completed for all drivers', array_merge($logContext, [
-                'total_drivers' => $drivers->count(),
-                'push_sent' => $pushSent,
-                'push_failed' => $pushFailed,
-                'drivers_without_token' => $driversWithoutToken,
-            ]));
             
             $message = "Notification sent to all {$drivers->count()} drivers successfully!";
             if ($pushFailed > 0 || $driversWithoutToken > 0) {
@@ -176,42 +136,21 @@ class NotificationController extends Controller
             // Send to specific driver
             $driver = Driver::find($validated['driver_id']);
             
-            Log::info('Sending notification to specific driver', array_merge($logContext, [
-                'driver_id' => $driver->id,
-                'driver_name' => $driver->name,
-                'has_notification_token' => !empty($driver->notification_token),
-            ]));
-            
             // Create database notification
-            $notification = Notification::create([
+            Notification::create([
                 'user_id' => Auth::id(),
                 'driver_id' => $validated['driver_id'],
                 'title' => $validated['title'],
                 'message' => $validated['message'],
-            ]);
-
-            Log::debug('Database notification created', [
-                'notification_id' => $notification->id,
-                'driver_id' => $driver->id,
             ]);
             
             // Send push notification
             $pushResult = $this->firebaseService->sendToDriver($driver, $validated['title'], $validated['message']);
             
             if ($pushResult) {
-                $pushSent = 1;
-                Log::info('Notification sent successfully to specific driver', array_merge($logContext, [
-                    'driver_id' => $driver->id,
-                    'push_status' => 'success',
-                ]));
                 $message = "Notification sent to {$driver->name} successfully!";
             } else {
-                $pushFailed = 1;
-                Log::error('Notification failed to send to specific driver', array_merge($logContext, [
-                    'driver_id' => $driver->id,
-                    'push_status' => 'failed',
-                ]));
-                $message = "Notification created for {$driver->name}, but push notification failed. Check logs for details.";
+                $message = "Notification created for {$driver->name}, but push notification failed.";
             }
         }
 

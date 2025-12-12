@@ -4,7 +4,6 @@ namespace App\Services;
 
 use Aws\Textract\TextractClient;
 use Aws\Exception\AwsException;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class TextractService
@@ -49,10 +48,8 @@ class TextractService
             // Parse the response to extract table data
             return $this->parseTableData($result);
         } catch (AwsException $e) {
-            Log::error('AWS Textract Error: ' . $e->getMessage());
             throw new \Exception('Failed to extract data from image: ' . $e->getMessage());
         } catch (\Exception $e) {
-            Log::error('Textract Service Error: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -184,7 +181,6 @@ class TextractService
 
             return trim($text);
         } catch (AwsException $e) {
-            Log::error('AWS Textract Error: ' . $e->getMessage());
             throw new \Exception('Failed to extract text from image: ' . $e->getMessage());
         }
     }
