@@ -36,6 +36,11 @@ class ActivityLogController extends Controller
         if ($request->filled('date_to')) {
             $query->whereDate('created_at', '<=', $request->date_to);
         }
+        
+        // If no date filters provided, show only today's data
+        if (!$request->filled('date_from') && !$request->filled('date_to')) {
+            $query->whereDate('created_at', today());
+        }
 
         $logs = $query->latest()->get();
 
