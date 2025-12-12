@@ -8,7 +8,7 @@
     <meta content="Transportation Management System Dashboard" name="description" />
     <meta content="ManageTrans" name="author" />
     <!-- App favicon -->
-    <link rel="shortcut icon" href="{{ asset('assets/images/favicon.ico') }}">
+    <link rel="shortcut icon" href="{{ getSetting('favicon') ? asset('storage/' . getSetting('favicon')) : asset('assets/images/favicon.ico') }}">
 
     <!-- Dark Mode Persistence Fix - MUST load before layout.js -->
     <script src="{{ asset('assets/js/dark-mode-fix.js') }}"></script>
