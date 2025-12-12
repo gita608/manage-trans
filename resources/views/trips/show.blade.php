@@ -186,52 +186,117 @@
 
                     <!-- Activity Logs Tab -->
                     <div class="tab-pane fade" id="activityLogs" role="tabpanel">
+                        @php
+                            $isCompleted = $tripStatus['isCompleted'];
+                            // Determine start and end times for duration calculation
+                            $startTime = $trip->created_at;
+                            $latestLog = $trip->activityLogs->sortByDesc('created_at')->first();
+                            $endTime = $latestLog ? $latestLog->created_at : now();
+                            
+                            // Calculate duration string e.g., "2 days 4 hours"
+                            $duration = $startTime->diffForHumans($endTime, [
+                                'syntax' => \Carbon\CarbonInterface::DIFF_ABSOLUTE, 
+                                'parts' => 2,
+                                'short' => true
+                            ]);
+                        @endphp
+
+                        @if($isCompleted)
+                            <div class="alert alert-success d-flex align-items-center mb-4 shadow-sm border-0 bg-success-subtle text-success">
+                                <div class="avatar-sm flex-shrink-0 me-3">
+                                    <span class="avatar-title bg-success text-white rounded-circle fs-4">
+                                        <i class="ri-timer-flash-line"></i>
+                                    </span>
+                                </div>
+                                <div>
+                                    <h5 class="alert-heading fs-16 mb-1 fw-bold">Trip Completed</h5>
+                                    <p class="mb-0 fs-14">
+                                        Total time taken: <span class="fw-bold">{{ $duration }}</span>
+                                    </p>
+                                </div>
+                            </div>
+                        @endif
+
                         @if($trip->activityLogs->count() > 0)
-                            <div class="vstack gap-4 pt-2">
-                                @foreach($trip->activityLogs as $log)
-                                    @php
-                                        $color = match($log->action) {
-                                            'created' => 'success',
-                                            'updated' => 'info',
-                                            'deleted' => 'danger',
-                                            default => 'secondary',
-                                        };
-                                        $icon = match($log->action) {
-                                            'created' => 'ri-add-line',
-                                            'updated' => 'ri-pencil-line',
-                                            'deleted' => 'ri-delete-bin-line',
-                                            default => 'ri-information-line',
-                                        };
-                                        $userName = 'System';
-                                        if($log->user) {
-                                            $userName = $log->user->name;
-                                        } elseif($log->driver) {
-                                            $userName = $log->driver->name . ' (Driver)';
-                                        }
-                                    @endphp
-                                    <div class="d-flex position-relative">
-                                        <!-- Timeline Line -->
-                                        @if(!$loop->last)
-                                            <div class="position-absolute top-0 start-0 translate-middle-x h-100 border-start border-dashed" style="left: 20px; top: 40px !important;"></div>
-                                        @endif
-                                        
-                                        <div class="flex-shrink-0 me-3" style="z-index: 1;">
-                                            <div class="avatar-sm">
-                                                <span class="avatar-title bg-{{ $color }}-subtle text-{{ $color }} rounded-circle fs-4">
-                                                    <i class="{{ $icon }}"></i>
-                                                </span>
-                                            </div>
+                            <div class="acitivity-timeline-2">
+                                @foreach($trip->activityLogs->groupBy(function($log) { return \Carbon\Carbon::parse($log->created_at)->format('Y-m-d'); }) as $date => $logs)
+                                    <div class="mb-5">
+                                        <div class="d-flex align-items-center mb-4">
+                                            <span class="badge bg-light text-muted border px-3 py-2 rounded-pill fs-12 fw-medium">
+                                                <i class="ri-calendar-event-line me-1"></i>
+                                                @if($date == date('Y-m-d')) Today
+                                                @elseif($date == date('Y-m-d', strtotime('-1 day'))) Yesterday
+                                                @else {{ \Carbon\Carbon::parse($date)->format('l, F j, Y') }}
+                                                @endif
+                                            </span>
+                                            <div class="flex-grow-1 border-top border-dashed ms-3 opacity-25"></div>
                                         </div>
-                                        <div class="flex-grow-1">
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <div>
-                                                    <p class="mb-1">{{ $log->description }}</p>
-                                                    <small class="text-muted">
-                                                        <i class="ri-user-line me-1"></i>{{ $userName }} · 
-                                                        <i class="ri-time-line me-1"></i>{{ formatDate($log->created_at) }}
-                                                    </small>
+
+                                        <div class="ps-3">
+                                            @foreach($logs as $log)
+                                                @php
+                                                    $actionColors = [
+                                                        'created' => 'success',
+                                                        'updated' => 'info',
+                                                        'deleted' => 'danger',
+                                                        'restored' => 'warning',
+                                                    ];
+                                                    $color = $actionColors[$log->action] ?? 'primary';
+                                                    
+                                                    $user = $log->user ?? $log->driver;
+                                                    $userName = $user ? $user->name : 'System';
+                                                    $isDriver = $log->driver ? true : false;
+                                                @endphp
+                                                <div class="d-flex gap-4 mb-4 position-relative log-item">
+                                                    <!-- Vertical Line -->
+                                                    @if(!$loop->last)
+                                                        <div class="position-absolute top-0 start-0 border-start border-2 border-dashed border-light" style="left: 14px; height: 120%; z-index: 0;"></div>
+                                                    @endif
+
+                                                    <!-- Icon/Dot -->
+                                                    <div class="flex-shrink-0 position-relative z-1">
+                                                        <div class="avatar-xs">
+                                                            <div class="avatar-title bg-white border border-2 border-{{ $color }} text-{{ $color }} rounded-circle fs-16 shadow-sm">
+                                                                <i class="ri-checkbox-blank-circle-fill fs-8"></i>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Content -->
+                                                    <div class="flex-grow-1">
+                                                        <div class="row">
+                                                            <div class="col-md-9">
+                                                                <div class="d-flex align-items-center gap-2 mb-1">
+                                                                    <h6 class="fs-15 mb-0 fw-semibold text-dark">{{ $log->description }}</h6>
+                                                                    <span class="badge bg-{{ $color }}-subtle text-{{ $color }} fs-10 text-uppercase px-2 py-0.5 rounded-1">{{ $log->action }}</span>
+                                                                </div>
+                                                                
+                                                                <div class="d-flex align-items-center text-muted fs-13 mb-2">
+                                                                    <span class="me-3">
+                                                                        <i class="ri-user-3-line me-1 align-bottom"></i> 
+                                                                        {{ $userName }}
+                                                                        @if($isDriver) <span class="badge bg-light text-muted border ms-1">Driver</span> @endif
+                                                                    </span>
+                                                                    @if($log->ip_address)
+                                                                        <span><i class="ri-global-line me-1 align-bottom"></i> {{ $log->ip_address }}</span>
+                                                                    @endif
+                                                                </div>
+
+                                                                @if(($log->old_values && count($log->old_values) > 0) || ($log->new_values && count($log->new_values) > 0))
+                                                                    <button type="button" class="btn btn-sm btn-link text-primary text-decoration-none p-0 fs-13" data-bs-toggle="modal" data-bs-target="#logModal{{ $log->id }}">
+                                                                        View changes details <i class="ri-arrow-right-line ms-1"></i>
+                                                                    </button>
+                                                                @endif
+                                                            </div>
+                                                            <div class="col-md-3 text-md-end">
+                                                                <span class="text-muted fs-12 fw-medium bg-light px-2 py-1 rounded">
+                                                                    {{ \Carbon\Carbon::parse($log->created_at)->format('h:i A') }}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            @endforeach
                                         </div>
                                     </div>
                                 @endforeach
@@ -239,11 +304,11 @@
                         @else
                             <div class="text-center py-5">
                                 <div class="avatar-lg mx-auto mb-3">
-                                    <span class="avatar-title bg-light text-muted rounded-circle fs-1">
+                                    <div class="avatar-title bg-light-subtle text-muted rounded-circle fs-1 border border-light-subtle border-dashed">
                                         <i class="ri-file-history-line"></i>
-                                    </span>
+                                    </div>
                                 </div>
-                                <h5 class="text-muted">No Activity Logs</h5>
+                                <h5 class="text-dark">No Activity Logs</h5>
                                 <p class="text-muted mb-0">No activity has been recorded for this trip yet.</p>
                             </div>
                         @endif
