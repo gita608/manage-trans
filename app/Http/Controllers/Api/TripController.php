@@ -117,7 +117,6 @@ class TripController extends Controller
 
         // Find trip assigned to this driver
         $trip = Trip::where('id', $id)
-            ->where('driver_id', $driver->id)
             ->with(['crews.vessel', 'tripIssues.issueType', 'tripIssues.driver', 'tripExpenses.expenseType', 'tripExpenses.driver'])
             ->first();
 
@@ -260,7 +259,6 @@ class TripController extends Controller
 
         // Verify trip belongs to the driver
         $trip = Trip::where('id', $id)
-            ->where('driver_id', $driver->id)
             ->first();
 
         if (!$trip) {
