@@ -103,7 +103,15 @@
                                         <small class="text-muted">{{ $log->created_at->format('h:i A') }}</small>
                                     </td>
                                     <td>
-                                        @if($log->user)
+                                        @if($log->driver)
+                                            <div class="d-flex align-items-center">
+                                                <div>
+                                                    <strong>{{ $log->driver->name }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">Driver</small>
+                                                </div>
+                                            </div>
+                                        @elseif($log->user)
                                             <div class="d-flex align-items-center">
                                                 <div>
                                                     <strong>{{ $log->user->name }}</strong>
@@ -163,8 +171,14 @@
                                                         {{ $log->created_at->format('F d, Y h:i A') }}
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <strong>User:</strong><br>
-                                                        {{ $log->user ? $log->user->name : 'System' }}
+                                                        <strong>User/Driver:</strong><br>
+                                                        @if($log->driver)
+                                                            {{ $log->driver->name }} (Driver)
+                                                        @elseif($log->user)
+                                                            {{ $log->user->name }} (User)
+                                                        @else
+                                                            System
+                                                        @endif
                                                     </div>
                                                 </div>
                                                 <div class="row mb-3">
