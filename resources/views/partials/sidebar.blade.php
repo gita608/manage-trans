@@ -39,7 +39,7 @@
             <ul class="navbar-nav" id="navbar-nav">
                 <li class="menu-title"><span data-key="t-menu">Menu</span></li>
 
-                @if(auth()->user()->hasPermission('view_dashboard'))
+                @if(auth()->check() && auth()->user() && auth()->user()->hasPermission('view_dashboard'))
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
                         href="{{ route('dashboard') }}">
@@ -48,7 +48,7 @@
                 </li>
                 @endif
 
-                @if(auth()->user()->hasPermission('view_drivers'))
+                @if(auth()->check() && auth()->user() && auth()->user()->hasPermission('view_drivers'))
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('drivers.*') && !request()->routeIs('drivers.map') ? 'active' : '' }}"
                         href="{{ route('drivers.index') }}">
@@ -57,7 +57,7 @@
                 </li>
                 @endif
 
-                @if(auth()->user()->hasPermission('view_drivers'))
+                @if(auth()->check() && auth()->user() && auth()->user()->hasPermission('view_drivers'))
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('drivers.map') ? 'active' : '' }}"
                         href="{{ route('drivers.map') }}">
@@ -66,7 +66,7 @@
                 </li>
                 @endif
 
-                @if(auth()->user()->hasPermission('view_vessels'))
+                @if(auth()->check() && auth()->user() && auth()->user()->hasPermission('view_vessels'))
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('vessels.*') ? 'active' : '' }}"
                         href="{{ route('vessels.index') }}">
@@ -75,7 +75,7 @@
                 </li>
                 @endif
 
-                @if(auth()->user()->hasPermission('view_trips'))
+                @if(auth()->check() && auth()->user() && auth()->user()->hasPermission('view_trips'))
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('trips.*') ? 'active' : '' }}"
                         href="{{ route('trips.index') }}">
@@ -84,7 +84,7 @@
                 </li>
                 @endif
 
-                @if(auth()->user()->hasPermission('view_trips'))
+                @if(auth()->check() && auth()->user() && auth()->user()->hasPermission('view_trips'))
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('trip-issue-types.*') ? 'active' : '' }}"
                         href="{{ route('trip-issue-types.index') }}">
@@ -93,7 +93,7 @@
                 </li>
                 @endif
 
-                @if(auth()->user()->hasPermission('view_trips'))
+                @if(auth()->check() && auth()->user() && auth()->user()->hasPermission('view_trips'))
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('trip-expense-types.*') ? 'active' : '' }}"
                         href="{{ route('trip-expense-types.index') }}">
@@ -102,7 +102,7 @@
                 </li>
                 @endif
 
-                @if(auth()->user()->hasPermission('view_staff'))
+                @if(auth()->check() && auth()->user() && auth()->user()->hasPermission('view_staff'))
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('staff.*') ? 'active' : '' }}"
                         href="{{ route('staff.index') }}">
@@ -111,7 +111,7 @@
                 </li>
                 @endif
 
-                @if(auth()->user()->hasPermission('view_drivers'))
+                @if(auth()->check() && auth()->user() && auth()->user()->hasPermission('view_drivers'))
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('daily-activities.*') ? 'active' : '' }}"
                         href="{{ route('daily-activities.index') }}">
@@ -120,7 +120,7 @@
                 </li>
                 @endif
 
-                @if(auth()->user()->hasPermission('view_activity_logs'))
+                @if(auth()->check() && auth()->user() && auth()->user()->hasPermission('view_activity_logs'))
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('activity-logs') ? 'active' : '' }}"
                         href="{{ route('activity-logs') }}">
@@ -129,7 +129,7 @@
                 </li>
                 @endif
 
-                @if(auth()->user()->hasPermission('view_reports'))
+                @if(auth()->check() && auth()->user() && auth()->user()->hasPermission('view_reports'))
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('reports.*') ? 'active' : '' }}"
                         href="{{ route('reports.index') }}">
@@ -138,7 +138,7 @@
                 </li>
                 @endif
 
-                @if(auth()->user()->hasPermission('view_notifications'))
+                @if(auth()->check() && auth()->user() && auth()->user()->hasPermission('view_notifications'))
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('notifications.admin-index') ? 'active' : '' }}"
                         href="{{ route('notifications.admin-index') }}">
@@ -147,7 +147,7 @@
                 </li>
                 @endif
                 
-                @if(auth()->user()->hasPermission('manage_permissions'))
+                @if(auth()->check() && auth()->user() && auth()->user()->hasPermission('manage_permissions'))
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('permissions.*') ? 'active' : '' }}"
                         href="{{ route('permissions.index') }}">
@@ -156,7 +156,7 @@
                 </li>
                 @endif
 
-                @if(auth()->user()->hasPermission('view_settings'))
+                @if(auth()->check() && auth()->user() && auth()->user()->hasPermission('view_settings'))
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('settings.*') ? 'active' : '' }}"
                         href="{{ route('settings.index') }}">
