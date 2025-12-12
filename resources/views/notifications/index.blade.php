@@ -74,8 +74,7 @@
                                             <p class="text-muted mb-2">{{ $notification->message }}</p>
                                             <small class="text-muted">
                                                 <i class="ri-time-line align-middle"></i>
-                                                <div>{{ $notification->created_at->format('M d, Y') }}</div>
-                                                <div>{{ $notification->created_at->format('h:i A') }}</div>
+                                                {{ $notification->created_at->diffForHumans() }}
                                             </small>
                                         </div>
                                         @if(!$notification->is_read)
@@ -91,11 +90,6 @@
                                     </div>
                                 </div>
                             @endforeach
-                        </div>
-
-                        <!-- Pagination -->
-                        <div class="mt-3">
-                            {{ $notifications->links() }}
                         </div>
                     @else
                         <div class="text-center py-5">

@@ -19,10 +19,9 @@ class NotificationController extends Controller
     {
         $driver = $request->user();
         
-        $perPage = $request->get('per_page', 20);
         $notifications = $driver->notifications()
             ->latest()
-            ->paginate($perPage);
+            ->get();
 
         $formattedNotifications = $notifications->map(function ($notification) {
             return $this->formatNotification($notification);
@@ -30,15 +29,7 @@ class NotificationController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => [
-                'notifications' => $formattedNotifications,
-                'pagination' => [
-                    'current_page' => $notifications->currentPage(),
-                    'last_page' => $notifications->lastPage(),
-                    'per_page' => $notifications->perPage(),
-                    'total' => $notifications->total(),
-                ],
-            ],
+            'data' => $formattedNotifications,
         ], 200);
     }
 
