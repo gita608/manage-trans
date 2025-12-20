@@ -40,13 +40,35 @@ class TripController extends Controller
         $month = $today->format('F');
         $year = $today->format('Y');
 
-        // Process trips in a single pass using partition
-        [$completed, $pending] = $trips->partition(function($trip) {
+        // Process trips into three categories: completed, ongoing, and pending
+        [$completed, $notCompleted] = $trips->partition(function($trip) {
             return $trip->isCompleted();
+        });
+
+        // Further partition not-completed trips into ongoing and pending
+        [$ongoing, $pending] = $notCompleted->partition(function($trip) {
+            return $trip->status === TripCrew::STATUS_IN_PROGRESS;
         });
 
         // Map completed trips to response format
         $completedTrips = $completed->map(function($trip) use ($dateShort) {
+            return [
+                'trip_id' => $trip->id,
+                'trip_title' => $trip->title,
+                'trip_date' => $dateShort,
+                'crews' => $trip->crews->map(function($crew) {
+                    return [
+                        'id' => $crew->id,
+                        'name' => $crew->name,
+                        'phone' => $crew->phone,
+                        'address' => $crew->address,
+                    ];
+                })->values(),
+            ];
+        })->values();
+
+        // Map ongoing trips to response format
+        $ongoingTrips = $ongoing->map(function($trip) use ($dateShort) {
             return [
                 'trip_id' => $trip->id,
                 'trip_title' => $trip->title,
@@ -93,10 +115,12 @@ class TripController extends Controller
                 'summary' => [
                     'total' => $trips->count(),
                     'completed' => $completedTrips->count(),
+                    'ongoing' => $ongoingTrips->count(),
                     'pending' => $pendingTrips->count(),
                 ],
                 'tasks' => [
                     'pending' => $pendingTrips->all(),
+                    'ongoing' => $ongoingTrips->all(),
                     'completed' => $completedTrips->all(),
                 ],
             ],
