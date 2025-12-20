@@ -48,20 +48,22 @@ class HomeController extends Controller
             ->orderBy('trip_date', 'desc')
             ->first();
 
-        // Next trip - trip with assigned status, scheduled for future
-        $nextTrip = $driver->trips()
+        // Next trip - trip with assigned status, scheduled for today or future
+        // Get the next assigned trip (today or future dates)
+        // If there's an ongoing trip, exclude it from next trip results
+        $nextTripQuery = $driver->trips()
             ->where('status', TripCrew::STATUS_ASSIGNED)
-            ->where(function ($query) use ($today, $now) {
-                $query->whereDate('trip_date', '>', $today)
-                    ->orWhere(function ($q) use ($today, $now) {
-                        $q->whereDate('trip_date', $today)
-                            ->whereHas('crews', function($crewQ) use ($now) {
-                                $crewQ->where('pick_up_time', '>', $now->format('H:i:s'));
-                            });
-                    });
-            })
+            ->whereDate('trip_date', '>=', $today);
+        
+        // Exclude the ongoing trip if it exists
+        if ($ongoingTrip) {
+            $nextTripQuery->where('id', '!=', $ongoingTrip->id);
+        }
+        
+        $nextTrip = $nextTripQuery
             ->with(['crews.vessel'])
             ->orderBy('trip_date', 'asc')
+            ->orderBy('id', 'asc')
             ->first();
 
         // Last completed trip - trip with completed status
