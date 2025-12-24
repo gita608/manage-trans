@@ -66,7 +66,6 @@
                     <table id="vessels-table" class="table table-nowrap align-middle mb-0 datatable">
                         <thead class="table-light">
                             <tr>
-                                <th scope="col">#</th>
                                 <th scope="col">Name</th>
                                 <th scope="col">Contact Number</th>
                                 <th scope="col">Created At</th>
@@ -76,7 +75,6 @@
                         <tbody>
                             @forelse ($vessels as $vessel)
                                 <tr>
-                                    <td>{{ $loop->iteration }}</td>
                                     <td>{{ $vessel->name }}</td>
                                     <td>{{ $vessel->contact_number ?? 'N/A' }}</td>
                                     <td>
@@ -103,7 +101,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center py-4">
+                                    <td colspan="4" class="text-center py-4">
                                         <p class="text-muted mb-0">No vessels found. <a href="{{ route('vessels.create') }}">Create your first vessel</a></p>
                                     </td>
                                 </tr>
@@ -112,7 +110,7 @@
                     </table>
                 </div>
 
-                @include('partials.datatable', ['selector' => '#vessels-table', 'order' => [[3, 'desc']]])
+                @include('partials.datatable', ['selector' => '#vessels-table', 'order' => [[2, 'desc']]])
             </div>
         </div>
     </div>
