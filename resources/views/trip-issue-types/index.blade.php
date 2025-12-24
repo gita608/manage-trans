@@ -66,7 +66,7 @@
                     <table id="trip-issue-types-table" class="table table-nowrap align-middle mb-0 datatable">
                         <thead class="table-light">
                             <tr>
-                                <th scope="col">ID</th>
+                                <th scope="col">#</th>
                                 <th scope="col">Title</th>
                                 <th scope="col">Created At</th>
                                 <th scope="col" class="no-export">Actions</th>
@@ -75,7 +75,7 @@
                         <tbody>
                             @forelse ($issueTypes as $issueType)
                                 <tr>
-                                    <td>{{ $issueType->id }}</td>
+                                    <td>{{ $loop->iteration }}</td>
                                     <td>{{ $issueType->title }}</td>
                                     <td>
                                         <div>{{ $issueType->created_at->format('M d, Y') }}</div>

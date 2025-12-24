@@ -66,7 +66,7 @@
                     <table id="vessels-table" class="table table-nowrap align-middle mb-0 datatable">
                         <thead class="table-light">
                             <tr>
-                                <th scope="col">ID</th>
+                                <th scope="col">#</th>
                                 <th scope="col">Name</th>
                                 <th scope="col">Contact Number</th>
                                 <th scope="col">Created At</th>
@@ -76,7 +76,7 @@
                         <tbody>
                             @forelse ($vessels as $vessel)
                                 <tr>
-                                    <td>{{ $vessel->id }}</td>
+                                    <td>{{ $loop->iteration }}</td>
                                     <td>{{ $vessel->name }}</td>
                                     <td>{{ $vessel->contact_number ?? 'N/A' }}</td>
                                     <td>
