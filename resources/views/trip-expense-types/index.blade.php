@@ -107,12 +107,13 @@
                     </table>
                 </div>
 
-                @include('partials.datatable', ['selector' => '#trip-expense-types-table'])
+                @include('partials.datatable', ['selector' => '#trip-expense-types-table', 'order' => [[2, 'desc']]])
             </div>
         </div>
     </div>
 </div>
 @endsection
+
 
 
 

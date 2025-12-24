@@ -112,7 +112,7 @@
                     </table>
                 </div>
 
-                @include('partials.datatable', ['selector' => '#vessels-table'])
+                @include('partials.datatable', ['selector' => '#vessels-table', 'order' => [[3, 'desc']]])
             </div>
         </div>
     </div>

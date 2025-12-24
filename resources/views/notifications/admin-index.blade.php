@@ -173,7 +173,7 @@
                     </table>
                 </div>
 
-                @include('partials.datatable', ['selector' => '#notifications-table'])
+                @include('partials.datatable', ['selector' => '#notifications-table', 'order' => [[5, 'desc']]])
             </div>
         </div>
     </div>

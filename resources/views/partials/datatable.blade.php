@@ -59,7 +59,7 @@
                     responsive: true,
                     pageLength: 10,
                     lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-                    order: [[1, 'asc']],
+                    order: @json($order ?? [[1, 'asc']]),
                     language: {
                         search: "Search:",
                         lengthMenu: "Show _MENU_ entries",

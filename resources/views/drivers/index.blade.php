@@ -149,7 +149,7 @@
                     </table>
                 </div>
 
-                @include('partials.datatable', ['selector' => '#drivers-table'])
+                @include('partials.datatable', ['selector' => '#drivers-table', 'order' => [[8, 'desc']]])
             </div>
         </div>
     </div>

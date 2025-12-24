@@ -107,7 +107,7 @@
                     </table>
                 </div>
 
-                @include('partials.datatable', ['selector' => '#trip-issue-types-table'])
+                @include('partials.datatable', ['selector' => '#trip-issue-types-table', 'order' => [[2, 'desc']]])
             </div>
         </div>
     </div>

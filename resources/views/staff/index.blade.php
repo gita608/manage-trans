@@ -98,7 +98,7 @@
             </table>
         </div>
 
-        @include('partials.datatable', ['selector' => '#staff-table'])
+        @include('partials.datatable', ['selector' => '#staff-table', 'order' => [[4, 'desc']]])
     </div>
 </div>
 @endsection
