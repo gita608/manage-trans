@@ -176,8 +176,11 @@
                         </thead>
                         <tbody>
                             @forelse($expenses as $expense)
+                            @php
+                                $firstCrew = $expense->trip ? $expense->trip->crews->first() : null;
+                            @endphp
                             <tr>
-                                <td>{{ $expense->trip->trip_date->format('M d, Y') }}</td>
+                                <td>{{ $expense->trip ? $expense->trip->trip_date->format('M d, Y') : '-' }}</td>
                                 <td>
                                     <span class="badge bg-light text-dark border">
                                         {{ $expense->expenseType->title ?? 'Unknown' }}
@@ -185,7 +188,7 @@
                                 </td>
                                 <td class="fw-bold">{{ number_format($expense->amount, 2) }}</td>
                                 <td>{{ $expense->driver->name ?? 'Unknown' }}</td>
-                                <td>{{ $expense->trip->vessel->name ?? 'Unknown' }}</td>
+                                <td>{{ $firstCrew && $firstCrew->vessel ? $firstCrew->vessel->name : 'Unknown' }}</td>
                                 <td>
                                     @if($expense->receipt)
                                         <a href="{{ Storage::url($expense->receipt) }}" target="_blank" class="btn btn-sm btn-soft-primary">

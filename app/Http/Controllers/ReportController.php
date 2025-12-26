@@ -24,7 +24,7 @@ class ReportController extends Controller
      */
     public function tripSummary(Request $request)
     {
-        $query = Trip::with(['driver', 'vessel'])->withSum('tripExpenses', 'amount');
+        $query = Trip::with(['driver', 'crews.vessel'])->withSum('tripExpenses', 'amount');
 
         // Date range filter
         if ($request->has('date_from') && $request->date_from) {
@@ -39,9 +39,11 @@ class ReportController extends Controller
             $query->where('driver_id', $request->driver_id);
         }
 
-        // Vessel filter
+        // Vessel filter (vessels are on trip crews, not trips)
         if ($request->has('vessel_id') && $request->vessel_id) {
-            $query->where('vessel_id', $request->vessel_id);
+            $query->whereHas('crews', function($q) use ($request) {
+                $q->where('vessel_id', $request->vessel_id);
+            });
         }
 
         // Status filter
@@ -163,7 +165,7 @@ class ReportController extends Controller
         $dateFrom = $request->date_from ? Carbon::parse($request->date_from) : now()->startOfWeek();
         $dateTo = $request->date_to ? Carbon::parse($request->date_to) : now()->endOfWeek();
 
-        $query = Trip::with(['driver', 'vessel'])
+        $query = Trip::with(['driver', 'crews.vessel'])
             ->whereBetween('trip_date', [$dateFrom, $dateTo]);
 
         // Driver filter
@@ -171,12 +173,14 @@ class ReportController extends Controller
             $query->where('driver_id', $request->driver_id);
         }
 
-        // Vessel filter
+        // Vessel filter (vessels are on trip crews, not trips)
         if ($request->has('vessel_id') && $request->vessel_id) {
-            $query->where('vessel_id', $request->vessel_id);
+            $query->whereHas('crews', function($q) use ($request) {
+                $q->where('vessel_id', $request->vessel_id);
+            });
         }
 
-        $trips = $query->orderBy('trip_date')->orderBy('pick_up_time')->get();
+        $trips = $query->orderBy('trip_date')->latest('created_at')->get();
 
         // Group trips by date or week
         if ($reportType === 'weekly') {
@@ -201,14 +205,18 @@ class ReportController extends Controller
             ];
         }
 
-        // Peak hours analysis
+        // Peak hours analysis (pick_up_time is on trip crews)
         $peakHours = [];
         foreach ($trips as $trip) {
-            $hour = Carbon::parse($trip->pick_up_time)->format('H:00');
-            if (!isset($peakHours[$hour])) {
-                $peakHours[$hour] = 0;
+            foreach ($trip->crews as $crew) {
+                if ($crew->pick_up_time) {
+                    $hour = Carbon::parse($crew->pick_up_time)->format('H:00');
+                    if (!isset($peakHours[$hour])) {
+                        $peakHours[$hour] = 0;
+                    }
+                    $peakHours[$hour]++;
+                }
             }
-            $peakHours[$hour]++;
         }
         arsort($peakHours);
 
@@ -244,7 +252,7 @@ class ReportController extends Controller
      */
     public function tripExpenses(Request $request)
     {
-        $query = \App\Models\TripExpense::with(['trip.vessel', 'driver', 'expenseType']);
+        $query = \App\Models\TripExpense::with(['trip.crews.vessel', 'driver', 'expenseType']);
 
         // Date range filter (based on trip date)
         if ($request->has('date_from') && $request->date_from) {
@@ -263,9 +271,9 @@ class ReportController extends Controller
             $query->where('driver_id', $request->driver_id);
         }
 
-        // Vessel filter
+        // Vessel filter (vessels are on trip crews, not trips)
         if ($request->has('vessel_id') && $request->vessel_id) {
-            $query->whereHas('trip', function($q) use ($request) {
+            $query->whereHas('trip.crews', function($q) use ($request) {
                 $q->where('vessel_id', $request->vessel_id);
             });
         }
@@ -287,7 +295,7 @@ class ReportController extends Controller
 
         // Expenses by Date (for chart)
         $expensesByDate = $expenses->groupBy(function($expense) {
-            return $expense->trip->trip_date->format('Y-m-d');
+            return $expense->trip ? $expense->trip->trip_date->format('Y-m-d') : 'Unknown';
         })->map->sum('amount');
 
         $drivers = Driver::orderBy('name')->get();

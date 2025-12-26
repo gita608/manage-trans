@@ -223,27 +223,30 @@
                         </thead>
                         <tbody>
                             @forelse($trips as $trip)
+                            @php
+                                $firstCrew = $trip->crews->first();
+                            @endphp
                             <tr>
                                 <td>{{ $trip->trip_date->format('M d, Y') }}</td>
                                 <td>
                                     <span class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ $trip->crews->pluck('name')->join(', ') }}">
-                                        {{ $trip->crews->first()->name ?? '-' }}
+                                        {{ $firstCrew->name ?? '-' }}
                                         @if($trip->crews->count() > 1)
                                             <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-1">+{{ $trip->crews->count() - 1 }}</span>
                                         @endif
                                     </span>
                                 </td>
-                                <td>{{ $trip->driver->name }}</td>
-                                <td>{{ $trip->vessel->name }}</td>
-                                <td>{{ \Carbon\Carbon::parse($trip->pick_up_time)->format('h:i A') }}</td>
+                                <td>{{ $trip->driver->name ?? '-' }}</td>
+                                <td>{{ $firstCrew->vessel->name ?? '-' }}</td>
+                                <td>{{ $firstCrew->pick_up_time ? \Carbon\Carbon::parse($firstCrew->pick_up_time)->format('h:i A') : '-' }}</td>
                                 <td>
-                                    <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $trip->from_location }}">
-                                        {{ $trip->from_location }}
+                                    <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $firstCrew->from_location ?? '-' }}">
+                                        {{ $firstCrew->from_location ?? '-' }}
                                     </span>
                                 </td>
                                 <td>
-                                    <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $trip->to_location }}">
-                                        {{ $trip->to_location }}
+                                    <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $firstCrew->to_location ?? '-' }}">
+                                        {{ $firstCrew->to_location ?? '-' }}
                                     </span>
                                 </td>
                                 <td>{{ number_format($trip->trip_expenses_sum_amount ?? 0, 2) }}</td>
