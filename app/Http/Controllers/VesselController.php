@@ -35,7 +35,19 @@ class VesselController extends Controller
             'contact_number' => ['nullable', 'string', 'max:255'],
         ]);
 
-        Vessel::create($validated);
+        $vessel = Vessel::create($validated);
+
+        // If it's an AJAX request, return JSON
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Vessel created successfully!',
+                'vessel' => [
+                    'id' => $vessel->id,
+                    'name' => $vessel->name,
+                ]
+            ]);
+        }
 
         return redirect()->route('vessels.index')->with('success', 'Vessel created successfully!');
     }

@@ -94,21 +94,17 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <div class="input-group input-group-sm input-group-flat">
-                                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="ri-ship-line"></i></span>
-                                                <select name="trips[{{ $index }}][vessel_id]" class="form-select form-select-sm border-start-0 ps-0 vessel-select" required>
-                                                    <option value="">Select Vessel</option>
-                                                    @php $vesselFound = false; @endphp
-                                                    @foreach($vessels as $vessel)
-                                                        <option value="{{ $vessel->id }}" {{ $row['vessel_id'] == $vessel->id ? 'selected' : '' }}>
-                                                            {{ $vessel->name }}
-                                                        </option>
-                                                        @if($row['vessel_id'] == $vessel->id) @php $vesselFound = true; @endphp @endif
-                                                    @endforeach
-
-                                                    {{-- Removed auto-create option - user must select from existing vessels --}}
-                                                </select>
-                                            </div>
+                                            <select name="trips[{{ $index }}][vessel_id]" class="form-select form-select-sm vessel-select2" required>
+                                                <option value="">Select Vessel</option>
+                                                <option value="__create_new__" class="create-new-vessel-option">+ Create New Vessel</option>
+                                                @php $vesselFound = false; @endphp
+                                                @foreach($vessels as $vessel)
+                                                    <option value="{{ $vessel->id }}" {{ $row['vessel_id'] == $vessel->id ? 'selected' : '' }}>
+                                                        {{ $vessel->name }}
+                                                    </option>
+                                                    @if($row['vessel_id'] == $vessel->id) @php $vesselFound = true; @endphp @endif
+                                                @endforeach
+                                            </select>
                                         </td>
                                         <td>
                                             <input type="date" name="trips[{{ $index }}][trip_date]" class="form-control form-control-sm border-light bg-light-subtle" value="{{ $row['trip_date'] }}" required>
@@ -163,6 +159,9 @@
     </div>
 </div>
 
+@push('styles')
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <style>
     .input-group-flat .form-control:focus, 
     .input-group-flat .form-select:focus {
@@ -192,11 +191,167 @@
     textarea::-webkit-scrollbar-thumb:hover {
         background: #9ca3af; 
     }
+    /* Select2 styling for small selects */
+    .vessel-select2 {
+        display: none;
+    }
+    .vessel-select2 + .select2-container {
+        width: 100% !important;
+    }
+    .vessel-select2 + .select2-container .select2-selection--single {
+        height: calc(1.5em + 0.5rem + 2px);
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        background-color: #fff;
+    }
+    .vessel-select2 + .select2-container .select2-selection--single .select2-selection__rendered {
+        line-height: calc(1.5em + 0.5rem);
+        padding-left: 0.5rem;
+        padding-right: 20px;
+        font-size: 0.8125rem;
+    }
+    .vessel-select2 + .select2-container .select2-selection--single .select2-selection__arrow {
+        height: calc(1.5em + 0.5rem);
+        right: 1px;
+    }
+    .vessel-select2 + .select2-container--focus .select2-selection--single,
+    .vessel-select2 + .select2-container--open .select2-selection--single {
+        border-color: var(--vz-primary);
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    /* Style for Create New Vessel option in dropdown */
+    .select2-results__option[data-select2-id*="__create_new__"],
+    .select2-results__option:has([value="__create_new__"]) {
+        background-color: #e7f3ff !important;
+        color: #0d6efd !important;
+        font-weight: 500 !important;
+        font-size: 0.8125rem !important;
+        border-top: 1px solid #0d6efd;
+        border-bottom: 1px solid #dee2e6;
+        padding: 6px 12px;
+    }
+    .select2-results__option[data-select2-id*="__create_new__"]:hover,
+    .select2-results__option:has([value="__create_new__"]):hover {
+        background-color: #cfe2ff !important;
+    }
 </style>
+@endpush
 
 @push('scripts')
+<!-- jQuery (required for Select2) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Select2 for vessel selects
+        function initSelect2() {
+            if (typeof jQuery !== 'undefined' && jQuery.fn.select2) {
+                jQuery('.vessel-select2').select2({
+                    placeholder: 'Select Vessel',
+                    allowClear: true,
+                    width: '100%',
+                    dropdownParent: jQuery('#review-form'),
+                    templateResult: function(data) {
+                        if (!data.id) {
+                            return data.text;
+                        }
+                        if (data.id === '__create_new__') {
+                            var $result = jQuery('<span style="background-color: #e7f3ff; color: #0d6efd; font-weight: 500; font-size: 0.8125rem; padding: 4px 8px; border-radius: 4px; display: inline-block; width: 100%;">' + data.text + '</span>');
+                            return $result;
+                        }
+                        return data.text;
+                    }
+                }).on('select2:select', function(e) {
+                    const data = e.params.data;
+                    if (data.id === '__create_new__') {
+                        e.preventDefault();
+                        createNewVessel(jQuery(this));
+                    }
+                });
+            }
+        }
+        
+        // Function to create a new vessel
+        function createNewVessel($select) {
+            const vesselName = prompt('Enter the new vessel name:');
+            if (!vesselName || vesselName.trim() === '') {
+                $select.val('').trigger('change');
+                return;
+            }
+            
+            // Show loading state
+            const originalHtml = $select.next('.select2-container').find('.select2-selection__rendered').html();
+            $select.next('.select2-container').find('.select2-selection__rendered').html('<span class="spinner-border spinner-border-sm me-2"></span>Creating...');
+            $select.prop('disabled', true);
+            
+            // Create vessel via AJAX
+            jQuery.ajax({
+                url: '{{ route("vessels.store") }}',
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    name: vesselName.trim()
+                },
+                success: function(response) {
+                    if (response.success && response.vessel) {
+                        // Add the new vessel to all select dropdowns
+                        const newOption = new Option(response.vessel.name, response.vessel.id, true, true);
+                        jQuery('.vessel-select2').each(function() {
+                            // Remove the create new option if it exists
+                            jQuery(this).find('option[value="__create_new__"]').remove();
+                            // Add the new vessel option
+                            jQuery(this).append(newOption.cloneNode(true));
+                            // If this is the select that triggered the creation, select the new vessel
+                            if (this === $select[0]) {
+                                jQuery(this).val(response.vessel.id).trigger('change');
+                            }
+                        });
+                        // Re-add the create new option to all selects (as first option after placeholder)
+                        jQuery('.vessel-select2').each(function() {
+                            if (jQuery(this).find('option[value="__create_new__"]').length === 0) {
+                                jQuery(this).find('option:first').after('<option value="__create_new__" class="create-new-vessel-option">+ Create New Vessel</option>');
+                            }
+                        });
+                    }
+                    $select.prop('disabled', false);
+                },
+                error: function(xhr) {
+                    let errorMsg = 'Failed to create vessel.';
+                    if (xhr.responseJSON && xhr.responseJSON.errors) {
+                        errorMsg = Object.values(xhr.responseJSON.errors).flat().join('\\n');
+                    } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    } else if (xhr.status === 422) {
+                        errorMsg = 'Vessel name already exists or is invalid.';
+                    }
+                    alert(errorMsg);
+                    $select.val('').trigger('change');
+                    $select.prop('disabled', false);
+                    $select.next('.select2-container').find('.select2-selection__rendered').html(originalHtml);
+                }
+            });
+        }
+        
+        // Initialize Select2
+        if (typeof jQuery !== 'undefined') {
+            if (jQuery.fn.select2) {
+                initSelect2();
+            } else {
+                // Wait for Select2 to load
+                const checkSelect2 = setInterval(function() {
+                    if (typeof jQuery !== 'undefined' && jQuery.fn.select2) {
+                        initSelect2();
+                        clearInterval(checkSelect2);
+                    }
+                }, 100);
+            }
+        }
+        
         // Check all functionality
         const checkAll = document.getElementById('checkAll');
         const rowChecks = document.querySelectorAll('.row-check');
