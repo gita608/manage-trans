@@ -6,14 +6,24 @@ use App\Models\Trip;
 use App\Models\TripCrew;
 use App\Models\Driver;
 use App\Models\Vessel;
+use App\Models\Notification;
 use App\Services\TextractService;
+use App\Services\FirebaseNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class TripController extends Controller
 {
+    protected $firebaseService;
+
+    public function __construct(FirebaseNotificationService $firebaseService)
+    {
+        $this->firebaseService = $firebaseService;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -164,6 +174,9 @@ class TripController extends Controller
         foreach ($request->crews as $crewData) {
             $trip->crews()->create($crewData); // No status field - status is on trips
         }
+
+        // Send push notification to driver
+        $this->sendTripNotification($trip);
 
         return redirect()->route('trips.index')->with('success', 'Trip created successfully!');
     }
@@ -425,6 +438,9 @@ class TripController extends Controller
                 $trip->crews()->create($crewData);
             }
             
+            // Send push notification to driver
+            $this->sendTripNotification($trip);
+            
             $createdCount++;
         }
 
@@ -606,6 +622,54 @@ class TripController extends Controller
             } catch (\Exception $e2) {
                 // Default to current time if parsing fails
                 return Carbon::now()->format('H:i');
+            }
+        }
+    }
+
+    /**
+     * Send push notification to driver when a trip is created
+     *
+     * @param Trip $trip
+     * @return void
+     */
+    protected function sendTripNotification(Trip $trip)
+    {
+        // Reload trip with relationships to ensure we have fresh data
+        $trip->load(['driver', 'crews']);
+        
+        if (!$trip->driver) {
+            return;
+        }
+
+        $driver = $trip->driver;
+        $tripDate = Carbon::parse($trip->trip_date)->format('M d, Y');
+        $crewCount = $trip->crews->count();
+        
+        // Prepare notification message
+        $title = 'New Trip Assigned';
+        $message = "You have been assigned a new trip on {$tripDate} with {$crewCount} " . ($crewCount === 1 ? 'crew member' : 'crew members') . ". Trip: {$trip->title}";
+
+        // Create database notification
+        try {
+            Notification::create([
+                'user_id' => Auth::id(),
+                'driver_id' => $driver->id,
+                'title' => $title,
+                'message' => $message,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to create notification record: ' . $e->getMessage());
+        }
+
+        // Send push notification if driver has notification token
+        if ($driver->notification_token) {
+            try {
+                $this->firebaseService->sendToDriver($driver, $title, $message, null, [
+                    'type' => 'trip_assigned',
+                    'trip_id' => $trip->id,
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Failed to send push notification: ' . $e->getMessage());
             }
         }
     }
