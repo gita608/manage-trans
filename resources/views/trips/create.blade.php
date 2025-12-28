@@ -122,7 +122,7 @@
                                         <td>
                                             <select class="form-select form-select-sm vessel-select2" name="crews[{{ $index }}][vessel_id]" required>
                                                 <option value="">Select</option>
-                                                <option value="__create_new__" class="create-new-vessel-option">+ Create New Vessel</option>
+                                                <option value="__create_new__" class="create-new-vessel-option">Create New</option>
                                                 @foreach($vessels as $vessel)
                                                     <option value="{{ $vessel->id }}" {{ ($crew['vessel_id'] ?? '') == $vessel->id ? 'selected' : '' }}>{{ $vessel->name }}</option>
                                                 @endforeach
@@ -308,7 +308,7 @@
                 <td>
                     <select class="form-select form-select-sm vessel-select2" name="crews[${index}][vessel_id]" required>
                         <option value="">Select</option>
-                        <option value="__create_new__" class="create-new-vessel-option">+ Create New Vessel</option>
+                        <option value="__create_new__" class="create-new-vessel-option">Create New </option>
                         ${vesselOptions.replace('<option value="">Select</option>', '')}
                     </select>
                 </td>
@@ -434,7 +434,7 @@
                         // Re-add the create new option to all selects (as first option after placeholder)
                         jQuery('.vessel-select2').each(function() {
                             if (jQuery(this).find('option[value="__create_new__"]').length === 0) {
-                                jQuery(this).find('option:first').after('<option value="__create_new__" class="create-new-vessel-option">+ Create New Vessel</option>');
+                                jQuery(this).find('option:first').after('<option value="__create_new__" class="create-new-vessel-option">Create New</option>');
                             }
                         });
                     }

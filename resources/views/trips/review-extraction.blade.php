@@ -96,7 +96,7 @@
                                         <td>
                                             <select name="trips[{{ $index }}][vessel_id]" class="form-select form-select-sm vessel-select2" required>
                                                 <option value="">Select Vessel</option>
-                                                <option value="__create_new__" class="create-new-vessel-option">+ Create New Vessel</option>
+                                                <option value="__create_new__" class="create-new-vessel-option">Create New</option>
                                                 @php $vesselFound = false; @endphp
                                                 @foreach($vessels as $vessel)
                                                     <option value="{{ $vessel->id }}" {{ $row['vessel_id'] == $vessel->id ? 'selected' : '' }}>
@@ -314,7 +314,7 @@
                         // Re-add the create new option to all selects (as first option after placeholder)
                         jQuery('.vessel-select2').each(function() {
                             if (jQuery(this).find('option[value="__create_new__"]').length === 0) {
-                                jQuery(this).find('option:first').after('<option value="__create_new__" class="create-new-vessel-option">+ Create New Vessel</option>');
+                                jQuery(this).find('option:first').after('<option value="__create_new__" class="create-new-vessel-option">Create New</option>');
                             }
                         });
                     }
