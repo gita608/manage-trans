@@ -386,18 +386,23 @@ class TripController extends Controller
                 continue; // Skip if no driver selected
             }
 
-            // Resolve Vessel
+            // Resolve Vessel - only use existing vessels, no auto-creation
             $vesselId = null;
             if (!empty($tripData['vessel_id'])) {
+                // Skip if vessel_id starts with "new:" - user must select an existing vessel
                 if (str_starts_with($tripData['vessel_id'], 'new:')) {
-                    $newVesselName = substr($tripData['vessel_id'], 4);
-                    $vessel = Vessel::firstOrCreate(['name' => $newVesselName]);
-                    $vesselId = $vessel->id;
+                    continue; // Skip this trip - vessel must be selected from existing list
                 } else {
-                    $vesselId = $tripData['vessel_id'];
+                    // Verify vessel exists
+                    $vessel = Vessel::find($tripData['vessel_id']);
+                    if ($vessel) {
+                        $vesselId = $tripData['vessel_id'];
+                    } else {
+                        continue; // Skip if vessel doesn't exist
+                    }
                 }
             } else {
-                continue; // Skip if no vessel
+                continue; // Skip if no vessel selected
             }
 
             $date = $tripData['trip_date'];
@@ -512,8 +517,10 @@ class TripController extends Controller
                 }
             }
 
-            // Find vessel match
+            // Find vessel match - only exact match (case-insensitive)
+            // Do NOT auto-create vessels, only match existing ones
             $vessel = Vessel::whereRaw('LOWER(name) = ?', [strtolower($vesselName)])->first();
+            // If no exact match, try partial match
             if (!$vessel) {
                 $vessel = Vessel::whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($vesselName) . '%'])->first();
             }
@@ -526,7 +533,7 @@ class TripController extends Controller
                 'driver_name' => null, // Force manual selection
                 'driver_id' => null,
                 'vessel_name' => $vesselName,
-                'vessel_id' => $vessel ? $vessel->id : null,
+                'vessel_id' => $vessel ? $vessel->id : null, // Only set if exact match found, otherwise null
                 'crew_name' => $crewName,
                 'crew_phone' => $crewPhone,
                 'from_location' => $fromLocation ?: 'N/A',

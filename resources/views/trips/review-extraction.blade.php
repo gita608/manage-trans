@@ -106,11 +106,7 @@
                                                         @if($row['vessel_id'] == $vessel->id) @php $vesselFound = true; @endphp @endif
                                                     @endforeach
 
-                                                    @if(!$vesselFound && !empty($row['vessel_name']))
-                                                        <option value="new:{{ $row['vessel_name'] }}" selected class="text-primary fw-bold">
-                                                            + Create: {{ $row['vessel_name'] }}
-                                                        </option>
-                                                    @endif
+                                                    {{-- Removed auto-create option - user must select from existing vessels --}}
                                                 </select>
                                             </div>
                                         </td>
