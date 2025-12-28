@@ -31,8 +31,17 @@ class VesselController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:vessels'],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('vessels')->where(function ($query) use ($request) {
+                    return $query->whereRaw('LOWER(name) = ?', [strtolower($request->name)]);
+                })
+            ],
             'contact_number' => ['nullable', 'string', 'max:255'],
+        ], [
+            'name.unique' => 'A vessel with this name already exists.',
         ]);
 
         $vessel = Vessel::create($validated);
@@ -74,8 +83,17 @@ class VesselController extends Controller
     public function update(Request $request, Vessel $vessel)
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', Rule::unique('vessels')->ignore($vessel->id)],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('vessels')->where(function ($query) use ($request) {
+                    return $query->whereRaw('LOWER(name) = ?', [strtolower($request->name)]);
+                })->ignore($vessel->id)
+            ],
             'contact_number' => ['nullable', 'string', 'max:255'],
+        ], [
+            'name.unique' => 'A vessel with this name already exists.',
         ]);
 
         $vessel->update($validated);
