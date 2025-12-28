@@ -363,6 +363,7 @@ class TripController extends Controller
             'trips.*.pick_up_time' => ['required'],
             'trips.*.flight_number' => ['nullable', 'string'],
             'trips.*.crew_name' => ['required', 'string'],
+            'trips.*.crew_phone' => ['nullable', 'string', 'max:255'],
             'trips.*.from_location' => ['required', 'string'],
             'trips.*.to_location' => ['required', 'string'],
         ]);
@@ -415,6 +416,7 @@ class TripController extends Controller
                 'pick_up_time' => $tripData['pick_up_time'],
                 'flight_number' => $tripData['flight_number'] ?? null,
                 'name' => $tripData['crew_name'],
+                'phone' => $tripData['crew_phone'] ?? null,
                 'from_location' => $tripData['from_location'],
                 'to_location' => $tripData['to_location'],
                 'remarks' => $tripData['remarks'] ?? null,
@@ -493,10 +495,22 @@ class TripController extends Controller
             $fromLocation = trim($row[4] ?? '');
             $toLocation = trim($row[5] ?? '');
             $followUp = trim($row[6] ?? '');
+            $crewPhone = trim($row[7] ?? ''); // Extract phone from column 7
 
             if ($this->isHeaderRow($row)) continue;
             // if (empty($crewName) && empty($driverName) && empty($vesselName)) continue;
             if (empty($crewName) && empty($vesselName)) continue;
+
+            // Try to extract phone from crew name if it contains "Mobile no." or similar patterns
+            if (empty($crewPhone) && !empty($crewName)) {
+                // Pattern: "Name - Mobile no.- 0505592732" or "Name Mobile: 0505592732"
+                if (preg_match('/(?:Mobile\s*(?:no\.?|number)?[:\-]?\s*)(\d+)/i', $crewName, $matches)) {
+                    $crewPhone = $matches[1];
+                    // Remove phone from crew name
+                    $crewName = preg_replace('/\s*-\s*Mobile\s*(?:no\.?|number)?[:\-]?\s*\d+/i', '', $crewName);
+                    $crewName = trim($crewName);
+                }
+            }
 
             // Find vessel match
             $vessel = Vessel::whereRaw('LOWER(name) = ?', [strtolower($vesselName)])->first();
@@ -514,6 +528,7 @@ class TripController extends Controller
                 'vessel_name' => $vesselName,
                 'vessel_id' => $vessel ? $vessel->id : null,
                 'crew_name' => $crewName,
+                'crew_phone' => $crewPhone,
                 'from_location' => $fromLocation ?: 'N/A',
                 'to_location' => $toLocation ?: 'N/A',
                 'remarks' => $followUp,
