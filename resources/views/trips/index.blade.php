@@ -297,6 +297,7 @@
                             <select id="filter-date-range" class="form-select">
                                 <option value="today">Today</option>
                                 <option value="yesterday">Yesterday</option>
+                                <option value="tomorrow">Tomorrow</option>
                                 <option value="last_7_days">Last 7 Days</option>
                                 <option value="this_month">This Month</option>
                                 <option value="custom">Custom Range</option>

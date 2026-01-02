@@ -45,6 +45,9 @@ class TripController extends Controller
                 case 'yesterday':
                     $dateFrom = $dateTo = today()->subDay()->format('Y-m-d');
                     break;
+                case 'tomorrow':
+                    $dateFrom = $dateTo = Carbon::tomorrow()->format('Y-m-d');
+                    break;
                 case 'last_7_days':
                     $dateFrom = today()->subDays(6)->format('Y-m-d');
                     $dateTo = today()->format('Y-m-d');
