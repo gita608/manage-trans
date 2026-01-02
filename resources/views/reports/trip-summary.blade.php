@@ -207,7 +207,7 @@
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-hover table-nowrap align-middle mb-0">
+                    <table id="tripSummaryTable" class="table table-hover table-nowrap align-middle mb-0">
                         <thead>
                             <tr>
                                 <th>Date</th>
@@ -222,7 +222,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($trips as $trip)
+                            @foreach($trips as $trip)
                             @php
                                 $firstCrew = $trip->crews->first();
                             @endphp
@@ -256,14 +256,7 @@
                                     </span>
                                 </td>
                             </tr>
-                            @empty
-                            <tr>
-                                <td colspan="9" class="text-center text-muted py-4">
-                                    <i class="ri-file-list-line fs-3 mb-2 d-block"></i>
-                                    No trips found for the selected filters
-                                </td>
-                            </tr>
-                            @endforelse
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
@@ -272,8 +265,39 @@
     </div>
 </div>
 
+@push('styles')
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
+<style>
+    .dt-buttons {
+        margin-bottom: 1rem;
+    }
+    .dt-button {
+        margin-left: 0.5rem !important;
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- jQuery (required for DataTables) -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+<!-- DataTables Buttons -->
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
 <script>
     // Status Chart
     const statusCtx = document.getElementById('statusChart').getContext('2d');
@@ -337,6 +361,272 @@
                 }
             }
         }
+    });
+
+    // Initialize DataTable with Export Buttons
+    $(document).ready(function() {
+        $('#tripSummaryTable').DataTable({
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'excelHtml5',
+                    text: '<i class="ri-file-excel-2-line me-1"></i> Export to Excel',
+                    className: 'btn btn-success btn-sm',
+                    title: 'Trip Summary Report',
+                    exportOptions: {
+                        columns: ':visible',
+                        modifier: {
+                            page: 'all',
+                            search: 'none'
+                        },
+                        format: {
+                            body: function(data, row, column, node) {
+                                // Remove HTML tags and badges for clean export
+                                var text = $(data).text().trim();
+                                // If it's empty or just whitespace, return the original data
+                                return text || data;
+                            }
+                        }
+                    },
+                    filename: 'Trip_Summary_Report_' + new Date().toISOString().split('T')[0]
+                },
+                {
+                    extend: 'pdfHtml5',
+                    text: '<i class="ri-file-pdf-line me-1"></i> Export to PDF',
+                    className: 'btn btn-danger btn-sm',
+                    title: 'Trip Summary Report',
+                    orientation: 'landscape',
+                    pageSize: 'A4',
+                    exportOptions: {
+                        columns: ':visible',
+                        modifier: {
+                            page: 'all',
+                            search: 'none'
+                        },
+                        format: {
+                            body: function(data, row, column, node) {
+                                // Remove HTML tags and badges for clean export
+                                var text = $(data).text().trim();
+                                return text || data;
+                            }
+                        }
+                    },
+                    filename: 'Trip_Summary_Report_' + new Date().toISOString().split('T')[0],
+                    customize: function(doc) {
+                        // Set document properties
+                        doc.info = doc.info || {};
+                        doc.info.title = 'Trip Summary Report';
+                        doc.info.author = '{{ config("app.name") }}';
+                        doc.info.subject = 'Trip Summary Report';
+                        doc.info.keywords = 'trips, summary, report';
+                        
+                        // Add header with logo and company info
+                        doc.header = function(currentPage, pageCount) {
+                            return {
+                                columns: [
+                                    {
+                                        text: '{{ config("app.name") }}',
+                                        style: 'companyName',
+                                        alignment: 'left',
+                                        margin: [40, 20, 0, 0]
+                                    },
+                                    {
+                                        text: 'Trip Summary Report',
+                                        style: 'headerTitle',
+                                        alignment: 'center',
+                                        margin: [0, 20, 0, 0]
+                                    },
+                                    {
+                                        text: 'Page ' + currentPage.toString() + ' of ' + pageCount,
+                                        alignment: 'right',
+                                        style: 'pageNumber',
+                                        margin: [0, 20, 40, 0]
+                                    }
+                                ]
+                            };
+                        };
+                        
+                        // Add footer with generation date and time
+                        doc.footer = function(currentPage, pageCount) {
+                            return {
+                                columns: [
+                                    {
+                                        text: 'Generated on: ' + new Date().toLocaleString('en-US', {
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        }),
+                                        alignment: 'left',
+                                        style: 'footer',
+                                        margin: [40, 0, 0, 20]
+                                    },
+                                    {
+                                        text: '© {{ date("Y") }} {{ config("app.name") }}',
+                                        alignment: 'right',
+                                        style: 'footer',
+                                        margin: [0, 0, 40, 20]
+                                    }
+                                ]
+                            };
+                        };
+                        
+                        // Add filter information before the table
+                        var filterInfo = [];
+                        var dateFrom = '{{ request("date_from") }}';
+                        var dateTo = '{{ request("date_to") }}';
+                        var driver = '{{ request("driver_id") ? ($drivers->firstWhere("id", request("driver_id"))->name ?? "All Drivers") : "All Drivers" }}';
+                        var vessel = '{{ request("vessel_id") ? ($vessels->firstWhere("id", request("vessel_id"))->name ?? "All Vessels") : "All Vessels" }}';
+                        var status = '{{ request("status") ? ucfirst(str_replace("_", " ", request("status"))) : "All Status" }}';
+                        
+                        if (dateFrom || dateTo || driver !== 'All Drivers' || vessel !== 'All Vessels' || status !== 'All Status') {
+                            filterInfo.push({
+                                text: 'Applied Filters:',
+                                style: 'filterHeader',
+                                margin: [0, 10, 0, 5]
+                            });
+                            
+                            var filters = [];
+                            if (dateFrom) filters.push('Date From: ' + dateFrom);
+                            if (dateTo) filters.push('Date To: ' + dateTo);
+                            if (driver !== 'All Drivers') filters.push('Driver: ' + driver);
+                            if (vessel !== 'All Vessels') filters.push('Vessel: ' + vessel);
+                            if (status !== 'All Status') filters.push('Status: ' + status);
+                            
+                            filterInfo.push({
+                                text: filters.join(' | '),
+                                style: 'filterText',
+                                margin: [0, 0, 0, 10]
+                            });
+                        }
+                        
+                        // Insert filter info before the table
+                        if (filterInfo.length > 0) {
+                            doc.content.splice(1, 0, ...filterInfo);
+                        }
+                        
+                        // Style the document
+                        doc.styles.companyName = {
+                            fontSize: 14,
+                            bold: true,
+                            color: '#1e3a8a'
+                        };
+                        
+                        doc.styles.headerTitle = {
+                            fontSize: 12,
+                            bold: true,
+                            color: '#374151'
+                        };
+                        
+                        doc.styles.pageNumber = {
+                            fontSize: 9,
+                            color: '#6b7280'
+                        };
+                        
+                        doc.styles.footer = {
+                            fontSize: 8,
+                            color: '#9ca3af'
+                        };
+                        
+                        doc.styles.filterHeader = {
+                            fontSize: 11,
+                            bold: true,
+                            color: '#374151'
+                        };
+                        
+                        doc.styles.filterText = {
+                            fontSize: 9,
+                            color: '#6b7280',
+                            italics: true
+                        };
+                        
+                        // Style the table
+                        doc.styles.tableHeader = {
+                            fontSize: 10,
+                            bold: true,
+                            fillColor: '#1e3a8a',
+                            color: '#ffffff',
+                            alignment: 'left'
+                        };
+                        
+                        doc.styles.tableBodyOdd = {
+                            fontSize: 9,
+                            fillColor: '#f9fafb'
+                        };
+                        
+                        doc.styles.tableBodyEven = {
+                            fontSize: 9,
+                            fillColor: '#ffffff'
+                        };
+                        
+                        // Apply styles to table
+                        if (doc.content[doc.content.length - 1].table) {
+                            var table = doc.content[doc.content.length - 1];
+                            
+                            // Style header row
+                            table.table.headerRows = 1;
+                            table.table.widths = ['auto', '*', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'];
+                            
+                            // Add borders and styling
+                            table.layout = {
+                                hLineWidth: function(i, node) {
+                                    return (i === 0 || i === 1 || i === node.table.body.length) ? 1 : 0.5;
+                                },
+                                vLineWidth: function(i, node) {
+                                    return 0.5;
+                                },
+                                hLineColor: function(i, node) {
+                                    return (i === 0 || i === 1 || i === node.table.body.length) ? '#1e3a8a' : '#e5e7eb';
+                                },
+                                vLineColor: function(i, node) {
+                                    return '#e5e7eb';
+                                },
+                                paddingLeft: function(i, node) { return 8; },
+                                paddingRight: function(i, node) { return 8; },
+                                paddingTop: function(i, node) { return 6; },
+                                paddingBottom: function(i, node) { return 6; }
+                            };
+                            
+                            // Style rows
+                            for (var i = 0; i < table.table.body.length; i++) {
+                                for (var j = 0; j < table.table.body[i].length; j++) {
+                                    if (i === 0) {
+                                        // Header row
+                                        table.table.body[i][j].fillColor = '#1e3a8a';
+                                        table.table.body[i][j].color = '#ffffff';
+                                        table.table.body[i][j].bold = true;
+                                        table.table.body[i][j].fontSize = 10;
+                                    } else {
+                                        // Data rows - alternating colors
+                                        table.table.body[i][j].fillColor = (i % 2 === 0) ? '#ffffff' : '#f9fafb';
+                                        table.table.body[i][j].fontSize = 9;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Add page margins
+                        doc.pageMargins = [40, 60, 40, 50];
+                    }
+                }
+            ],
+            pageLength: 25,
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            order: [[0, 'desc']], // Sort by date descending
+            language: {
+                search: "_INPUT_",
+                searchPlaceholder: "Search trips...",
+                lengthMenu: "Show _MENU_ entries",
+                info: "Showing _START_ to _END_ of _TOTAL_ trips",
+                infoEmpty: "Showing 0 to 0 of 0 trips",
+                infoFiltered: "(filtered from _MAX_ total trips)",
+                zeroRecords: "No matching trips found",
+                emptyTable: "No trips available"
+            },
+            responsive: true,
+            paging: true
+        });
     });
 </script>
 @endpush

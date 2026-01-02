@@ -100,7 +100,7 @@
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-hover table-nowrap align-middle mb-0">
+                    <table id="driverPerformanceTable" class="table table-hover table-nowrap align-middle mb-0">
                         <thead>
                             <tr>
                                 <th>#</th>
@@ -114,7 +114,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($driverStats as $index => $stat)
+                            @foreach($driverStats as $index => $stat)
                             <tr>
                                 <td>{{ $index + 1 }}</td>
                                 <td>
@@ -156,14 +156,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            @empty
-                            <tr>
-                                <td colspan="8" class="text-center text-muted py-4">
-                                    <i class="ri-user-line fs-3 mb-2 d-block"></i>
-                                    No drivers found
-                                </td>
-                            </tr>
-                            @endforelse
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
@@ -171,5 +164,165 @@
         </div>
     </div>
 </div>
+
+@push('styles')
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
+<style>
+    .dt-buttons {
+        margin-bottom: 1rem;
+    }
+    .dt-button {
+        margin-left: 0.5rem !important;
+    }
+</style>
+@endpush
+
+@push('scripts')
+<!-- jQuery (required for DataTables) -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+<!-- DataTables Buttons -->
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        $('#driverPerformanceTable').DataTable({
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'excelHtml5',
+                    text: '<i class="ri-file-excel-2-line me-1"></i> Export to Excel',
+                    className: 'btn btn-success btn-sm',
+                    title: 'Driver Performance Report',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7],
+                        modifier: {
+                            page: 'all',
+                            search: 'none'
+                        },
+                        format: {
+                            body: function(data, row, column, node) {
+                                var text = $(data).text().trim();
+                                return text || data;
+                            }
+                        }
+                    },
+                    filename: 'Driver_Performance_Report_' + new Date().toISOString().split('T')[0]
+                },
+                {
+                    extend: 'pdfHtml5',
+                    text: '<i class="ri-file-pdf-line me-1"></i> Export to PDF',
+                    className: 'btn btn-danger btn-sm',
+                    title: 'Driver Performance Report',
+                    orientation: 'landscape',
+                    pageSize: 'A4',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7],
+                        modifier: {
+                            page: 'all',
+                            search: 'none'
+                        },
+                        format: {
+                            body: function(data, row, column, node) {
+                                var text = $(data).text().trim();
+                                return text || data;
+                            }
+                        }
+                    },
+                    filename: 'Driver_Performance_Report_' + new Date().toISOString().split('T')[0],
+                    customize: function(doc) {
+                        doc.info = doc.info || {};
+                        doc.info.title = 'Driver Performance Report';
+                        doc.info.author = '{{ config("app.name") }}';
+                        
+                        doc.header = function(currentPage, pageCount) {
+                            return {
+                                columns: [
+                                    { text: '{{ config("app.name") }}', style: 'companyName', alignment: 'left', margin: [40, 20, 0, 0] },
+                                    { text: 'Driver Performance Report', style: 'headerTitle', alignment: 'center', margin: [0, 20, 0, 0] },
+                                    { text: 'Page ' + currentPage + ' of ' + pageCount, alignment: 'right', style: 'pageNumber', margin: [0, 20, 40, 0] }
+                                ]
+                            };
+                        };
+                        
+                        doc.footer = function(currentPage, pageCount) {
+                            return {
+                                columns: [
+                                    { text: 'Generated on: ' + new Date().toLocaleString(), alignment: 'left', style: 'footer', margin: [40, 0, 0, 20] },
+                                    { text: '© {{ date("Y") }} {{ config("app.name") }}', alignment: 'right', style: 'footer', margin: [0, 0, 40, 20] }
+                                ]
+                            };
+                        };
+                        
+                        doc.styles.companyName = { fontSize: 14, bold: true, color: '#1e3a8a' };
+                        doc.styles.headerTitle = { fontSize: 12, bold: true, color: '#374151' };
+                        doc.styles.pageNumber = { fontSize: 9, color: '#6b7280' };
+                        doc.styles.footer = { fontSize: 8, color: '#9ca3af' };
+                        
+                        if (doc.content[doc.content.length - 1].table) {
+                            var table = doc.content[doc.content.length - 1];
+                            table.table.headerRows = 1;
+                            table.table.widths = ['auto', '*', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'];
+                            
+                            table.layout = {
+                                hLineWidth: function(i, node) { return (i === 0 || i === 1 || i === node.table.body.length) ? 1 : 0.5; },
+                                vLineWidth: function(i) { return 0.5; },
+                                hLineColor: function(i, node) { return (i === 0 || i === 1 || i === node.table.body.length) ? '#1e3a8a' : '#e5e7eb'; },
+                                vLineColor: function() { return '#e5e7eb'; },
+                                paddingLeft: function() { return 8; },
+                                paddingRight: function() { return 8; },
+                                paddingTop: function() { return 6; },
+                                paddingBottom: function() { return 6; }
+                            };
+                            
+                            for (var i = 0; i < table.table.body.length; i++) {
+                                for (var j = 0; j < table.table.body[i].length; j++) {
+                                    if (i === 0) {
+                                        table.table.body[i][j].fillColor = '#1e3a8a';
+                                        table.table.body[i][j].color = '#ffffff';
+                                        table.table.body[i][j].bold = true;
+                                        table.table.body[i][j].fontSize = 10;
+                                    } else {
+                                        table.table.body[i][j].fillColor = (i % 2 === 0) ? '#ffffff' : '#f9fafb';
+                                        table.table.body[i][j].fontSize = 9;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        doc.pageMargins = [40, 60, 40, 50];
+                    }
+                }
+            ],
+            pageLength: 25,
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            order: [[3, 'desc']],
+            language: {
+                search: "_INPUT_",
+                searchPlaceholder: "Search drivers...",
+                lengthMenu: "Show _MENU_ entries",
+                info: "Showing _START_ to _END_ of _TOTAL_ drivers",
+                infoEmpty: "Showing 0 to 0 of 0 drivers",
+                infoFiltered: "(filtered from _MAX_ total drivers)",
+                zeroRecords: "No matching drivers found",
+                emptyTable: "No drivers available"
+            },
+            responsive: true
+        });
+    });
+</script>
+@endpush
 @endsection
 
