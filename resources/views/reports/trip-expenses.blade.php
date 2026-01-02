@@ -172,6 +172,7 @@
                                 <th>Submitted By</th>
                                 <th>Vessel</th>
                                 <th>Receipt</th>
+                                <th style="display:none;">Created At</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -198,6 +199,7 @@
                                         <span class="text-muted">-</span>
                                     @endif
                                 </td>
+                                <td style="display:none;" data-order="{{ $expense->created_at->timestamp }}">{{ $expense->created_at->format('Y-m-d H:i:s') }}</td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -431,7 +433,14 @@
             ],
             pageLength: 25,
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-            order: [[0, 'desc']],
+            order: [[6, 'desc']], // Sort by created_at (hidden column) descending
+            columnDefs: [
+                {
+                    targets: 6,
+                    visible: false,
+                    searchable: false
+                }
+            ],
             language: {
                 search: "_INPUT_",
                 searchPlaceholder: "Search expenses...",

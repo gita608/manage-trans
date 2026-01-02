@@ -111,6 +111,7 @@
                                 <th>In Progress</th>
                                 <th>Completed</th>
                                 <th>Completion Rate</th>
+                                <th style="display:none;">Created At</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -155,6 +156,7 @@
                                         <span class="fw-medium">{{ $completionRate }}%</span>
                                     </div>
                                 </td>
+                                <td style="display:none;" data-order="{{ $stat['driver']->created_at->timestamp }}">{{ $stat['driver']->created_at->format('Y-m-d H:i:s') }}</td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -308,7 +310,14 @@
             ],
             pageLength: 25,
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-            order: [[3, 'desc']],
+            order: [[8, 'desc']], // Sort by created_at (hidden column) descending
+            columnDefs: [
+                {
+                    targets: 8,
+                    visible: false,
+                    searchable: false
+                }
+            ],
             language: {
                 search: "_INPUT_",
                 searchPlaceholder: "Search drivers...",

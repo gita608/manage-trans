@@ -274,6 +274,7 @@
                                 <th>From</th>
                                 <th>To</th>
                                 <th>Status</th>
+                                <th style="display:none;">Created At</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -309,6 +310,7 @@
                                         {{ ucfirst(str_replace('_', ' ', $trip->status)) }}
                                     </span>
                                 </td>
+                                <td style="display:none;" data-order="{{ $trip->created_at->timestamp }}">{{ $trip->created_at->format('Y-m-d H:i:s') }}</td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -436,7 +438,7 @@
                     className: 'btn btn-success btn-sm',
                     title: 'Daily Weekly Report',
                     exportOptions: {
-                        columns: ':visible',
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7],
                         modifier: {
                             page: 'all',
                             search: 'none'
@@ -458,7 +460,7 @@
                     orientation: 'landscape',
                     pageSize: 'A4',
                     exportOptions: {
-                        columns: ':visible',
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7],
                         modifier: {
                             page: 'all',
                             search: 'none'
@@ -537,7 +539,14 @@
             ],
             pageLength: 25,
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-            order: [[0, 'desc']],
+            order: [[8, 'desc']], // Sort by created_at (hidden column) descending
+            columnDefs: [
+                {
+                    targets: 8,
+                    visible: false,
+                    searchable: false
+                }
+            ],
             language: {
                 search: "_INPUT_",
                 searchPlaceholder: "Search trips...",
