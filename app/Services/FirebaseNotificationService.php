@@ -33,23 +33,25 @@ class FirebaseNotificationService
     public function sendPushNotification($deviceToken, $title, $body, $image = null, $extraData = [])
     {
         try {
-            // Create notification object
-            $notification = Notification::create($title, $body);
+            // ALWAYS include title and body in data payload
+            // This ensures onMessageReceived() is called in ALL app states (foreground, background, closed)
+            $dataPayload = array_merge([
+                'title' => $title,
+                'body' => $body,
+            ], $extraData);
             
-            // Add image if provided
+            // Add image URL to data if provided
             if ($image) {
-                $notification = Notification::create($title, $body)
-                    ->withImageUrl($image);
+                $dataPayload['image'] = $image;
             }
             
-            // Create the message
+            // Create the message with data-only payload
+            // This is the CORRECT way to ensure background notification handling works
             $message = CloudMessage::withTarget('token', $deviceToken)
-                ->withNotification($notification);
-            
-            // Add data payload if provided
-            if (!empty($extraData)) {
-                $message = $message->withData($extraData);
-            }
+                ->withData($dataPayload)
+                ->withAndroidConfig([
+                    'priority' => 'high',
+                ]);
             
             // Send the message
             $this->messaging->send($message);
