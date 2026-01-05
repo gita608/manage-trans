@@ -24,47 +24,57 @@ class ReportController extends Controller
      */
     public function tripSummary(Request $request)
     {
-        $query = Trip::with(['driver', 'crews.vessel'])->withSum('tripExpenses', 'amount');
+        // Query trip crews instead of trips, with trip and related data
+        $query = \App\Models\TripCrew::with(['trip.driver', 'trip.tripExpenses', 'vessel']);
 
-        // Date range filter
+        // Date range filter (on trip)
         if ($request->has('date_from') && $request->date_from) {
-            $query->whereDate('trip_date', '>=', $request->date_from);
+            $query->whereHas('trip', function($q) use ($request) {
+                $q->whereDate('trip_date', '>=', $request->date_from);
+            });
         }
         if ($request->has('date_to') && $request->date_to) {
-            $query->whereDate('trip_date', '<=', $request->date_to);
-        }
-
-        // Driver filter
-        if ($request->has('driver_id') && $request->driver_id) {
-            $query->where('driver_id', $request->driver_id);
-        }
-
-        // Vessel filter (vessels are on trip crews, not trips)
-        if ($request->has('vessel_id') && $request->vessel_id) {
-            $query->whereHas('crews', function($q) use ($request) {
-                $q->where('vessel_id', $request->vessel_id);
+            $query->whereHas('trip', function($q) use ($request) {
+                $q->whereDate('trip_date', '<=', $request->date_to);
             });
         }
 
-        // Status filter
-        if ($request->has('status') && $request->status) {
-            $query->where('status', $request->status);
+        // Driver filter (on trip)
+        if ($request->has('driver_id') && $request->driver_id) {
+            $query->whereHas('trip', function($q) use ($request) {
+                $q->where('driver_id', $request->driver_id);
+            });
         }
 
-        // Driver type filter
+        // Vessel filter (on crew)
+        if ($request->has('vessel_id') && $request->vessel_id) {
+            $query->where('vessel_id', $request->vessel_id);
+        }
+
+        // Status filter (on trip)
+        if ($request->has('status') && $request->status) {
+            $query->whereHas('trip', function($q) use ($request) {
+                $q->where('status', $request->status);
+            });
+        }
+
+        // Driver type filter (on trip's driver)
         if ($request->has('driver_type') && $request->driver_type) {
-            $query->whereHas('driver', function($q) use ($request) {
+            $query->whereHas('trip.driver', function($q) use ($request) {
                 $q->where('type', $request->driver_type);
             });
         }
 
-        $trips = $query->latest('trip_date')->latest('created_at')->get();
+        $crews = $query->latest('created_at')->get();
 
-        // Calculate statistics (status is now on trips table)
-        $totalTrips = $trips->count();
-        $assignedTrips = $trips->where('status', \App\Models\TripCrew::STATUS_ASSIGNED)->count();
-        $inProgressTrips = $trips->where('status', \App\Models\TripCrew::STATUS_IN_PROGRESS)->count();
-        $completedTrips = $trips->where('status', \App\Models\TripCrew::STATUS_COMPLETED)->count();
+        // Get unique trips for statistics
+        $uniqueTrips = $crews->pluck('trip')->unique('id');
+        
+        // Calculate statistics based on unique trips
+        $totalTrips = $uniqueTrips->count();
+        $assignedTrips = $uniqueTrips->where('status', \App\Models\TripCrew::STATUS_ASSIGNED)->count();
+        $inProgressTrips = $uniqueTrips->where('status', \App\Models\TripCrew::STATUS_IN_PROGRESS)->count();
+        $completedTrips = $uniqueTrips->where('status', \App\Models\TripCrew::STATUS_COMPLETED)->count();
 
         // Trips by status for chart
         $statusData = [
@@ -73,8 +83,8 @@ class ReportController extends Controller
             'Completed' => $completedTrips,
         ];
 
-        // Trips by date (for chart)
-        $tripsByDate = $trips->groupBy(function($trip) {
+        // Trips by date (for chart) - based on unique trips
+        $tripsByDate = $uniqueTrips->groupBy(function($trip) {
             return $trip->trip_date->format('Y-m-d');
         })->map->count();
 
@@ -82,7 +92,7 @@ class ReportController extends Controller
         $vessels = Vessel::orderBy('name')->get();
 
         return view('reports.trip-summary', compact(
-            'trips',
+            'crews',
             'totalTrips',
             'assignedTrips',
             'inProgressTrips',
@@ -165,30 +175,38 @@ class ReportController extends Controller
         $dateFrom = $request->date_from ? Carbon::parse($request->date_from) : now()->startOfWeek();
         $dateTo = $request->date_to ? Carbon::parse($request->date_to) : now()->endOfWeek();
 
-        $query = Trip::with(['driver', 'crews.vessel'])
-            ->whereBetween('trip_date', [$dateFrom, $dateTo]);
+        // Query trip crews instead of trips
+        $query = \App\Models\TripCrew::with(['trip.driver', 'vessel']);
 
-        // Driver filter
+        // Date range filter (on trip)
+        $query->whereHas('trip', function($q) use ($dateFrom, $dateTo) {
+            $q->whereBetween('trip_date', [$dateFrom, $dateTo]);
+        });
+
+        // Driver filter (on trip)
         if ($request->has('driver_id') && $request->driver_id) {
-            $query->where('driver_id', $request->driver_id);
-        }
-
-        // Vessel filter (vessels are on trip crews, not trips)
-        if ($request->has('vessel_id') && $request->vessel_id) {
-            $query->whereHas('crews', function($q) use ($request) {
-                $q->where('vessel_id', $request->vessel_id);
+            $query->whereHas('trip', function($q) use ($request) {
+                $q->where('driver_id', $request->driver_id);
             });
         }
 
-        $trips = $query->orderBy('trip_date')->latest('created_at')->get();
+        // Vessel filter (on crew)
+        if ($request->has('vessel_id') && $request->vessel_id) {
+            $query->where('vessel_id', $request->vessel_id);
+        }
 
-        // Group trips by date or week
+        $crews = $query->latest('created_at')->get();
+
+        // Get unique trips for statistics
+        $uniqueTrips = $crews->pluck('trip')->unique('id');
+
+        // Group trips by date or week for statistics
         if ($reportType === 'weekly') {
-            $groupedTrips = $trips->groupBy(function($trip) {
+            $groupedTrips = $uniqueTrips->groupBy(function($trip) {
                 return $trip->trip_date->format('Y-W'); // Year-Week
             });
         } else {
-            $groupedTrips = $trips->groupBy(function($trip) {
+            $groupedTrips = $uniqueTrips->groupBy(function($trip) {
                 return $trip->trip_date->format('Y-m-d');
             });
         }
@@ -207,22 +225,20 @@ class ReportController extends Controller
 
         // Peak hours analysis (pick_up_time is on trip crews)
         $peakHours = [];
-        foreach ($trips as $trip) {
-            foreach ($trip->crews as $crew) {
-                if ($crew->pick_up_time) {
-                    $hour = Carbon::parse($crew->pick_up_time)->format('H:00');
-                    if (!isset($peakHours[$hour])) {
-                        $peakHours[$hour] = 0;
-                    }
-                    $peakHours[$hour]++;
+        foreach ($crews as $crew) {
+            if ($crew->pick_up_time) {
+                $hour = Carbon::parse($crew->pick_up_time)->format('H:00');
+                if (!isset($peakHours[$hour])) {
+                    $peakHours[$hour] = 0;
                 }
+                $peakHours[$hour]++;
             }
         }
         arsort($peakHours);
 
-        // Busiest days
+        // Busiest days (based on unique trips)
         $dayOfWeek = [];
-        foreach ($trips as $trip) {
+        foreach ($uniqueTrips as $trip) {
             $day = $trip->trip_date->format('l');
             if (!isset($dayOfWeek[$day])) {
                 $dayOfWeek[$day] = 0;
@@ -235,7 +251,8 @@ class ReportController extends Controller
         $vessels = Vessel::orderBy('name')->get();
 
         return view('reports.daily-weekly', compact(
-            'trips',
+            'crews',
+            'uniqueTrips',
             'groupedTrips',
             'dailyStats',
             'peakHours',

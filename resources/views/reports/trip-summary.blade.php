@@ -202,7 +202,7 @@
             <div class="card-header border-bottom">
                 <div class="d-flex align-items-center justify-content-between">
                     <h6 class="card-title mb-0">Trip Details</h6>
-                    <span class="badge bg-primary">{{ $totalTrips }} trips</span>
+                    <span class="badge bg-primary">{{ $crews->count() }} crews</span>
                 </div>
             </div>
             <div class="card-body">
@@ -211,6 +211,7 @@
                         <thead>
                             <tr>
                                 <th>Date</th>
+                                <th>Trip Title</th>
                                 <th>Crew Name</th>
                                 <th>Driver</th>
                                 <th>Vessel</th>
@@ -223,40 +224,35 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($trips as $trip)
+                            @foreach($crews as $crew)
                             @php
-                                $firstCrew = $trip->crews->first();
+                                $trip = $crew->trip;
+                                $totalExpenses = $trip->tripExpenses->sum('amount') ?? 0;
                             @endphp
                             <tr>
                                 <td>{{ $trip->trip_date->format('M d, Y') }}</td>
-                                <td>
-                                    <span class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ $trip->crews->pluck('name')->join(', ') }}">
-                                        {{ $firstCrew ? $firstCrew->name : '-' }}
-                                        @if($trip->crews->count() > 1)
-                                            <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-1">+{{ $trip->crews->count() - 1 }}</span>
-                                        @endif
-                                    </span>
-                                </td>
+                                <td>{{ $trip->title ?? '-' }}</td>
+                                <td>{{ $crew->name ?? '-' }}</td>
                                 <td>{{ $trip->driver->name ?? '-' }}</td>
-                                <td>{{ $firstCrew && $firstCrew->vessel ? $firstCrew->vessel->name : '-' }}</td>
-                                <td>{{ $firstCrew && $firstCrew->pick_up_time ? \Carbon\Carbon::parse($firstCrew->pick_up_time)->format('h:i A') : '-' }}</td>
+                                <td>{{ $crew->vessel ? $crew->vessel->name : '-' }}</td>
+                                <td>{{ $crew->pick_up_time ? \Carbon\Carbon::parse($crew->pick_up_time)->format('h:i A') : '-' }}</td>
                                 <td>
-                                    <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $firstCrew ? ($firstCrew->from_location ?? '-') : '-' }}">
-                                        {{ $firstCrew ? ($firstCrew->from_location ?? '-') : '-' }}
+                                    <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $crew->from_location ?? '-' }}">
+                                        {{ $crew->from_location ?? '-' }}
                                     </span>
                                 </td>
                                 <td>
-                                    <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $firstCrew ? ($firstCrew->to_location ?? '-') : '-' }}">
-                                        {{ $firstCrew ? ($firstCrew->to_location ?? '-') : '-' }}
+                                    <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $crew->to_location ?? '-' }}">
+                                        {{ $crew->to_location ?? '-' }}
                                     </span>
                                 </td>
-                                <td>{{ number_format($trip->trip_expenses_sum_amount ?? 0, 2) }}</td>
+                                <td>{{ number_format($totalExpenses, 2) }}</td>
                                 <td>
                                     <span class="badge {{ $trip->getStatusBadgeClass() }}">
                                         {{ ucfirst(str_replace('_', ' ', $trip->status)) }}
                                     </span>
                                 </td>
-                                <td style="display:none;" data-order="{{ $trip->created_at->timestamp }}">{{ $trip->created_at->format('Y-m-d H:i:s') }}</td>
+                                <td style="display:none;" data-order="{{ $crew->created_at->timestamp }}">{{ $crew->created_at->format('Y-m-d H:i:s') }}</td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -376,7 +372,7 @@
                     className: 'btn btn-success btn-sm',
                     title: 'Trip Summary Report',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
                         modifier: {
                             page: 'all',
                             search: 'none'
@@ -400,7 +396,7 @@
                     orientation: 'landscape',
                     pageSize: 'A4',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
                         modifier: {
                             page: 'all',
                             search: 'none'
@@ -568,7 +564,7 @@
                             
                             // Style header row
                             table.table.headerRows = 1;
-                            table.table.widths = ['auto', '*', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'];
+                            table.table.widths = ['auto', 'auto', '*', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'];
                             
                             // Add borders and styling
                             table.layout = {
@@ -615,23 +611,23 @@
             ],
             pageLength: 25,
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-            order: [[9, 'desc']], // Sort by created_at (hidden column) descending
+            order: [[10, 'desc']], // Sort by created_at (hidden column) descending
             columnDefs: [
                 {
-                    targets: 9,
+                    targets: 10,
                     visible: false,
                     searchable: false
                 }
             ],
             language: {
                 search: "_INPUT_",
-                searchPlaceholder: "Search trips...",
+                searchPlaceholder: "Search crews...",
                 lengthMenu: "Show _MENU_ entries",
-                info: "Showing _START_ to _END_ of _TOTAL_ trips",
-                infoEmpty: "Showing 0 to 0 of 0 trips",
-                infoFiltered: "(filtered from _MAX_ total trips)",
-                zeroRecords: "No matching trips found",
-                emptyTable: "No trips available"
+                info: "Showing _START_ to _END_ of _TOTAL_ crews",
+                infoEmpty: "Showing 0 to 0 of 0 crews",
+                infoFiltered: "(filtered from _MAX_ total crews)",
+                zeroRecords: "No matching crews found",
+                emptyTable: "No crews available"
             },
             responsive: true,
             paging: true

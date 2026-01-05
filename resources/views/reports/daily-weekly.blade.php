@@ -96,7 +96,7 @@
                     </div>
                     <div class="flex-grow-1">
                         <p class="text-uppercase fw-medium text-muted mb-0 fs-12">Total Trips</p>
-                        <h3 class="mb-0 fw-bold">{{ $trips->count() }}</h3>
+                        <h3 class="mb-0 fw-bold">{{ $uniqueTrips->count() }}</h3>
                     </div>
                 </div>
             </div>
@@ -114,7 +114,7 @@
                     </div>
                     <div class="flex-grow-1">
                         <p class="text-uppercase fw-medium text-muted mb-0 fs-12">Completed</p>
-                        <h3 class="mb-0 fw-bold">{{ $trips->where('status', \App\Models\TripCrew::STATUS_COMPLETED)->count() }}</h3>
+                        <h3 class="mb-0 fw-bold">{{ $uniqueTrips->where('status', \App\Models\TripCrew::STATUS_COMPLETED)->count() }}</h3>
                     </div>
                 </div>
             </div>
@@ -135,7 +135,7 @@
                         <h3 class="mb-0 fw-bold">
                             @php
                                 $days = $dateFrom->diffInDays($dateTo) + 1;
-                                $avg = $days > 0 ? round($trips->count() / $days, 1) : 0;
+                                $avg = $days > 0 ? round($uniqueTrips->count() / $days, 1) : 0;
                             @endphp
                             {{ $avg }}
                         </h3>
@@ -267,6 +267,7 @@
                         <thead>
                             <tr>
                                 <th>Date</th>
+                                <th>Trip Title</th>
                                 <th>Crew Name</th>
                                 <th>Driver</th>
                                 <th>Vessel</th>
@@ -278,31 +279,25 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($trips as $trip)
+                            @foreach($crews as $crew)
                             @php
-                                $firstCrew = $trip->crews->first();
+                                $trip = $crew->trip;
                             @endphp
                             <tr>
                                 <td>{{ $trip->trip_date->format('M d, Y') }}</td>
-                                <td>
-                                    <span class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ $trip->crews->pluck('name')->join(', ') }}">
-                                        {{ $firstCrew->name ?? '-' }}
-                                        @if($trip->crews->count() > 1)
-                                            <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-1">+{{ $trip->crews->count() - 1 }}</span>
-                                        @endif
-                                    </span>
-                                </td>
+                                <td>{{ $trip->title ?? '-' }}</td>
+                                <td>{{ $crew->name ?? '-' }}</td>
                                 <td>{{ $trip->driver->name ?? '-' }}</td>
-                                <td>{{ $firstCrew && $firstCrew->vessel ? $firstCrew->vessel->name : '-' }}</td>
-                                <td>{{ $firstCrew && $firstCrew->pick_up_time ? \Carbon\Carbon::parse($firstCrew->pick_up_time)->format('h:i A') : '-' }}</td>
+                                <td>{{ $crew->vessel ? $crew->vessel->name : '-' }}</td>
+                                <td>{{ $crew->pick_up_time ? \Carbon\Carbon::parse($crew->pick_up_time)->format('h:i A') : '-' }}</td>
                                 <td>
-                                    <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $firstCrew->from_location ?? '-' }}">
-                                        {{ $firstCrew->from_location ?? '-' }}
+                                    <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $crew->from_location ?? '-' }}">
+                                        {{ $crew->from_location ?? '-' }}
                                     </span>
                                 </td>
                                 <td>
-                                    <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $firstCrew->to_location ?? '-' }}">
-                                        {{ $firstCrew->to_location ?? '-' }}
+                                    <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $crew->to_location ?? '-' }}">
+                                        {{ $crew->to_location ?? '-' }}
                                     </span>
                                 </td>
                                 <td>
@@ -310,7 +305,7 @@
                                         {{ ucfirst(str_replace('_', ' ', $trip->status)) }}
                                     </span>
                                 </td>
-                                <td style="display:none;" data-order="{{ $trip->created_at->timestamp }}">{{ $trip->created_at->format('Y-m-d H:i:s') }}</td>
+                                <td style="display:none;" data-order="{{ $crew->created_at->timestamp }}">{{ $crew->created_at->format('Y-m-d H:i:s') }}</td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -438,7 +433,7 @@
                     className: 'btn btn-success btn-sm',
                     title: 'Daily Weekly Report',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7],
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8],
                         modifier: {
                             page: 'all',
                             search: 'none'
@@ -460,7 +455,7 @@
                     orientation: 'landscape',
                     pageSize: 'A4',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7],
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8],
                         modifier: {
                             page: 'all',
                             search: 'none'
@@ -505,7 +500,7 @@
                         if (doc.content[doc.content.length - 1].table) {
                             var table = doc.content[doc.content.length - 1];
                             table.table.headerRows = 1;
-                            table.table.widths = ['auto', '*', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'];
+                            table.table.widths = ['auto', 'auto', '*', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'];
                             
                             table.layout = {
                                 hLineWidth: function(i, node) { return (i === 0 || i === 1 || i === node.table.body.length) ? 1 : 0.5; },
@@ -539,23 +534,23 @@
             ],
             pageLength: 25,
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-            order: [[8, 'desc']], // Sort by created_at (hidden column) descending
+            order: [[9, 'desc']], // Sort by created_at (hidden column) descending
             columnDefs: [
                 {
-                    targets: 8,
+                    targets: 9,
                     visible: false,
                     searchable: false
                 }
             ],
             language: {
                 search: "_INPUT_",
-                searchPlaceholder: "Search trips...",
+                searchPlaceholder: "Search crews...",
                 lengthMenu: "Show _MENU_ entries",
-                info: "Showing _START_ to _END_ of _TOTAL_ trips",
-                infoEmpty: "Showing 0 to 0 of 0 trips",
-                infoFiltered: "(filtered from _MAX_ total trips)",
-                zeroRecords: "No matching trips found",
-                emptyTable: "No trips available"
+                info: "Showing _START_ to _END_ of _TOTAL_ crews",
+                infoEmpty: "Showing 0 to 0 of 0 crews",
+                infoFiltered: "(filtered from _MAX_ total crews)",
+                zeroRecords: "No matching crews found",
+                emptyTable: "No crews available"
             },
             responsive: true
         });
