@@ -39,6 +39,8 @@ class DriverController extends Controller
             'license_number' => ['nullable', 'string', 'max:255', 'unique:drivers'],
             'contact' => ['nullable', 'string', 'max:255'],
             'vehicle_info' => ['nullable', 'string'],
+            'vehicle_name' => ['nullable', 'string', 'max:255'],
+            'vehicle_brand' => ['nullable', 'string', 'max:255'],
             'age' => ['nullable', 'integer', 'min:18', 'max:100'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
         ]);
@@ -104,6 +106,8 @@ class DriverController extends Controller
             'license_number' => ['nullable', 'string', 'max:255', Rule::unique('drivers')->ignore($driver->id)],
             'contact' => ['nullable', 'string', 'max:255'],
             'vehicle_info' => ['nullable', 'string'],
+            'vehicle_name' => ['nullable', 'string', 'max:255'],
+            'vehicle_brand' => ['nullable', 'string', 'max:255'],
             'age' => ['nullable', 'integer', 'min:18', 'max:100'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
         ]);

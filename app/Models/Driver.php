@@ -32,6 +32,8 @@ class Driver extends Authenticatable
         'license_number',
         'contact',
         'vehicle_info',
+        'vehicle_name',
+        'vehicle_brand',
         'age',
         'photo',
         'notification_token',

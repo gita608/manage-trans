@@ -128,6 +128,28 @@
                         </div>
                     </div>
 
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="vehicle_name" class="form-label">Vehicle Name</label>
+                                <input type="text" class="form-control @error('vehicle_name') is-invalid @enderror" id="vehicle_name" name="vehicle_name" value="{{ old('vehicle_name') }}" placeholder="Enter vehicle name">
+                                @error('vehicle_name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="vehicle_brand" class="form-label">Vehicle Brand</label>
+                                <input type="text" class="form-control @error('vehicle_brand') is-invalid @enderror" id="vehicle_brand" name="vehicle_brand" value="{{ old('vehicle_brand') }}" placeholder="Enter vehicle brand">
+                                @error('vehicle_brand')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="mb-3">
                         <label for="vehicle_info" class="form-label">Vehicle Information</label>
                         <textarea class="form-control @error('vehicle_info') is-invalid @enderror" id="vehicle_info" name="vehicle_info" rows="3" placeholder="Enter vehicle information">{{ old('vehicle_info') }}</textarea>
