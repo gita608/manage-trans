@@ -17,6 +17,7 @@ class DailyActivity extends Model
         'image',
         'note',
         'activity_date',
+        'kilometers_driven',
     ];
 
     /**
@@ -28,6 +29,7 @@ class DailyActivity extends Model
     {
         return [
             'activity_date' => 'date',
+            'kilometers_driven' => 'decimal:2',
         ];
     }
 

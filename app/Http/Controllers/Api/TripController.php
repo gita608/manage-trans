@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\DailyActivity;
+use App\Models\Notification;
 use App\Models\Trip;
 use App\Models\TripCrew;
 use Carbon\Carbon;
@@ -582,6 +583,7 @@ class TripController extends Controller
                 'id' => $activity->id,
                 'image' => $activity->image ? asset('storage/' . $activity->image) : null,
                 'note' => $activity->note,
+                'kilometers_driven' => $activity->kilometers_driven,
                 'activity_date' => $activityDate ? [
                     'date' => $activityDate->format('Y-m-d'),
                     'formatted' => $activityDate->format('l, F j, Y'),
@@ -616,6 +618,7 @@ class TripController extends Controller
                 ],
                 'summary' => [
                     'total' => $activities->count(),
+                    'total_kilometers' => $driver->total_kilometers,
                 ],
                 'activities' => $formattedActivities->all(),
             ],
@@ -636,6 +639,7 @@ class TripController extends Controller
         $validator = Validator::make($request->all(), [
             'image' => ['required', 'image', 'mimes:jpeg,jpg,png,gif', 'max:5120'], // Max 5MB
             'note' => ['nullable', 'string', 'max:1000'],
+            'kilometers_driven' => ['nullable', 'numeric', 'min:0', 'max:2000'],
         ]);
 
         if ($validator->fails()) {
@@ -658,7 +662,49 @@ class TripController extends Controller
             'image' => $imagePath,
             'note' => $request->note,
             'activity_date' => $today,
+            'kilometers_driven' => $request->kilometers_driven,
         ]);
+
+        // Update kilometers if provided
+        $newTotal = $driver->total_kilometers;
+        if ($request->filled('kilometers_driven') && $request->kilometers_driven > 0) {
+            // Calculate old total before adding new km
+            $oldTotal = $driver->total_kilometers;
+            $newTotal = $oldTotal + $request->kilometers_driven;
+            
+            // Check if crossed a 10,000 km milestone
+            $oldMilestone = floor($oldTotal / 10000);
+            $newMilestone = floor($newTotal / 10000);
+            
+            if ($newMilestone > $oldMilestone) {
+                // Crossed a milestone! Send notification
+                $milestoneKm = $newMilestone * 10000;
+                
+                Notification::create([
+                    'driver_id' => $driver->id,
+                    'title' => '🔧 Vehicle Service Required',
+                    'message' => "Your vehicle has reached {$milestoneKm} km! Please schedule a service soon.",
+                    'type' => 'service_reminder',
+                    'is_read' => false,
+                ]);
+
+                // Send push notification if token exists
+                if ($driver->notification_token) {
+                    $firebaseService = app(\App\Services\FirebaseNotificationService::class);
+                    $firebaseService->sendPushNotification(
+                        $driver->notification_token,
+                        '🔧 Vehicle Service Required',
+                        "Your vehicle has reached {$milestoneKm} km! Time for service.",
+                        null,
+                        ['type' => 'service_reminder', 'kilometers' => $newTotal]
+                    );
+                }
+            }
+            
+            // Update driver's total kilometers
+            $driver->total_kilometers = $newTotal;
+            $driver->save();
+        }
 
         // Format the response
         $createdAt = $activity->created_at ? Carbon::parse($activity->created_at) : null;
@@ -671,6 +717,7 @@ class TripController extends Controller
                 'id' => $activity->id,
                 'image' => $activity->image ? asset('storage/' . $activity->image) : null,
                 'note' => $activity->note,
+                'kilometers_driven' => $activity->kilometers_driven,
                 'activity_date' => $activityDate ? [
                     'date' => $activityDate->format('Y-m-d'),
                     'formatted' => $activityDate->format('l, F j, Y'),
@@ -682,6 +729,7 @@ class TripController extends Controller
                     'timestamp' => $createdAt->timestamp,
                 ] : null,
             ],
+            'total_kilometers' => $newTotal,
         ], 201);
     }
 }
