@@ -125,6 +125,7 @@ class DriverAuthController extends Controller
                 'vehicle_info' => $driver->vehicle_info,
                 'vehicle_name' => $driver->vehicle_name,
                 'vehicle_brand' => $driver->vehicle_brand,
+                'total_kilometers' => $driver->total_kilometers,
                 'age' => $driver->age,
                 'photo' => $driver->photo ? asset('storage/' . $driver->photo) : null,
                 'statistics' => [
