@@ -16,6 +16,7 @@ use App\Http\Controllers\TripIssueTypeController;
 use App\Http\Controllers\TripExpenseTypeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\DailyActivityController;
+use App\Http\Controllers\PublicPagesController;
 
 // Root route - show login for guests, redirect to dashboard if authenticated
 Route::get('/', [AuthController::class, 'root'])->name('home');
@@ -24,6 +25,11 @@ Route::get('/', [AuthController::class, 'root'])->name('home');
 Route::get('/403', function () {
     return view('errors.403', ['message' => session('error') ?? 'You do not have permission to access this resource.']);
 })->name('error.403');
+
+// Public Pages (No authentication required)
+Route::get('/privacy-policy', [PublicPagesController::class, 'privacyPolicy'])->name('privacy-policy');
+Route::get('/contact-us', [PublicPagesController::class, 'contactUs'])->name('contact-us');
+Route::post('/contact-us', [PublicPagesController::class, 'submitContact'])->name('contact-us.submit');
 
 // Authentication Routes (Guest only)
 Route::middleware(['guest'])->group(function () {
