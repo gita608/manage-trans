@@ -192,7 +192,7 @@
                                 $firstCrew = $expense->trip ? $expense->trip->crews->first() : null;
                             @endphp
                             <tr>
-                                <td>{{ $expense->trip ? $expense->trip->trip_date->format('M d, Y') : '-' }}</td>
+                                <td>{{ $expense->trip && $expense->trip->trip_date ? $expense->trip->trip_date->format('M d, Y') : '-' }}</td>
                                 <td>
                                     <span class="badge bg-light text-dark border">
                                         {{ $expense->expenseType->title ?? 'Unknown' }}
@@ -210,7 +210,7 @@
                                         <span class="text-muted">-</span>
                                     @endif
                                 </td>
-                                <td style="display:none;" data-order="{{ $expense->created_at->timestamp }}">{{ $expense->created_at->format('Y-m-d H:i:s') }}</td>
+                                <td style="display:none;" data-order="{{ $expense->created_at ? $expense->created_at->timestamp : 0 }}">{{ $expense->created_at ? $expense->created_at->format('Y-m-d H:i:s') : '-' }}</td>
                             </tr>
                             @endforeach
                         </tbody>

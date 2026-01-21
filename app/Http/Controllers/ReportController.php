@@ -356,7 +356,7 @@ class ReportController extends Controller
 
         // Expenses by Date (for chart)
         $expensesByDate = $expenses->groupBy(function($expense) {
-            return $expense->trip ? $expense->trip->trip_date->format('Y-m-d') : 'Unknown';
+            return ($expense->trip && $expense->trip->trip_date) ? $expense->trip->trip_date->format('Y-m-d') : 'Unknown';
         })->map->sum('amount');
 
         $drivers = Driver::orderBy('name')->get();
