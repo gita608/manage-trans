@@ -72,7 +72,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="form-label">Driver Type</label>
                             <select name="driver_type" class="form-select">
                                 <option value="">All Types</option>
@@ -80,7 +80,18 @@
                                 <option value="2" {{ request('driver_type') == '2' ? 'selected' : '' }}>Outsourcing</option>
                             </select>
                         </div>
-                        <div class="col-md-9 d-flex align-items-end gap-2">
+                        <div class="col-md-2">
+                            <label class="form-label">Partner</label>
+                            <select name="partner_id" class="form-select">
+                                <option value="">All Partners</option>
+                                @foreach($partners as $partner)
+                                    <option value="{{ $partner->id }}" {{ request('partner_id') == $partner->id ? 'selected' : '' }}>
+                                        {{ $partner->title }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-10 d-flex align-items-end gap-2">
                             <button type="submit" class="btn btn-primary">
                                 <i class="ri-search-line me-1"></i> Apply Filters
                             </button>

@@ -68,6 +68,17 @@
                                 @endforeach
                             </select>
                         </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Partner</label>
+                            <select name="partner_id" class="form-select">
+                                <option value="">All Partners</option>
+                                @foreach($partners as $partner)
+                                    <option value="{{ $partner->id }}" {{ request('partner_id') == $partner->id ? 'selected' : '' }}>
+                                        {{ $partner->title }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                         <div class="col-md-12 d-flex gap-2">
                             <button type="submit" class="btn btn-primary">
                                 <i class="ri-search-line me-1"></i> Apply Filters

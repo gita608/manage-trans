@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Trip;
 use App\Models\Driver;
 use App\Models\Vessel;
+use App\Models\Partner;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -65,6 +66,13 @@ class ReportController extends Controller
             });
         }
 
+        // Partner filter (on trip)
+        if ($request->has('partner_id') && $request->partner_id) {
+            $query->whereHas('trip', function($q) use ($request) {
+                $q->where('partner_id', $request->partner_id);
+            });
+        }
+
         $crews = $query->latest('created_at')->get();
 
         // Get unique trips for statistics
@@ -90,6 +98,7 @@ class ReportController extends Controller
 
         $drivers = Driver::orderBy('name')->get();
         $vessels = Vessel::orderBy('name')->get();
+        $partners = Partner::orderBy('is_default', 'desc')->orderBy('title')->get();
 
         return view('reports.trip-summary', compact(
             'crews',
@@ -100,7 +109,8 @@ class ReportController extends Controller
             'statusData',
             'tripsByDate',
             'drivers',
-            'vessels'
+            'vessels',
+            'partners'
         ));
     }
 
@@ -125,9 +135,15 @@ class ReportController extends Controller
         // Get detailed trip statistics for each driver
         $driverStats = [];
         foreach ($drivers as $driver) {
-            $trips = Trip::where('driver_id', $driver->id)
-                ->whereBetween('trip_date', [$dateFrom, $dateTo])
-                ->get();
+            $tripsQuery = Trip::where('driver_id', $driver->id)
+                ->whereBetween('trip_date', [$dateFrom, $dateTo]);
+            
+            // Partner filter
+            if ($request->has('partner_id') && $request->partner_id) {
+                $tripsQuery->where('partner_id', $request->partner_id);
+            }
+            
+            $trips = $tripsQuery->get();
 
             $driverStats[] = [
                 'driver' => $driver,
@@ -147,13 +163,24 @@ class ReportController extends Controller
         $internalDrivers = Driver::where('type', Driver::TYPE_INTERNAL)->count();
         $outsourcingDrivers = Driver::where('type', Driver::TYPE_OUTSOURCING)->count();
         
-        $internalTrips = Trip::whereHas('driver', function($q) {
+        $internalTripsQuery = Trip::whereHas('driver', function($q) {
             $q->where('type', Driver::TYPE_INTERNAL);
-        })->whereBetween('trip_date', [$dateFrom, $dateTo])->count();
+        })->whereBetween('trip_date', [$dateFrom, $dateTo]);
         
-        $outsourcingTrips = Trip::whereHas('driver', function($q) {
+        $outsourcingTripsQuery = Trip::whereHas('driver', function($q) {
             $q->where('type', Driver::TYPE_OUTSOURCING);
-        })->whereBetween('trip_date', [$dateFrom, $dateTo])->count();
+        })->whereBetween('trip_date', [$dateFrom, $dateTo]);
+        
+        // Partner filter
+        if ($request->has('partner_id') && $request->partner_id) {
+            $internalTripsQuery->where('partner_id', $request->partner_id);
+            $outsourcingTripsQuery->where('partner_id', $request->partner_id);
+        }
+        
+        $internalTrips = $internalTripsQuery->count();
+        $outsourcingTrips = $outsourcingTripsQuery->count();
+        
+        $partners = Partner::orderBy('is_default', 'desc')->orderBy('title')->get();
 
         return view('reports.driver-performance', compact(
             'driverStats',
@@ -162,7 +189,8 @@ class ReportController extends Controller
             'internalTrips',
             'outsourcingTrips',
             'dateFrom',
-            'dateTo'
+            'dateTo',
+            'partners'
         ));
     }
 
@@ -193,6 +221,13 @@ class ReportController extends Controller
         // Vessel filter (on crew)
         if ($request->has('vessel_id') && $request->vessel_id) {
             $query->where('vessel_id', $request->vessel_id);
+        }
+
+        // Partner filter (on trip)
+        if ($request->has('partner_id') && $request->partner_id) {
+            $query->whereHas('trip', function($q) use ($request) {
+                $q->where('partner_id', $request->partner_id);
+            });
         }
 
         $crews = $query->latest('created_at')->get();
@@ -249,6 +284,7 @@ class ReportController extends Controller
 
         $drivers = Driver::orderBy('name')->get();
         $vessels = Vessel::orderBy('name')->get();
+        $partners = Partner::orderBy('is_default', 'desc')->orderBy('title')->get();
 
         return view('reports.daily-weekly', compact(
             'crews',
@@ -261,7 +297,8 @@ class ReportController extends Controller
             'dateFrom',
             'dateTo',
             'drivers',
-            'vessels'
+            'vessels',
+            'partners'
         ));
     }
     /**
@@ -300,6 +337,13 @@ class ReportController extends Controller
             $query->where('expense_type_id', $request->expense_type_id);
         }
 
+        // Partner filter (on trip)
+        if ($request->has('partner_id') && $request->partner_id) {
+            $query->whereHas('trip', function($q) use ($request) {
+                $q->where('partner_id', $request->partner_id);
+            });
+        }
+
         $expenses = $query->latest()->get();
 
         // Statistics
@@ -318,6 +362,7 @@ class ReportController extends Controller
         $drivers = Driver::orderBy('name')->get();
         $vessels = Vessel::orderBy('name')->get();
         $expenseTypes = \App\Models\TripExpenseType::orderBy('title')->get();
+        $partners = Partner::orderBy('is_default', 'desc')->orderBy('title')->get();
 
         return view('reports.trip-expenses', compact(
             'expenses',
@@ -326,7 +371,8 @@ class ReportController extends Controller
             'expensesByDate',
             'drivers',
             'vessels',
-            'expenseTypes'
+            'expenseTypes',
+            'partners'
         ));
     }
 }
