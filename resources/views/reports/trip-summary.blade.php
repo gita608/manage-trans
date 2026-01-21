@@ -379,10 +379,23 @@
                         },
                         format: {
                             body: function(data, row, column, node) {
-                                // Remove HTML tags and badges for clean export
-                                var text = $(data).text().trim();
-                                // If it's empty or just whitespace, return the original data
-                                return text || data;
+                                // If data is already a plain string, return it directly
+                                if (typeof data === 'string' && !data.trim().startsWith('<')) {
+                                    return data.trim();
+                                }
+                                // If node is available, use it to extract text (safer)
+                                if (node) {
+                                    return $(node).text().trim() || data;
+                                }
+                                // Try to extract text from HTML, but handle errors
+                                try {
+                                    var $temp = $('<div>').html(data);
+                                    var text = $temp.text().trim();
+                                    return text || data;
+                                } catch (e) {
+                                    // If jQuery fails, return the data as-is
+                                    return typeof data === 'string' ? data.trim() : data;
+                                }
                             }
                         }
                     },
@@ -403,9 +416,23 @@
                         },
                         format: {
                             body: function(data, row, column, node) {
-                                // Remove HTML tags and badges for clean export
-                                var text = $(data).text().trim();
-                                return text || data;
+                                // If data is already a plain string, return it directly
+                                if (typeof data === 'string' && !data.trim().startsWith('<')) {
+                                    return data.trim();
+                                }
+                                // If node is available, use it to extract text (safer)
+                                if (node) {
+                                    return $(node).text().trim() || data;
+                                }
+                                // Try to extract text from HTML, but handle errors
+                                try {
+                                    var $temp = $('<div>').html(data);
+                                    var text = $temp.text().trim();
+                                    return text || data;
+                                } catch (e) {
+                                    // If jQuery fails, return the data as-is
+                                    return typeof data === 'string' ? data.trim() : data;
+                                }
                             }
                         }
                     },
