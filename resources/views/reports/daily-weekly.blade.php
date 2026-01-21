@@ -451,23 +451,31 @@
                         },
                         format: {
                             body: function(data, row, column, node) {
-                                // If data is already a string, return it directly
-                                if (typeof data === 'string') {
-                                    return data.trim();
+                                // Helper function to strip HTML and extract text
+                                function stripHtml(html) {
+                                    if (!html) return '';
+                                    
+                                    // If it's already plain text (no HTML tags), return it
+                                    if (typeof html === 'string' && !/<[^>]+>/.test(html)) {
+                                        return html.trim();
+                                    }
+                                    
+                                    // If we have a DOM node, extract text directly
+                                    if (node && node.nodeType === 1) {
+                                        return $(node).text().trim() || '';
+                                    }
+                                    
+                                    // If it's a string with HTML, create a temporary element to extract text
+                                    if (typeof html === 'string') {
+                                        var $temp = $('<div>').html(html);
+                                        var text = $temp.text().trim();
+                                        return text || html.replace(/<[^>]+>/g, '').trim();
+                                    }
+                                    
+                                    return '';
                                 }
-                                // If it's a DOM node, extract text using jQuery
-                                if (node && node.nodeType) {
-                                    var text = $(node).text().trim();
-                                    return text || data;
-                                }
-                                // Fallback: try to extract text if data is a jQuery object or element
-                                try {
-                                    var text = $(data).text().trim();
-                                    return text || data;
-                                } catch (e) {
-                                    // If jQuery selector fails, return data as-is
-                                    return data || '';
-                                }
+                                
+                                return stripHtml(data);
                             }
                         }
                     },
@@ -488,23 +496,31 @@
                         },
                         format: {
                             body: function(data, row, column, node) {
-                                // If data is already a string, return it directly
-                                if (typeof data === 'string') {
-                                    return data.trim();
+                                // Helper function to strip HTML and extract text
+                                function stripHtml(html) {
+                                    if (!html) return '';
+                                    
+                                    // If it's already plain text (no HTML tags), return it
+                                    if (typeof html === 'string' && !/<[^>]+>/.test(html)) {
+                                        return html.trim();
+                                    }
+                                    
+                                    // If we have a DOM node, extract text directly
+                                    if (node && node.nodeType === 1) {
+                                        return $(node).text().trim() || '';
+                                    }
+                                    
+                                    // If it's a string with HTML, create a temporary element to extract text
+                                    if (typeof html === 'string') {
+                                        var $temp = $('<div>').html(html);
+                                        var text = $temp.text().trim();
+                                        return text || html.replace(/<[^>]+>/g, '').trim();
+                                    }
+                                    
+                                    return '';
                                 }
-                                // If it's a DOM node, extract text using jQuery
-                                if (node && node.nodeType) {
-                                    var text = $(node).text().trim();
-                                    return text || data;
-                                }
-                                // Fallback: try to extract text if data is a jQuery object or element
-                                try {
-                                    var text = $(data).text().trim();
-                                    return text || data;
-                                } catch (e) {
-                                    // If jQuery selector fails, return data as-is
-                                    return data || '';
-                                }
+                                
+                                return stripHtml(data);
                             }
                         }
                     },
