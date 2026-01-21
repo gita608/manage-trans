@@ -181,6 +181,7 @@
                                 <th>Expense Type</th>
                                 <th>Amount</th>
                                 <th>Submitted By</th>
+                                <th>Partner</th>
                                 <th>Vessel</th>
                                 <th>Receipt</th>
                                 <th style="display:none;">Created At</th>
@@ -200,6 +201,7 @@
                                 </td>
                                 <td class="fw-bold">{{ number_format($expense->amount, 2) }}</td>
                                 <td>{{ $expense->driver->name ?? 'Unknown' }}</td>
+                                <td>{{ $expense->trip && $expense->trip->partner ? $expense->trip->partner->title : '-' }}</td>
                                 <td>{{ $firstCrew && $firstCrew->vessel ? $firstCrew->vessel->name : 'Unknown' }}</td>
                                 <td>
                                     @if($expense->receipt)
@@ -336,15 +338,38 @@
                     className: 'btn btn-success btn-sm',
                     title: 'Trip Expenses Report',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4],
+                        columns: [0, 1, 2, 3, 4, 5],
                         modifier: {
                             page: 'all',
                             search: 'none'
                         },
                         format: {
                             body: function(data, row, column, node) {
-                                var text = $(data).text().trim();
-                                return text || data;
+                                // Helper function to strip HTML and extract text
+                                function stripHtml(html) {
+                                    if (!html) return '';
+                                    
+                                    // If it's already plain text (no HTML tags), return it
+                                    if (typeof html === 'string' && !/<[^>]+>/.test(html)) {
+                                        return html.trim();
+                                    }
+                                    
+                                    // If we have a DOM node, extract text directly
+                                    if (node && node.nodeType === 1) {
+                                        return $(node).text().trim() || '';
+                                    }
+                                    
+                                    // If it's a string with HTML, create a temporary element to extract text
+                                    if (typeof html === 'string') {
+                                        var $temp = $('<div>').html(html);
+                                        var text = $temp.text().trim();
+                                        return text || html.replace(/<[^>]+>/g, '').trim();
+                                    }
+                                    
+                                    return '';
+                                }
+                                
+                                return stripHtml(data);
                             }
                         }
                     },
@@ -359,15 +384,38 @@
                     orientation: 'landscape',
                     pageSize: 'A4',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4],
+                        columns: [0, 1, 2, 3, 4, 5],
                         modifier: {
                             page: 'all',
                             search: 'none'
                         },
                         format: {
                             body: function(data, row, column, node) {
-                                var text = $(data).text().trim();
-                                return text || data;
+                                // Helper function to strip HTML and extract text
+                                function stripHtml(html) {
+                                    if (!html) return '';
+                                    
+                                    // If it's already plain text (no HTML tags), return it
+                                    if (typeof html === 'string' && !/<[^>]+>/.test(html)) {
+                                        return html.trim();
+                                    }
+                                    
+                                    // If we have a DOM node, extract text directly
+                                    if (node && node.nodeType === 1) {
+                                        return $(node).text().trim() || '';
+                                    }
+                                    
+                                    // If it's a string with HTML, create a temporary element to extract text
+                                    if (typeof html === 'string') {
+                                        var $temp = $('<div>').html(html);
+                                        var text = $temp.text().trim();
+                                        return text || html.replace(/<[^>]+>/g, '').trim();
+                                    }
+                                    
+                                    return '';
+                                }
+                                
+                                return stripHtml(data);
                             }
                         }
                     },
@@ -405,7 +453,7 @@
                         if (doc.content[doc.content.length - 1].table) {
                             var table = doc.content[doc.content.length - 1];
                             table.table.headerRows = 1;
-                            table.table.widths = ['auto', '*', 'auto', 'auto', 'auto'];
+                            table.table.widths = ['auto', '*', 'auto', 'auto', 'auto', 'auto'];
                             
                             table.layout = {
                                 hLineWidth: function(i, node) { return (i === 0 || i === 1 || i === node.table.body.length) ? 1 : 0.5; },
@@ -444,10 +492,10 @@
             ],
             pageLength: 25,
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-            order: [[6, 'desc']], // Sort by created_at (hidden column) descending
+            order: [[7, 'desc']], // Sort by created_at (hidden column) descending
             columnDefs: [
                 {
-                    targets: 6,
+                    targets: 7,
                     visible: false,
                     searchable: false
                 }

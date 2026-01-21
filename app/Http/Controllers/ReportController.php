@@ -26,7 +26,7 @@ class ReportController extends Controller
     public function tripSummary(Request $request)
     {
         // Query trip crews instead of trips, with trip and related data
-        $query = \App\Models\TripCrew::with(['trip.driver', 'trip.tripExpenses', 'vessel']);
+        $query = \App\Models\TripCrew::with(['trip.driver', 'trip.partner', 'trip.tripExpenses', 'vessel']);
 
         // Date range filter (on trip)
         if ($request->has('date_from') && $request->date_from) {
@@ -204,7 +204,7 @@ class ReportController extends Controller
         $dateTo = $request->date_to ? Carbon::parse($request->date_to) : now()->endOfWeek();
 
         // Query trip crews instead of trips
-        $query = \App\Models\TripCrew::with(['trip.driver', 'vessel']);
+        $query = \App\Models\TripCrew::with(['trip.driver', 'trip.partner', 'vessel']);
 
         // Date range filter (on trip)
         $query->whereHas('trip', function($q) use ($dateFrom, $dateTo) {
@@ -306,7 +306,7 @@ class ReportController extends Controller
      */
     public function tripExpenses(Request $request)
     {
-        $query = \App\Models\TripExpense::with(['trip.crews.vessel', 'driver', 'expenseType']);
+        $query = \App\Models\TripExpense::with(['trip.partner', 'trip.crews.vessel', 'driver', 'expenseType']);
 
         // Date range filter (based on trip date)
         if ($request->has('date_from') && $request->date_from) {

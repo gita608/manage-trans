@@ -281,6 +281,7 @@
                                 <th>Trip Title</th>
                                 <th>Crew Name</th>
                                 <th>Driver</th>
+                                <th>Partner</th>
                                 <th>Vessel</th>
                                 <th>Pick-up Time</th>
                                 <th>From</th>
@@ -299,6 +300,7 @@
                                 <td>{{ $trip->title ?? '-' }}</td>
                                 <td>{{ $crew->name ?? '-' }}</td>
                                 <td>{{ $trip->driver->name ?? '-' }}</td>
+                                <td>{{ $trip->partner ? $trip->partner->title : '-' }}</td>
                                 <td>{{ $crew->vessel ? $crew->vessel->name : '-' }}</td>
                                 <td>{{ $crew->pick_up_time ? \Carbon\Carbon::parse($crew->pick_up_time)->format('h:i A') : '-' }}</td>
                                 <td>
@@ -444,7 +446,7 @@
                     className: 'btn btn-success btn-sm',
                     title: 'Daily Weekly Report',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
                         modifier: {
                             page: 'all',
                             search: 'none'
@@ -489,7 +491,7 @@
                     orientation: 'landscape',
                     pageSize: 'A4',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
                         modifier: {
                             page: 'all',
                             search: 'none'
@@ -557,7 +559,7 @@
                         if (doc.content[doc.content.length - 1].table) {
                             var table = doc.content[doc.content.length - 1];
                             table.table.headerRows = 1;
-                            table.table.widths = ['auto', 'auto', '*', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'];
+                            table.table.widths = ['auto', 'auto', '*', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'];
                             
                             table.layout = {
                                 hLineWidth: function(i, node) { return (i === 0 || i === 1 || i === node.table.body.length) ? 1 : 0.5; },
@@ -591,10 +593,10 @@
             ],
             pageLength: 25,
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-            order: [[9, 'desc']], // Sort by created_at (hidden column) descending
+            order: [[10, 'desc']], // Sort by created_at (hidden column) descending
             columnDefs: [
                 {
-                    targets: 9,
+                    targets: 10,
                     visible: false,
                     searchable: false
                 }
