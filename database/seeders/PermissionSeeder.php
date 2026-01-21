@@ -43,6 +43,12 @@ class PermissionSeeder extends Seeder
             ['name' => 'edit_staff', 'display_name' => 'Edit Staff', 'category' => 'staff', 'description' => 'Edit existing staff members'],
             ['name' => 'delete_staff', 'display_name' => 'Delete Staff', 'category' => 'staff', 'description' => 'Delete staff members'],
             
+            // Partners
+            ['name' => 'view_partners', 'display_name' => 'View Partners', 'category' => 'partners', 'description' => 'View partners list'],
+            ['name' => 'create_partners', 'display_name' => 'Create Partners', 'category' => 'partners', 'description' => 'Create new partners'],
+            ['name' => 'edit_partners', 'display_name' => 'Edit Partners', 'category' => 'partners', 'description' => 'Edit existing partners'],
+            ['name' => 'delete_partners', 'display_name' => 'Delete Partners', 'category' => 'partners', 'description' => 'Delete partners'],
+            
             // Settings
             ['name' => 'view_settings', 'display_name' => 'View Settings', 'category' => 'settings', 'description' => 'View system settings'],
             ['name' => 'edit_settings', 'display_name' => 'Edit Settings', 'category' => 'settings', 'description' => 'Edit system settings'],

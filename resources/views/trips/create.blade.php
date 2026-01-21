@@ -44,7 +44,7 @@
                     @csrf
 
                     <div class="row mb-4">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="title" class="form-label">Trip Title <small class="text-muted">(Auto-generated)</small></label>
                                 <input type="text" class="form-control @error('title') is-invalid @enderror" id="title" name="title" value="{{ old('title', 'Trip 1') }}" disabled>
@@ -54,7 +54,7 @@
                                 <small class="text-muted">Title will be auto-generated based on driver and date</small>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="trip_date" class="form-label fw-semibold">Date <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control @error('trip_date') is-invalid @enderror" id="trip_date" name="trip_date" value="{{ old('trip_date', date('Y-m-d')) }}" required>
@@ -63,7 +63,7 @@
                                 @enderror
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="driver_id" class="form-label fw-semibold">Driver Name <span class="text-danger">*</span></label>
                                 <select class="form-select @error('driver_id') is-invalid @enderror" id="driver_id" name="driver_id" required>
@@ -73,6 +73,25 @@
                                     @endforeach
                                 </select>
                                 @error('driver_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="partner_id" class="form-label fw-semibold">Partner</label>
+                                <select class="form-select @error('partner_id') is-invalid @enderror" id="partner_id" name="partner_id">
+                                    <option value="">Select Partner</option>
+                                    @foreach($partners as $partner)
+                                        <option value="{{ $partner->id }}" {{ old('partner_id', $defaultPartner->id ?? '') == $partner->id ? 'selected' : '' }}>
+                                            {{ $partner->title }}
+                                            @if($partner->is_default)
+                                                (Default)
+                                            @endif
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('partner_id')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>

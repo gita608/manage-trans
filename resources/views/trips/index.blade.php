@@ -220,6 +220,26 @@
                         <input type="date" class="form-control" id="trip_date" name="trip_date" value="{{ old('trip_date', date('Y-m-d')) }}">
                         <div class="form-text">Leave empty to auto-detect from image</div>
                         
+                        <label for="partner_id" class="form-label fw-medium mt-3">
+                            <i class="ri-group-line me-1 text-muted"></i>Partner
+                        </label>
+                        <select class="form-select @error('partner_id') is-invalid @enderror" id="partner_id" name="partner_id">
+                            <option value="">Select Partner</option>
+                            @php
+                                $partners = \App\Models\Partner::orderBy('is_default', 'desc')->orderBy('title')->get();
+                                $defaultPartner = \App\Models\Partner::where('is_default', true)->first();
+                            @endphp
+                            @foreach($partners as $partner)
+                                <option value="{{ $partner->id }}" {{ old('partner_id', $defaultPartner->id ?? '') == $partner->id ? 'selected' : '' }}>
+                                    {{ $partner->title }}
+                                    @if($partner->is_default)
+                                        (Default)
+                                    @endif
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="form-text">Default: {{ $defaultPartner->title ?? 'None' }}</div>
+                        
                         <div class="mt-4 pt-2">
                             <button type="submit" class="btn btn-primary w-100" id="extract-btn">
                                 <i class="ri-magic-line me-2"></i>Extract Trips Now

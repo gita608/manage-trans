@@ -17,6 +17,7 @@ class Trip extends Model
      */
     protected $fillable = [
         'driver_id',
+        'partner_id',
         'trip_date',
         'title',
         'status',
@@ -115,6 +116,14 @@ class Trip extends Model
     public function driver()
     {
         return $this->belongsTo(Driver::class);
+    }
+
+    /**
+     * Get the partner for this trip.
+     */
+    public function partner()
+    {
+        return $this->belongsTo(Partner::class);
     }
 
     /**

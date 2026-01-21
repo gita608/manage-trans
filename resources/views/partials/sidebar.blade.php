@@ -111,6 +111,15 @@
                 </li>
                 @endif
 
+                @if(auth()->check() && auth()->user() && auth()->user()->hasPermission('view_partners'))
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('partners.*') ? 'active' : '' }}"
+                        href="{{ route('partners.index') }}">
+                        <i class="ri-group-line"></i> <span>Partners</span>
+                    </a>
+                </li>
+                @endif
+
                 @if(auth()->check() && auth()->user() && auth()->user()->hasPermission('view_drivers'))
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('daily-activities.*') ? 'active' : '' }}"

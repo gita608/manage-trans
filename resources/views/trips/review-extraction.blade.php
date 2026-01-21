@@ -40,6 +40,25 @@
                     @csrf
                     
                     <div class="p-4 bg-light-subtle border-bottom">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label for="partner_id" class="form-label fw-semibold">
+                                    <i class="ri-group-line me-1"></i>Partner (Applies to All Trips)
+                                </label>
+                                <select class="form-select" id="partner_id" name="partner_id">
+                                    <option value="">Select Partner</option>
+                                    @foreach($partners as $partner)
+                                        <option value="{{ $partner->id }}" {{ ($selectedPartnerId ?? '') == $partner->id ? 'selected' : '' }}>
+                                            {{ $partner->title }}
+                                            @if($partner->is_default)
+                                                (Default)
+                                            @endif
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <small class="text-muted">This partner will be applied to all selected trips</small>
+                            </div>
+                        </div>
                         <div class="alert alert-info border-0 shadow-sm rounded-3 mb-0 d-flex align-items-start" role="alert">
                             <div class="flex-shrink-0 me-3">
                                 <i class="ri-information-fill fs-24 text-info"></i>

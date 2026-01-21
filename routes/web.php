@@ -17,6 +17,7 @@ use App\Http\Controllers\TripExpenseTypeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\DailyActivityController;
 use App\Http\Controllers\PublicPagesController;
+use App\Http\Controllers\PartnerController;
 
 // Root route - show login for guests, redirect to dashboard if authenticated
 Route::get('/', [AuthController::class, 'root'])->name('home');
@@ -235,5 +236,24 @@ Route::middleware(['auth'])->group(function () {
     // Daily Activity Routes
     Route::middleware(['permission:view_drivers'])->group(function () {
         Route::get('/daily-activities', [DailyActivityController::class, 'index'])->name('daily-activities.index');
+    });
+
+    // Partner Routes
+    Route::middleware(['permission:view_partners'])->group(function () {
+        Route::get('/partners', [PartnerController::class, 'index'])->name('partners.index');
+    });
+    
+    Route::middleware(['permission:create_partners'])->group(function () {
+        Route::get('/partners/create', [PartnerController::class, 'create'])->name('partners.create');
+        Route::post('/partners', [PartnerController::class, 'store'])->name('partners.store');
+    });
+    
+    Route::middleware(['permission:edit_partners'])->group(function () {
+        Route::get('/partners/{partner}/edit', [PartnerController::class, 'edit'])->name('partners.edit');
+        Route::put('/partners/{partner}', [PartnerController::class, 'update'])->name('partners.update');
+    });
+    
+    Route::middleware(['permission:delete_partners'])->group(function () {
+        Route::delete('/partners/{partner}', [PartnerController::class, 'destroy'])->name('partners.destroy');
     });
 });

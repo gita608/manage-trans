@@ -6,6 +6,7 @@ use App\Models\Trip;
 use App\Models\TripCrew;
 use App\Models\Driver;
 use App\Models\Vessel;
+use App\Models\Partner;
 use App\Models\Notification;
 use App\Services\TextractService;
 use App\Services\FirebaseNotificationService;
@@ -140,7 +141,9 @@ class TripController extends Controller
     {
         $drivers = Driver::orderBy('name')->get();
         $vessels = Vessel::orderBy('name')->get(); // Still needed for dynamic select
-        return view('trips.create', compact('drivers', 'vessels'));
+        $partners = Partner::orderBy('is_default', 'desc')->orderBy('title')->get();
+        $defaultPartner = Partner::where('is_default', true)->first();
+        return view('trips.create', compact('drivers', 'vessels', 'partners', 'defaultPartner'));
     }
 
     /**
@@ -150,6 +153,7 @@ class TripController extends Controller
     {
         $validated = $request->validate([
             'driver_id' => ['required', 'exists:drivers,id'],
+            'partner_id' => ['nullable', 'exists:partners,id'],
             'trip_date' => ['required', 'date'],
             'title' => ['nullable', 'string', 'max:255'],
             'crews' => ['required', 'array', 'min:1'],
@@ -167,8 +171,21 @@ class TripController extends Controller
         // Auto-generate trip title based on driver and date
         $tripTitle = Trip::generateTripTitle($validated['driver_id'], $validated['trip_date']);
 
+        // Get partner_id from request (check both validated and request in case it's empty)
+        $partnerId = $request->input('partner_id');
+        // Convert empty string to null and use default partner if not provided
+        if (empty($partnerId) || $partnerId === '') {
+            // Use default partner if no partner is selected
+            $defaultPartner = Partner::where('is_default', true)->first();
+            $partnerId = $defaultPartner ? $defaultPartner->id : null;
+        } else {
+            // Ensure it's an integer
+            $partnerId = (int) $partnerId;
+        }
+
         $trip = Trip::create([
             'driver_id' => $validated['driver_id'],
+            'partner_id' => $partnerId,
             'trip_date' => $validated['trip_date'],
             'title' => $tripTitle,
             'status' => TripCrew::STATUS_ASSIGNED, // Set trip status to assigned
@@ -212,7 +229,8 @@ class TripController extends Controller
     {
         $drivers = Driver::orderBy('name')->get();
         $vessels = Vessel::orderBy('name')->get();
-        return view('trips.edit', compact('trip', 'drivers', 'vessels'));
+        $partners = Partner::orderBy('is_default', 'desc')->orderBy('title')->get();
+        return view('trips.edit', compact('trip', 'drivers', 'vessels', 'partners'));
     }
 
     /**
@@ -222,6 +240,7 @@ class TripController extends Controller
     {
         $validated = $request->validate([
             'driver_id' => ['required', 'exists:drivers,id'],
+            'partner_id' => ['nullable', 'exists:partners,id'],
             'trip_date' => ['required', 'date'],
             'title' => ['nullable', 'string', 'max:255'],
             'crews' => ['required', 'array', 'min:1'],
@@ -251,6 +270,7 @@ class TripController extends Controller
 
         $trip->update([
             'driver_id' => $validated['driver_id'],
+            'partner_id' => $validated['partner_id'] ?? null,
             'trip_date' => $validated['trip_date'],
             'title' => $tripTitle,
         ]);
@@ -304,6 +324,7 @@ class TripController extends Controller
         $request->validate([
             'image' => ['required', 'image', 'mimes:jpeg,jpg,png', 'max:10240'], // 10MB max
             'trip_date' => ['nullable', 'date'], // Optional: if not provided, try to extract from image
+            'partner_id' => ['nullable', 'exists:partners,id'],
         ]);
 
         try {
@@ -343,8 +364,11 @@ class TripController extends Controller
 
             $drivers = Driver::orderBy('name')->get();
             $vessels = Vessel::orderBy('name')->get();
+            $partners = Partner::orderBy('is_default', 'desc')->orderBy('title')->get();
+            $defaultPartner = Partner::where('is_default', true)->first();
+            $selectedPartnerId = $request->input('partner_id') ?: ($defaultPartner ? $defaultPartner->id : null);
 
-            return view('trips.review-extraction', compact('parsedData', 'drivers', 'vessels'));
+            return view('trips.review-extraction', compact('parsedData', 'drivers', 'vessels', 'partners', 'selectedPartnerId'));
 
         } catch (\Exception $e) {
             return redirect()->route('trips.index')
@@ -359,6 +383,7 @@ class TripController extends Controller
     {
         $request->validate([
             'trips' => ['required', 'array'],
+            'partner_id' => ['nullable', 'exists:partners,id'],
             'trips.*.selected' => ['nullable'], // Checkbox
             'trips.*.driver_id' => ['nullable'], // Can be "new:Name" or ID
             'trips.*.vessel_id' => ['nullable'], // Can be "new:Name" or ID
@@ -432,6 +457,15 @@ class TripController extends Controller
             ];
         }
 
+        // Get partner_id from request or use default
+        $partnerId = $request->input('partner_id');
+        if (empty($partnerId)) {
+            $defaultPartner = Partner::where('is_default', true)->first();
+            $partnerId = $defaultPartner ? $defaultPartner->id : null;
+        } else {
+            $partnerId = (int) $partnerId;
+        }
+
         // Create Trips and Crews
         foreach ($groupedTrips as $group) {
             // Generate title
@@ -439,6 +473,7 @@ class TripController extends Controller
 
             $trip = Trip::create([
                 'driver_id' => $group['driver_id'],
+                'partner_id' => $partnerId,
                 'trip_date' => $group['trip_date'],
                 'title' => $title,
                 'status' => TripCrew::STATUS_ASSIGNED, // Set trip status to assigned
