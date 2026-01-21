@@ -49,11 +49,25 @@ trait LogsActivity
         // Generate description
         $description = $this->getActivityDescription($action, $oldValues, $newValues);
 
+        // Determine user_id and driver_id based on authenticated model
+        $user = Auth::user();
+        $userId = null;
+        $driverId = null;
+
+        if ($user) {
+            if ($user instanceof \App\Models\User) {
+                $userId = $user->id;
+            } elseif ($user instanceof \App\Models\Driver) {
+                $driverId = $user->id;
+            }
+        }
+
         return ActivityLog::create([
             'loggable_type' => get_class($this),
             'loggable_id' => $this->id ?? 0,
             'action' => $action,
-            'user_id' => Auth::id(),
+            'user_id' => $userId,
+            'driver_id' => $driverId,
             'old_values' => $oldValues,
             'new_values' => $newValues,
             'description' => $description,
