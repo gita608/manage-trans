@@ -451,8 +451,23 @@
                         },
                         format: {
                             body: function(data, row, column, node) {
-                                var text = $(data).text().trim();
-                                return text || data;
+                                // If data is already a string, return it directly
+                                if (typeof data === 'string') {
+                                    return data.trim();
+                                }
+                                // If it's a DOM node, extract text using jQuery
+                                if (node && node.nodeType) {
+                                    var text = $(node).text().trim();
+                                    return text || data;
+                                }
+                                // Fallback: try to extract text if data is a jQuery object or element
+                                try {
+                                    var text = $(data).text().trim();
+                                    return text || data;
+                                } catch (e) {
+                                    // If jQuery selector fails, return data as-is
+                                    return data || '';
+                                }
                             }
                         }
                     },
@@ -473,8 +488,23 @@
                         },
                         format: {
                             body: function(data, row, column, node) {
-                                var text = $(data).text().trim();
-                                return text || data;
+                                // If data is already a string, return it directly
+                                if (typeof data === 'string') {
+                                    return data.trim();
+                                }
+                                // If it's a DOM node, extract text using jQuery
+                                if (node && node.nodeType) {
+                                    var text = $(node).text().trim();
+                                    return text || data;
+                                }
+                                // Fallback: try to extract text if data is a jQuery object or element
+                                try {
+                                    var text = $(data).text().trim();
+                                    return text || data;
+                                } catch (e) {
+                                    // If jQuery selector fails, return data as-is
+                                    return data || '';
+                                }
                             }
                         }
                     },
