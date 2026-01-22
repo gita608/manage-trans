@@ -143,9 +143,9 @@
                                 </td>
                                 <td>
                                     @if($stat['driver']->type == \App\Models\Driver::TYPE_INTERNAL)
-                                        <span class="badge bg-info">Internal</span>
+                                        <span class="badge bg-info">INTERNAL</span>
                                     @else
-                                        <span class="badge bg-warning">Outsourcing</span>
+                                        <span class="badge bg-warning">OUTSOURCING</span>
                                     @endif
                                 </td>
                                 <td><strong>{{ $stat['total_trips'] }}</strong></td>

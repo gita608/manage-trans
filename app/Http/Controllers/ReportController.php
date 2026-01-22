@@ -75,6 +75,34 @@ class ReportController extends Controller
 
         $crews = $query->latest('created_at')->get();
 
+        // Transform data to uppercase
+        $crews->transform(function($crew) {
+            if ($crew->trip) {
+                if ($crew->trip->title) {
+                    $crew->trip->title = strtoupper($crew->trip->title);
+                }
+                if ($crew->trip->driver && $crew->trip->driver->name) {
+                    $crew->trip->driver->name = strtoupper($crew->trip->driver->name);
+                }
+                if ($crew->trip->partner && $crew->trip->partner->title) {
+                    $crew->trip->partner->title = strtoupper($crew->trip->partner->title);
+                }
+            }
+            if ($crew->name) {
+                $crew->name = strtoupper($crew->name);
+            }
+            if ($crew->vessel && $crew->vessel->name) {
+                $crew->vessel->name = strtoupper($crew->vessel->name);
+            }
+            if ($crew->from_location) {
+                $crew->from_location = strtoupper($crew->from_location);
+            }
+            if ($crew->to_location) {
+                $crew->to_location = strtoupper($crew->to_location);
+            }
+            return $crew;
+        });
+
         // Get unique trips for statistics
         $uniqueTrips = $crews->pluck('trip')->unique('id');
         
@@ -144,6 +172,11 @@ class ReportController extends Controller
             }
             
             $trips = $tripsQuery->get();
+
+            // Transform driver name to uppercase
+            if ($driver->name) {
+                $driver->name = strtoupper($driver->name);
+            }
 
             $driverStats[] = [
                 'driver' => $driver,
@@ -231,6 +264,34 @@ class ReportController extends Controller
         }
 
         $crews = $query->latest('created_at')->get();
+
+        // Transform data to uppercase
+        $crews->transform(function($crew) {
+            if ($crew->trip) {
+                if ($crew->trip->title) {
+                    $crew->trip->title = strtoupper($crew->trip->title);
+                }
+                if ($crew->trip->driver && $crew->trip->driver->name) {
+                    $crew->trip->driver->name = strtoupper($crew->trip->driver->name);
+                }
+                if ($crew->trip->partner && $crew->trip->partner->title) {
+                    $crew->trip->partner->title = strtoupper($crew->trip->partner->title);
+                }
+            }
+            if ($crew->name) {
+                $crew->name = strtoupper($crew->name);
+            }
+            if ($crew->vessel && $crew->vessel->name) {
+                $crew->vessel->name = strtoupper($crew->vessel->name);
+            }
+            if ($crew->from_location) {
+                $crew->from_location = strtoupper($crew->from_location);
+            }
+            if ($crew->to_location) {
+                $crew->to_location = strtoupper($crew->to_location);
+            }
+            return $crew;
+        });
 
         // Get unique trips for statistics
         $uniqueTrips = $crews->pluck('trip')->unique('id');
@@ -345,6 +406,29 @@ class ReportController extends Controller
         }
 
         $expenses = $query->latest()->get();
+
+        // Transform data to uppercase
+        $expenses->transform(function($expense) {
+            if ($expense->driver && $expense->driver->name) {
+                $expense->driver->name = strtoupper($expense->driver->name);
+            }
+            if ($expense->expenseType && $expense->expenseType->title) {
+                $expense->expenseType->title = strtoupper($expense->expenseType->title);
+            }
+            if ($expense->trip) {
+                if ($expense->trip->partner && $expense->trip->partner->title) {
+                    $expense->trip->partner->title = strtoupper($expense->trip->partner->title);
+                }
+                if ($expense->trip->crews) {
+                    foreach ($expense->trip->crews as $crew) {
+                        if ($crew->vessel && $crew->vessel->name) {
+                            $crew->vessel->name = strtoupper($crew->vessel->name);
+                        }
+                    }
+                }
+            }
+            return $expense;
+        });
 
         // Statistics
         $totalExpenses = $expenses->sum('amount');
