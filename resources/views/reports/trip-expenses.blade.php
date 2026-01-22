@@ -193,7 +193,7 @@
                                 $firstCrew = $expense->trip ? $expense->trip->crews->first() : null;
                             @endphp
                             <tr>
-                                <td>{{ $expense->trip && $expense->trip->trip_date ? $expense->trip->trip_date->format('M d, Y') : '-' }}</td>
+                                <td data-order="{{ $expense->trip && $expense->trip->trip_date ? $expense->trip->trip_date->timestamp : 0 }}">{{ $expense->trip && $expense->trip->trip_date ? $expense->trip->trip_date->format('M d, Y') : '-' }}</td>
                                 <td>
                                     <span class="badge bg-light text-dark border">
                                         {{ $expense->expenseType->title ?? 'Unknown' }}
@@ -492,7 +492,7 @@
             ],
             pageLength: 25,
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-            order: [[7, 'desc']], // Sort by created_at (hidden column) descending
+            order: [[0, 'asc']], // Sort by trip date (column 0) ascending
             columnDefs: [
                 {
                     targets: 7,

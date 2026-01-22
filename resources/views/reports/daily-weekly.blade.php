@@ -296,7 +296,7 @@
                                 $trip = $crew->trip;
                             @endphp
                             <tr>
-                                <td>{{ $trip->trip_date->format('M d, Y') }}</td>
+                                <td data-order="{{ $trip->trip_date->timestamp }}">{{ $trip->trip_date->format('M d, Y') }}</td>
                                 <td>{{ $trip->title ?? '-' }}</td>
                                 <td>{{ $crew->name ?? '-' }}</td>
                                 <td>{{ $trip->driver->name ?? '-' }}</td>
@@ -593,7 +593,7 @@
             ],
             pageLength: 25,
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-            order: [[10, 'desc']], // Sort by created_at (hidden column) descending
+            order: [[0, 'asc']], // Sort by date (column 0) ascending
             columnDefs: [
                 {
                     targets: 10,
