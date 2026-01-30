@@ -636,19 +636,19 @@ class TripController extends Controller
         $driver = $request->user();
         $today = Carbon::today();
 
-        $validator = Validator::make($request->all(), [
+        // $validator = Validator::make($request->all(), [
             // 'image' => ['required', 'image', 'mimes:jpeg,jpg,png,gif', 'max:5120'], // Max 5MB
             // 'note' => ['nullable', 'string', 'max:1000'],
             // 'kilometers_driven' => ['nullable', 'numeric', 'min:0', 'max:2000'],
-        ]);
+        // ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors()->first(),
-            ], 422);
-        }
+        // if ($validator->fails()) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Validation failed',
+        //         'errors' => $validator->errors()->first(),
+        //     ], 422);
+        // }
 
         // Store the image
         $imagePath = null;
