@@ -164,7 +164,7 @@
 
                     <div class="card-footer bg-white border-top p-4">
                         <div class="d-flex justify-content-end gap-3">
-                            <a href="{{ route('trips.index') }}" class="btn btn-soft-secondary px-4">
+                            <a href="{{ route('trips.index') }}" class="btn btn-soft-secondary px-4" id="cancel-review-btn">
                                 <i class="ri-close-line me-1"></i> Cancel
                             </a>
                             <button type="submit" class="btn btn-success px-4 shadow-sm">
@@ -406,6 +406,15 @@
                 }
             });
         });
+
+        const cancelReviewBtn = document.getElementById('cancel-review-btn');
+        if (cancelReviewBtn) {
+            cancelReviewBtn.addEventListener('click', function(e) {
+                if (!confirm('Are you sure you want to cancel? Your extracted data will be discarded.')) {
+                    e.preventDefault();
+                }
+            });
+        }
     });
 </script>
 @endpush

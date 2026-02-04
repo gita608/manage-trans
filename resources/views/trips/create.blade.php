@@ -175,7 +175,7 @@
 
                     <div class="mt-4">
                         <button class="btn btn-success" type="submit">Create Trip</button>
-                        <a href="{{ route('trips.index') }}" class="btn btn-secondary">Cancel</a>
+                        <a href="{{ route('trips.index') }}" class="btn btn-secondary" id="cancel-trip-btn">Cancel</a>
                     </div>
                 </form>
             </div>
@@ -560,6 +560,15 @@
         if (driverSelect && dateInput) {
             driverSelect.addEventListener('change', updateTripTitle);
             dateInput.addEventListener('change', updateTripTitle);
+        }
+
+        const cancelBtn = document.getElementById('cancel-trip-btn');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function(e) {
+                if (!confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) {
+                    e.preventDefault();
+                }
+            });
         }
     });
 </script>
