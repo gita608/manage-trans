@@ -438,19 +438,17 @@
                 },
                 success: function(response) {
                     if (response.success && response.vessel) {
-                        // Add the new vessel to all select dropdowns
-                        const newOption = new Option(response.vessel.name, response.vessel.id, true, true);
+                        const newVesselId = response.vessel.id;
+                        const newVesselName = response.vessel.name;
                         jQuery('.vessel-select2').each(function() {
-                            // Remove the create new option if it exists
+                            const isTriggeringSelect = this === $select[0];
                             jQuery(this).find('option[value="__create_new__"]').remove();
-                            // Add the new vessel option
-                            jQuery(this).append(newOption.cloneNode(true));
-                            // If this is the select that triggered the creation, select the new vessel
-                            if (this === $select[0]) {
-                                jQuery(this).val(response.vessel.id).trigger('change');
+                            const opt = new Option(newVesselName, newVesselId, isTriggeringSelect, isTriggeringSelect);
+                            jQuery(this).append(opt);
+                            if (isTriggeringSelect) {
+                                jQuery(this).val(newVesselId).trigger('change');
                             }
                         });
-                        // Re-add the create new option to all selects (as first option after placeholder)
                         jQuery('.vessel-select2').each(function() {
                             if (jQuery(this).find('option[value="__create_new__"]').length === 0) {
                                 jQuery(this).find('option:first').after('<option value="__create_new__" class="create-new-vessel-option">Create New</option>');
