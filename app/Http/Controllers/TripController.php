@@ -165,6 +165,7 @@ class TripController extends Controller
             'crews.*.remarks' => ['nullable', 'string'],
             'crews.*.name' => ['required', 'string', 'max:255'],
             'crews.*.phone' => ['nullable', 'string', 'max:255'],
+            'crews.*.phone_2' => ['nullable', 'string', 'max:255'],
             'crews.*.address' => ['nullable', 'string'],
         ]);
 
@@ -252,6 +253,7 @@ class TripController extends Controller
             'crews.*.remarks' => ['nullable', 'string'],
             'crews.*.name' => ['required', 'string', 'max:255'],
             'crews.*.phone' => ['nullable', 'string', 'max:255'],
+            'crews.*.phone_2' => ['nullable', 'string', 'max:255'],
             'crews.*.address' => ['nullable', 'string'],
         ]);
 
@@ -392,6 +394,7 @@ class TripController extends Controller
             'trips.*.flight_number' => ['nullable', 'string'],
             'trips.*.crew_name' => ['required', 'string'],
             'trips.*.crew_phone' => ['nullable', 'string', 'max:255'],
+            'trips.*.crew_phone_2' => ['nullable', 'string', 'max:255'],
             'trips.*.from_location' => ['required', 'string'],
             'trips.*.to_location' => ['required', 'string'],
         ]);
@@ -450,6 +453,7 @@ class TripController extends Controller
                 'flight_number' => $tripData['flight_number'] ?? null,
                 'name' => $tripData['crew_name'],
                 'phone' => $tripData['crew_phone'] ?? null,
+                'phone_2' => $tripData['crew_phone_2'] ?? null,
                 'from_location' => $tripData['from_location'],
                 'to_location' => $tripData['to_location'],
                 'remarks' => $tripData['remarks'] ?? null,
@@ -574,6 +578,7 @@ class TripController extends Controller
                 'vessel_id' => $vessel ? $vessel->id : null, // Only set if exact match found, otherwise null
                 'crew_name' => $crewName,
                 'crew_phone' => $crewPhone,
+                'crew_phone_2' => trim($row[8] ?? ''),
                 'from_location' => $fromLocation ?: 'N/A',
                 'to_location' => $toLocation ?: 'N/A',
                 'remarks' => $followUp,

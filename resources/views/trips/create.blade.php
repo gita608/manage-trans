@@ -113,6 +113,7 @@
                                     <th style="width: 50px;">#</th>
                                     <th>Crew Name <span class="text-danger">*</span></th>
                                     <th>Crew Contact No</th>
+                                    <th>Crew Contact No 2</th>
                                     <th>Vessel Name <span class="text-danger">*</span></th>
                                     <th>Pick-up Time <span class="text-danger">*</span></th>
                                     <th>From <span class="text-danger">*</span></th>
@@ -126,7 +127,7 @@
                                 @php
                                     $crews = old('crews', []);
                                     if (empty($crews)) {
-                                        $crews = [['name' => '', 'driver_id' => '', 'vessel_id' => '', 'pick_up_time' => '', 'from_location' => '', 'to_location' => '', 'phone' => '', 'remarks' => '', 'address' => '']];
+                                        $crews = [['name' => '', 'driver_id' => '', 'vessel_id' => '', 'pick_up_time' => '', 'from_location' => '', 'to_location' => '', 'phone' => '', 'phone_2' => '', 'remarks' => '', 'address' => '']];
                                     }
                                 @endphp
                                 @foreach($crews as $index => $crew)
@@ -137,6 +138,9 @@
                                         </td>
                                         <td>
                                             <input type="text" class="form-control form-control-sm" name="crews[{{ $index }}][phone]" value="{{ $crew['phone'] ?? '' }}" placeholder="Contact number">
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm" name="crews[{{ $index }}][phone_2]" value="{{ $crew['phone_2'] ?? '' }}" placeholder="Contact number">
                                         </td>
                                         <td>
                                             <select class="form-select form-select-sm vessel-select2" name="crews[{{ $index }}][vessel_id]" required>
@@ -323,6 +327,9 @@
                 </td>
                 <td>
                     <input type="text" class="form-control form-control-sm" name="crews[${index}][phone]" placeholder="Contact number">
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm" name="crews[${index}][phone_2]" placeholder="Contact number">
                 </td>
                 <td>
                     <select class="form-select form-select-sm vessel-select2" name="crews[${index}][vessel_id]" required>

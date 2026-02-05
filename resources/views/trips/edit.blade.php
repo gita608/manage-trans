@@ -121,6 +121,7 @@
                                     <th style="width: 50px;">#</th>
                                     <th>Crew Name <span class="text-danger">*</span></th>
                                     <th>Crew Contact No</th>
+                                    <th>Crew Contact No 2</th>
                                     <th>Vessel Name <span class="text-danger">*</span></th>
                                     <th>Pick-up Time <span class="text-danger">*</span></th>
                                     <th>From <span class="text-danger">*</span></th>
@@ -134,7 +135,7 @@
                         @php
                             $crews = old('crews', $trip->crews->toArray());
                             if (empty($crews)) {
-                                        $crews = [['name' => '', 'driver_id' => '', 'vessel_id' => '', 'pick_up_time' => '', 'from_location' => '', 'to_location' => '', 'remarks' => '', 'phone' => '', 'address' => '']];
+                                        $crews = [['name' => '', 'driver_id' => '', 'vessel_id' => '', 'pick_up_time' => '', 'from_location' => '', 'to_location' => '', 'remarks' => '', 'phone' => '', 'phone_2' => '', 'address' => '']];
                             }
                         @endphp
                         @foreach($crews as $index => $crew)
@@ -155,6 +156,15 @@
                                                    value="{{ is_array($crew) ? ($crew['phone'] ?? '') : $crew->phone }}" 
                                                    placeholder="Contact number">
                                             @error('crews.'.$index.'.phone')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm @error('crews.'.$index.'.phone_2') is-invalid @enderror" 
+                                                   name="crews[{{ $index }}][phone_2]" 
+                                                   value="{{ is_array($crew) ? ($crew['phone_2'] ?? '') : ($crew->phone_2 ?? '') }}" 
+                                                   placeholder="Contact number">
+                                            @error('crews.'.$index.'.phone_2')
                                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                                             @enderror
                                         </td>
@@ -338,6 +348,9 @@
                 </td>
                 <td>
                     <input type="text" class="form-control form-control-sm" name="crews[${index}][phone]" placeholder="Contact number">
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm" name="crews[${index}][phone_2]" placeholder="Contact number">
                 </td>
                 <td>
                     <select class="form-select form-select-sm" name="crews[${index}][vessel_id]" required>

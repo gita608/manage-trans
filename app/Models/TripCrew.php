@@ -11,6 +11,7 @@ class TripCrew extends Model
         'vessel_id',
         'name',
         'phone',
+        'phone_2',
         'address',
         'pick_up_time',
         'from_location',

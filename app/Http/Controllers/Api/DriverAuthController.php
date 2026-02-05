@@ -256,11 +256,13 @@ class DriverAuthController extends Controller
                     'id' => $trip->id,
                     'crew_name' => $trip->crews->first()->name ?? null,
                     'crew_phone' => $trip->crews->first()->phone ?? null,
+                    'crew_phone_2' => $trip->crews->first()->phone_2 ?? null,
                     'crew_address' => $trip->crews->first()->address ?? null,
                     'crews' => $trip->crews->map(function($crew) {
                         return [
                             'name' => $crew->name,
                             'phone' => $crew->phone,
+                            'phone_2' => $crew->phone_2,
                             'address' => $crew->address,
                         ];
                     }),

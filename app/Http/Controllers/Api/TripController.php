@@ -62,6 +62,7 @@ class TripController extends Controller
                         'id' => $crew->id,
                         'name' => $crew->name,
                         'phone' => $crew->phone,
+                        'phone_2' => $crew->phone_2,
                         'address' => $crew->address,
                     ];
                 })->values(),
@@ -79,6 +80,7 @@ class TripController extends Controller
                         'id' => $crew->id,
                         'name' => $crew->name,
                         'phone' => $crew->phone,
+                        'phone_2' => $crew->phone_2,
                         'address' => $crew->address,
                     ];
                 })->values(),
@@ -96,6 +98,7 @@ class TripController extends Controller
                         'id' => $crew->id,
                         'name' => $crew->name,
                         'phone' => $crew->phone,
+                        'phone_2' => $crew->phone_2,
                         'address' => $crew->address,
                     ];
                 })->values(),
@@ -174,6 +177,7 @@ class TripController extends Controller
                 'crew_information' => [
                     'name' => $crew->name,
                     'phone' => $crew->phone,
+                    'phone_2' => $crew->phone_2,
                     'address' => $crew->address,
                 ],
                 'trip_date' => [
@@ -530,6 +534,7 @@ class TripController extends Controller
                 'crew_information' => [
                     'name' => $crew->name,
                     'phone' => $crew->phone,
+                    'phone_2' => $crew->phone_2,
                     'address' => $crew->address,
                 ],
                 'trip_date' => [

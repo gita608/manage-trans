@@ -113,6 +113,7 @@ class HomeController extends Controller
             return [
                 'name' => $crew->name,
                 'phone' => $crew->phone,
+                'phone_2' => $crew->phone_2,
                 'vessel' => $crew->vessel->name,
                 'flight_number' => $crew->flight_number,
                 'remarks' => $crew->remarks,

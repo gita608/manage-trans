@@ -113,7 +113,8 @@
                                     <tr>
                                         <th scope="col" style="width: 50px;">#</th>
                                         <th scope="col">Crew Name</th>
-                                        <th scope="col">Contact</th>
+                                        <th scope="col">Crew Contact No</th>
+                                        <th scope="col">Crew Contact No 2</th>
                                         <th scope="col">Vessel</th>
                                         <th scope="col">Pick-up Time</th>
                                         <th scope="col">Route</th>
@@ -145,6 +146,13 @@
                                                     <span class="text-muted">-</span>
                                                 @endif
                                             </td>
+                                            <td>
+                                                @if($crew->phone_2)
+                                                    <a href="tel:{{ $crew->phone_2 }}" class="text-body">{{ $crew->phone_2 }}</a>
+                                                @else
+                                                    <span class="text-muted">-</span>
+                                                @endif
+                                            </td>
                                             <td>{{ $crew->vessel->name ?? 'Unknown' }}</td>
                                             <td>{{ \Carbon\Carbon::parse($crew->pick_up_time)->format('h:i A') }}</td>
                                             <td>
@@ -167,7 +175,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="9" class="text-center py-4">
+                                            <td colspan="10" class="text-center py-4">
                                                 <p class="text-muted mb-0">No crew assigned to this trip.</p>
                                             </td>
                                         </tr>

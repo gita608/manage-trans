@@ -422,6 +422,8 @@
                                                         <thead class="table-light">
                                                             <tr>
                                                                 <th>Crew Name</th>
+                                                                <th>Crew Contact No</th>
+                                                                <th>Crew Contact No 2</th>
                                                                 <th>Vessel</th>
                                                                 <th>Pick-up Time</th>
                                                                 <th>Route</th>
@@ -431,6 +433,8 @@
                                                             @foreach($trip->crews as $crew)
                                                                 <tr>
                                                                     <td>{{ $crew->name }}</td>
+                                                                    <td>{{ $crew->phone ?? '-' }}</td>
+                                                                    <td>{{ $crew->phone_2 ?? '-' }}</td>
                                                                     <td>{{ $crew->vessel->name ?? '-' }}</td>
                                                                     <td>{{ \Carbon\Carbon::parse($crew->pick_up_time)->format('h:i A') }}</td>
                                                                     <td>
