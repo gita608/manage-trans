@@ -305,6 +305,7 @@
                             </label>
                             <select id="filter-status" class="form-select">
                                 <option value="">All Status</option>
+                                <option value="unassigned">Unassigned</option>
                                 <option value="assigned">Assigned</option>
                                 <option value="in_progress">In Progress</option>
                                 <option value="completed">Completed</option>
@@ -371,14 +372,18 @@
                                         <td>{{ $trip->trip_date instanceof \Carbon\Carbon ? $trip->trip_date->format('M d, Y') : \Carbon\Carbon::parse($trip->trip_date)->format('M d, Y') }}</td>
                                         <td>{{ $trip->title ?? '-' }}</td>
                                         <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="avatar-xs bg-light rounded-circle text-center d-flex align-items-center justify-content-center me-2">
-                                                    <span class="text-primary fw-medium">{{ substr($trip->driver->name, 0, 2) }}</span>
+                                            @if($trip->driver)
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-xs bg-light rounded-circle text-center d-flex align-items-center justify-content-center me-2">
+                                                        <span class="text-primary fw-medium">{{ substr($trip->driver->name, 0, 2) }}</span>
+                                                    </div>
+                                                    <div>
+                                                        <h6 class="mb-0">{{ $trip->driver->name }}</h6>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <h6 class="mb-0">{{ $trip->driver->name }}</h6>
-                                                </div>
-                                            </div>
+                                            @else
+                                                <span class="badge bg-secondary-subtle text-secondary">Unassigned</span>
+                                            @endif
                                         </td>
                                         <td>
                                             @php

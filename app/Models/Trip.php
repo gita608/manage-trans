@@ -50,6 +50,8 @@ class Trip extends Model
                 return 'bg-info';
             case TripCrew::STATUS_ASSIGNED:
                 return 'bg-warning';
+            case TripCrew::STATUS_UNASSIGNED:
+                return 'bg-secondary';
             default:
                 return 'bg-secondary';
         }
@@ -93,6 +95,8 @@ class Trip extends Model
                 return 'In Progress';
             case TripCrew::STATUS_ASSIGNED:
                 return 'Assigned';
+            case TripCrew::STATUS_UNASSIGNED:
+                return 'Unassigned';
             default:
                 return ucfirst($this->status ?? 'Unknown');
         }
@@ -153,20 +157,21 @@ class Trip extends Model
      */
     public static function generateTripTitle($driverId, $tripDate, $excludeTripId = null): string
     {
-        // Count existing trips for this driver on this date
-        $query = self::where('driver_id', $driverId)
-            ->whereDate('trip_date', $tripDate);
-        
-        // Exclude current trip if updating
+        if ($driverId) {
+            $query = self::where('driver_id', $driverId)
+                ->whereDate('trip_date', $tripDate);
+        } else {
+            $query = self::whereNull('driver_id')
+                ->whereDate('trip_date', $tripDate);
+        }
+
         if ($excludeTripId) {
             $query->where('id', '!=', $excludeTripId);
         }
-        
+
         $tripCount = $query->count();
-        
-        // Next trip number is count + 1
         $tripNumber = $tripCount + 1;
-        
+
         return "Trip {$tripNumber}";
     }
 
@@ -184,15 +189,14 @@ class Trip extends Model
         // Custom descriptions for Trip model
         if ($action === 'created') {
             $driverId = $this->driver_id ?? null;
-            
-            $driverName = 'Unknown';
-            
+
             if ($driverId) {
                 $driver = Driver::find($driverId);
                 $driverName = $driver->name ?? 'Unknown';
+                return "Trip created for driver '{$driverName}'";
             }
-            
-            return "Trip created for driver '{$driverName}'";
+
+            return "Trip created without driver (unassigned)";
         }
         
         if ($action === 'updated') {

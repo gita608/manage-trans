@@ -103,8 +103,8 @@
                                         <td>
                                             <div class="input-group input-group-sm input-group-flat">
                                                 <span class="input-group-text bg-light border-end-0 text-muted"><i class="ri-user-line"></i></span>
-                                                <select name="trips[{{ $index }}][driver_id]" class="form-select form-select-sm border-start-0 ps-0 driver-select" required>
-                                                    <option value="">Select Driver</option>
+                                                <select name="trips[{{ $index }}][driver_id]" class="form-select form-select-sm border-start-0 ps-0 driver-select">
+                                                    <option value="">Assign Later</option>
                                                     @foreach($drivers as $driver)
                                                         <option value="{{ $driver->id }}">
                                                             {{ $driver->name }}

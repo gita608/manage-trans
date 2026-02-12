@@ -65,9 +65,9 @@
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
-                                <label for="driver_id" class="form-label fw-semibold">Driver Name <span class="text-danger">*</span></label>
-                                <select class="form-select @error('driver_id') is-invalid @enderror" id="driver_id" name="driver_id" required>
-                                    <option value="">Select Driver</option>
+                                <label for="driver_id" class="form-label fw-semibold">Driver Name</label>
+                                <select class="form-select @error('driver_id') is-invalid @enderror" id="driver_id" name="driver_id">
+                                    <option value="">Assign Later</option>
                                     @foreach($drivers as $driver)
                                         <option value="{{ $driver->id }}" {{ old('driver_id') == $driver->id ? 'selected' : '' }}>{{ $driver->name }}</option>
                                     @endforeach
@@ -541,9 +541,12 @@
             const driverId = driverSelect.value;
             const tripDate = dateInput.value;
             
-            if (driverId && tripDate) {
-                // Make AJAX call to get the next trip number
-                fetch(`{{ route('trips.generate-title') }}?driver_id=${driverId}&trip_date=${tripDate}`, {
+            if (tripDate) {
+                let url = `{{ route('trips.generate-title') }}?trip_date=${tripDate}`;
+                if (driverId) {
+                    url += `&driver_id=${driverId}`;
+                }
+                fetch(url, {
                     method: 'GET',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',

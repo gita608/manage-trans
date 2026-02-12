@@ -152,7 +152,7 @@ class TripController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'driver_id' => ['required', 'exists:drivers,id'],
+            'driver_id' => ['nullable', 'exists:drivers,id'],
             'partner_id' => ['nullable', 'exists:partners,id'],
             'trip_date' => ['required', 'date'],
             'title' => ['nullable', 'string', 'max:255'],
@@ -169,35 +169,33 @@ class TripController extends Controller
             'crews.*.address' => ['nullable', 'string'],
         ]);
 
-        // Auto-generate trip title based on driver and date
-        $tripTitle = Trip::generateTripTitle($validated['driver_id'], $validated['trip_date']);
+        $driverId = $validated['driver_id'] ?? null;
+        $tripTitle = Trip::generateTripTitle($driverId, $validated['trip_date']);
+        $status = $driverId ? TripCrew::STATUS_ASSIGNED : TripCrew::STATUS_UNASSIGNED;
 
-        // Get partner_id from request (check both validated and request in case it's empty)
         $partnerId = $request->input('partner_id');
-        // Convert empty string to null and use default partner if not provided
         if (empty($partnerId) || $partnerId === '') {
-            // Use default partner if no partner is selected
             $defaultPartner = Partner::where('is_default', true)->first();
             $partnerId = $defaultPartner ? $defaultPartner->id : null;
         } else {
-            // Ensure it's an integer
             $partnerId = (int) $partnerId;
         }
 
         $trip = Trip::create([
-            'driver_id' => $validated['driver_id'],
+            'driver_id' => $driverId,
             'partner_id' => $partnerId,
             'trip_date' => $validated['trip_date'],
             'title' => $tripTitle,
-            'status' => TripCrew::STATUS_ASSIGNED, // Set trip status to assigned
+            'status' => $status,
         ]);
 
         foreach ($request->crews as $crewData) {
-            $trip->crews()->create($crewData); // No status field - status is on trips
+            $trip->crews()->create($crewData);
         }
 
-        // Send push notification to driver
-        $this->sendTripNotification($trip);
+        if ($driverId) {
+            $this->sendTripNotification($trip);
+        }
 
         return redirect()->route('trips.index')->with('success', 'Trip created successfully!');
     }
@@ -240,7 +238,7 @@ class TripController extends Controller
     public function update(Request $request, Trip $trip)
     {
         $validated = $request->validate([
-            'driver_id' => ['required', 'exists:drivers,id'],
+            'driver_id' => ['nullable', 'exists:drivers,id'],
             'partner_id' => ['nullable', 'exists:partners,id'],
             'trip_date' => ['required', 'date'],
             'title' => ['nullable', 'string', 'max:255'],
@@ -257,34 +255,44 @@ class TripController extends Controller
             'crews.*.address' => ['nullable', 'string'],
         ]);
 
-        // Auto-generate trip title if driver or date changed
-        $driverChanged = $trip->driver_id != $validated['driver_id'];
+        $newDriverId = $validated['driver_id'] ?? null;
+        $oldDriverId = $trip->driver_id;
+        $driverChanged = $oldDriverId != $newDriverId;
+        $driverNewlyAssigned = !$oldDriverId && $newDriverId;
+
         $tripDateFormatted = $trip->trip_date instanceof \Carbon\Carbon 
             ? $trip->trip_date->format('Y-m-d') 
             : Carbon::parse($trip->trip_date)->format('Y-m-d');
         $dateChanged = $tripDateFormatted !== Carbon::parse($validated['trip_date'])->format('Y-m-d');
-        
+
         $tripTitle = $trip->title;
         if ($driverChanged || $dateChanged) {
-            // Regenerate title for new driver/date combination
-            $tripTitle = Trip::generateTripTitle($validated['driver_id'], $validated['trip_date'], $trip->id);
+            $tripTitle = Trip::generateTripTitle($newDriverId, $validated['trip_date'], $trip->id);
         }
 
-        $trip->update([
-            'driver_id' => $validated['driver_id'],
+        $updateData = [
+            'driver_id' => $newDriverId,
             'partner_id' => $validated['partner_id'] ?? null,
             'trip_date' => $validated['trip_date'],
             'title' => $tripTitle,
-        ]);
+        ];
 
-        // Sync crews: delete all and recreate
-        // Note: In a real app, we might want to update existing IDs to preserve history/logs linked to specific crews
-        // But for this refactor, full sync is simpler.
+        if ($driverNewlyAssigned && $trip->status === TripCrew::STATUS_UNASSIGNED) {
+            $updateData['status'] = TripCrew::STATUS_ASSIGNED;
+        } elseif (!$newDriverId && $trip->status === TripCrew::STATUS_ASSIGNED) {
+            $updateData['status'] = TripCrew::STATUS_UNASSIGNED;
+        }
+
+        $trip->update($updateData);
+
         $trip->crews()->delete();
-        
+
         foreach ($request->crews as $crewData) {
-            // No status field - status is on trips table
             $trip->crews()->create($crewData);
+        }
+
+        if ($driverNewlyAssigned) {
+            $this->sendTripNotification($trip);
         }
 
         return redirect()->route('trips.index')->with('success', 'Trip updated successfully!');
@@ -296,7 +304,7 @@ class TripController extends Controller
     public function generateTitle(Request $request)
     {
         $request->validate([
-            'driver_id' => ['required', 'exists:drivers,id'],
+            'driver_id' => ['nullable', 'exists:drivers,id'],
             'trip_date' => ['required', 'date'],
         ]);
 
@@ -405,39 +413,30 @@ class TripController extends Controller
         $groupedTrips = [];
 
         foreach ($request->trips as $index => $tripData) {
-            // Skip if not selected
             if (!isset($tripData['selected'])) {
                 continue;
             }
 
-            // Resolve Driver
             $driverId = $tripData['driver_id'] ?? null;
-            
-            if (!$driverId) {
-                continue; // Skip if no driver selected
-            }
 
-            // Resolve Vessel - only use existing vessels, no auto-creation
             $vesselId = null;
             if (!empty($tripData['vessel_id'])) {
-                // Skip if vessel_id starts with "new:" - user must select an existing vessel
                 if (str_starts_with($tripData['vessel_id'], 'new:')) {
-                    continue; // Skip this trip - vessel must be selected from existing list
+                    continue;
                 } else {
-                    // Verify vessel exists
                     $vessel = Vessel::find($tripData['vessel_id']);
                     if ($vessel) {
                         $vesselId = $tripData['vessel_id'];
                     } else {
-                        continue; // Skip if vessel doesn't exist
+                        continue;
                     }
                 }
             } else {
-                continue; // Skip if no vessel selected
+                continue;
             }
 
             $date = $tripData['trip_date'];
-            $key = $driverId . '_' . $date;
+            $key = ($driverId ?: 'unassigned') . '_' . $date;
 
             if (!isset($groupedTrips[$key])) {
                 $groupedTrips[$key] = [
@@ -457,11 +456,9 @@ class TripController extends Controller
                 'from_location' => $tripData['from_location'],
                 'to_location' => $tripData['to_location'],
                 'remarks' => $tripData['remarks'] ?? null,
-                // No status field - status is on trips table
             ];
         }
 
-        // Get partner_id from request or use default
         $partnerId = $request->input('partner_id');
         if (empty($partnerId)) {
             $defaultPartner = Partner::where('is_default', true)->first();
@@ -470,26 +467,27 @@ class TripController extends Controller
             $partnerId = (int) $partnerId;
         }
 
-        // Create Trips and Crews
         foreach ($groupedTrips as $group) {
-            // Generate title
-            $title = Trip::generateTripTitle($group['driver_id'], $group['trip_date']);
+            $driverId = $group['driver_id'] ?: null;
+            $title = Trip::generateTripTitle($driverId, $group['trip_date']);
+            $status = $driverId ? TripCrew::STATUS_ASSIGNED : TripCrew::STATUS_UNASSIGNED;
 
             $trip = Trip::create([
-                'driver_id' => $group['driver_id'],
+                'driver_id' => $driverId,
                 'partner_id' => $partnerId,
                 'trip_date' => $group['trip_date'],
                 'title' => $title,
-                'status' => TripCrew::STATUS_ASSIGNED, // Set trip status to assigned
+                'status' => $status,
             ]);
 
             foreach ($group['crews'] as $crewData) {
                 $trip->crews()->create($crewData);
             }
-            
-            // Send push notification to driver
-            $this->sendTripNotification($trip);
-            
+
+            if ($driverId) {
+                $this->sendTripNotification($trip);
+            }
+
             $createdCount++;
         }
 

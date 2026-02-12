@@ -85,7 +85,11 @@
                                 <div class="row">
                                     <div class="col-md-3">
                                         <p class="text-muted mb-1 text-uppercase fw-medium fs-12">Driver</p>
-                                        <h6 class="mb-0 fs-14">{{ $trip->driver->name }}</h6>
+                                        @if($trip->driver)
+                                            <h6 class="mb-0 fs-14">{{ $trip->driver->name }}</h6>
+                                        @else
+                                            <span class="badge bg-secondary-subtle text-secondary fs-12">Unassigned</span>
+                                        @endif
                                     </div>
                                     <div class="col-md-3">
                                         <p class="text-muted mb-1 text-uppercase fw-medium fs-12">Date</p>

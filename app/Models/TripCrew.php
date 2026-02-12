@@ -35,16 +35,15 @@ class TripCrew extends Model
     /**
      * Trip status constants
      */
+    const STATUS_UNASSIGNED = 'unassigned';
     const STATUS_ASSIGNED = 'assigned';
     const STATUS_IN_PROGRESS = 'in_progress';
     const STATUS_COMPLETED = 'completed';
 
-    /**
-     * Get all available statuses
-     */
     public static function getStatuses(): array
     {
         return [
+            self::STATUS_UNASSIGNED => 'Unassigned',
             self::STATUS_ASSIGNED => 'Assigned',
             self::STATUS_IN_PROGRESS => 'In Progress',
             self::STATUS_COMPLETED => 'Completed',
