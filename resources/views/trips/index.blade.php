@@ -262,21 +262,19 @@
 <!-- Trips List -->
 <div class="row">
     <div class="col-lg-12">
-        <div class="card border shadow-sm">
-            <div class="card-header border-bottom">
+        <div class="card border-0 shadow-sm trips-list-card">
+            <div class="card-header bg-white border-bottom py-3">
                 <div class="d-flex align-items-center justify-content-between">
-                    <h5 class="card-title mb-0">Today's Trips</h5>
-                    <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-soft-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#filterSection">
-                            <i class="ri-filter-3-line me-1"></i> Filters
-                        </button>
-                    </div>
+                    <h5 class="card-title mb-0 fw-600">Today's Trips</h5>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#filterSection">
+                        <i class="ri-filter-3-line me-1"></i> Filters
+                    </button>
                 </div>
             </div>
-            <div class="card-body">
+            <div class="card-body py-4">
 
                 <div class="collapse show" id="filterSection">
-                    <div class="row g-3 mb-4 p-3 bg-light rounded">
+                    <div class="row g-3 mb-4 p-4 filter-bar">
                         <div class="col-sm-6 col-md-3">
                             <label class="form-label fw-semibold">
                                 <i class="ri-user-line me-1"></i>Driver
@@ -347,129 +345,115 @@
                     </div>
                 </div>
 
-                <div class="table-responsive">
-                    <table id="trips-table" class="table table-nowrap align-middle mb-0">
-                        <thead class="table-light">
-                                <tr>
-                                    <th scope="col" style="width: 40px;"></th>
-                                    <th scope="col" style="width: 50px;">SL No</th>
-                                    <th scope="col">Trip Date</th>
-                                    <th scope="col">Title</th>
-                                    <th scope="col">Driver</th>
-                                    <th scope="col">Crew Progress</th>
-                                    <th scope="col" style="width: 120px;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($trips as $trip)
-                                    <tr>
-                                        <td>
-                                            <button class="btn btn-sm btn-soft-primary" type="button" data-bs-toggle="collapse" data-bs-target="#trip-details-{{ $trip->id }}" aria-expanded="false">
-                                                <i class="ri-arrow-down-s-line"></i>
-                                            </button>
-                                        </td>
-                                        <td>{{ $loop->iteration }}</td>
-                                        <td>{{ $trip->trip_date instanceof \Carbon\Carbon ? $trip->trip_date->format('M d, Y') : \Carbon\Carbon::parse($trip->trip_date)->format('M d, Y') }}</td>
-                                        <td>{{ $trip->title ?? '-' }}</td>
-                                        <td>
-                                            @if($trip->driver)
-                                                <div class="d-flex align-items-center">
-                                                    <div class="avatar-xs bg-light rounded-circle text-center d-flex align-items-center justify-content-center me-2">
-                                                        <span class="text-primary fw-medium">{{ substr($trip->driver->name, 0, 2) }}</span>
-                                                    </div>
-                                                    <div>
-                                                        <h6 class="mb-0">{{ $trip->driver->name }}</h6>
-                                                    </div>
-                                                </div>
-                                            @else
-                                                <span class="badge bg-secondary-subtle text-secondary">Unassigned</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @php
-                                                $totalJobs = $trip->tripStatus['totalJobs'];
-                                                $isCompleted = $trip->tripStatus['isCompleted'];
-                                                $statusBadge = $trip->tripStatus['statusBadge'];
-                                                $statusText = $trip->tripStatus['statusText'];
-                                            @endphp
-                                            
-                                            <div class="d-flex align-items-center gap-2 mb-2">
-                                                <span class="badge bg-{{ $statusBadge }}">{{ $statusText }}</span>
-                                                <small class="text-muted">{{ $totalJobs }} crew(s)</small>
-                                            </div>
-                                        </td>
-                                        <td>
-
-                                            <div class="d-flex gap-2">
-                                                <a href="{{ route('trips.show', $trip->id) }}" class="btn btn-sm btn-soft-info" data-bs-toggle="tooltip" title="View Details">
-                                                    <i class="ri-eye-line"></i>
-                                                </a>
-                                                <a href="{{ route('trips.edit', $trip->id) }}" class="btn btn-sm btn-soft-primary" data-bs-toggle="tooltip" title="Edit Trip">
-                                                    <i class="ri-pencil-line"></i>
-                                                </a>
-                                                <form action="{{ route('trips.destroy', $trip->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this trip?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-sm btn-soft-danger" data-bs-toggle="tooltip" title="Delete Trip">
-                                                        <i class="ri-delete-bin-line"></i>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <!-- Collapsible Details Row -->
-                                    <tr class="collapse bg-light" id="trip-details-{{ $trip->id }}">
-                                        <td colspan="7" class="p-0">
-                                            <div class="p-3">
-                                                <h6 class="mb-3 text-muted text-uppercase fs-11">Crew Details</h6>
-                                                <div class="table-responsive">
-                                                    <table class="table table-sm table-bordered mb-0 bg-white">
-                                                        <thead class="table-light">
-                                                            <tr>
-                                                                <th>Crew Name</th>
-                                                                <th>Crew Contact No</th>
-                                                                <th>Crew Contact No 2</th>
-                                                                <th>Vessel</th>
-                                                                <th>Pick-up Time</th>
-                                                                <th>Route</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            @foreach($trip->crews as $crew)
-                                                                <tr>
-                                                                    <td>{{ $crew->name }}</td>
-                                                                    <td>{{ $crew->phone ?? '-' }}</td>
-                                                                    <td>{{ $crew->phone_2 ?? '-' }}</td>
-                                                                    <td>{{ $crew->vessel->name ?? '-' }}</td>
-                                                                    <td>{{ \Carbon\Carbon::parse($crew->pick_up_time)->format('h:i A') }}</td>
-                                                                    <td>
-                                                                        <span class="text-truncate d-inline-block" style="max-width: 100px;" title="{{ $crew->from_location }}">{{ $crew->from_location }}</span>
-                                                                        <i class="ri-arrow-right-line mx-1 text-muted fs-10"></i>
-                                                                        <span class="text-truncate d-inline-block" style="max-width: 100px;" title="{{ $crew->to_location }}">{{ $crew->to_location }}</span>
-                                                                    </td>
-                                                                </tr>
-                                                            @endforeach
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="7" class="text-center py-4">
-                                            <div class="avatar-lg mx-auto mb-3">
-                                                <div class="avatar-title bg-light rounded-circle text-primary fs-1">
-                                                    <i class="ri-search-line"></i>
-                                                </div>
-                                            </div>
-                                            <h5 class="text-muted">No trips found</h5>
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                    </table>
-                </div>
+                @forelse($trips as $trip)
+                    @php
+                        $totalJobs = $trip->tripStatus['totalJobs'];
+                        $statusBadge = $trip->tripStatus['statusBadge'];
+                        $statusText = $trip->tripStatus['statusText'];
+                    @endphp
+                    <div class="trip-card mb-4 trip-status-{{ $statusBadge }}">
+                        <div class="trip-card-header">
+                            <div class="trip-card-main">
+                                <div class="trip-card-title">
+                                    <span class="trip-number">#{{ $loop->iteration }}</span>
+                                    <h5 class="trip-name mb-0">{{ $trip->title ?? 'Untitled Trip' }}</h5>
+                                    <span class="status-pill status-{{ $statusBadge }}">{{ $statusText }}</span>
+                                </div>
+                                <div class="trip-card-meta">
+                                    <span class="meta-pill">
+                                        <i class="ri-calendar-line"></i>
+                                        {{ $trip->trip_date instanceof \Carbon\Carbon ? $trip->trip_date->format('M d, Y') : \Carbon\Carbon::parse($trip->trip_date)->format('M d, Y') }}
+                                    </span>
+                                    <span class="meta-pill">
+                                        <i class="ri-user-line"></i>
+                                        @if($trip->driver){{ $trip->driver->name }}@else<span class="fst-italic">Unassigned</span>@endif
+                                    </span>
+                                    <span class="meta-pill meta-crew">
+                                        <i class="ri-group-line"></i>
+                                        {{ $totalJobs }} crew{{ $totalJobs !== 1 ? 's' : '' }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="trip-card-actions">
+                                <a href="{{ route('trips.show', $trip->id) }}" class="btn-action btn-action-view" data-bs-toggle="tooltip" title="View Details">
+                                    <i class="ri-eye-line"></i>
+                                </a>
+                                <a href="{{ route('trips.edit', $trip->id) }}" class="btn-action btn-action-edit" data-bs-toggle="tooltip" title="Edit Trip">
+                                    <i class="ri-pencil-line"></i>
+                                </a>
+                                <form action="{{ route('trips.destroy', $trip->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this trip?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn-action btn-action-delete" data-bs-toggle="tooltip" title="Delete Trip">
+                                        <i class="ri-delete-bin-line"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="trip-card-crews">
+                            <div class="crews-section-header">
+                                <span class="crews-label"><i class="ri-user-3-line"></i> Crew Members</span>
+                            </div>
+                            @if($trip->crews->isNotEmpty())
+                                <div class="table-responsive">
+                                    <table class="table table-sm trip-crews-table mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Crew Name</th>
+                                                <th>Contact</th>
+                                                <th>Vessel</th>
+                                                <th>Pick-up</th>
+                                                <th>Flight</th>
+                                                <th>Route</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($trip->crews as $crewIndex => $crew)
+                                                <tr>
+                                                    <td class="crew-index">{{ $crewIndex + 1 }}</td>
+                                                    <td class="crew-name">
+                                                        <span class="crew-avatar">{{ strtoupper(substr($crew->name, 0, 2)) }}</span>
+                                                        {{ $crew->name }}
+                                                    </td>
+                                                    <td>
+                                                        @if($crew->phone)
+                                                            <a href="tel:{{ $crew->phone }}" class="text-body">{{ $crew->phone }}</a>
+                                                            @if($crew->phone_2)<br><small class="text-muted">{{ $crew->phone_2 }}</small>@endif
+                                                        @else
+                                                            <span class="text-muted">—</span>
+                                                        @endif
+                                                    </td>
+                                                    <td>{{ $crew->vessel->name ?? '—' }}</td>
+                                                    <td>{{ $crew->pick_up_time ? \Carbon\Carbon::parse($crew->pick_up_time)->format('h:i A') : '—' }}</td>
+                                                    <td>{{ $crew->flight_number ?? '—' }}</td>
+                                                    <td class="route-cell">
+                                                        <span class="route-from">{{ $crew->from_location }}</span>
+                                                        <i class="ri-arrow-right-line route-arrow"></i>
+                                                        <span class="route-to">{{ $crew->to_location }}</span>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @else
+                                <div class="crews-empty">
+                                    <i class="ri-user-follow-line"></i>
+                                    <span>No crew assigned to this trip</span>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @empty
+                    <div class="trip-empty-state">
+                        <div class="trip-empty-icon">
+                            <i class="ri-calendar-todo-line"></i>
+                        </div>
+                        <h5 class="mb-2">No trips found</h5>
+                        <p class="text-muted mb-0">Try adjusting your filters or create a new trip.</p>
+                    </div>
+                @endforelse
 
 
 
@@ -576,5 +560,272 @@
         </div>
     </div>
 </div>
+
+@push('styles')
+<style>
+    .trip-card {
+        background: #fff;
+        border: 1px solid rgba(0,0,0,0.06);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+        transition: box-shadow 0.2s ease, transform 0.2s ease;
+    }
+    .trip-card:hover {
+        box-shadow: 0 8px 24px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .trip-card.trip-status-warning { border-left: 4px solid #f59e0b; }
+    .trip-card.trip-status-secondary { border-left: 4px solid #64748b; }
+    .trip-card.trip-status-info { border-left: 4px solid #06b6d4; }
+    .trip-card.trip-status-success { border-left: 4px solid #10b981; }
+    
+    .trip-card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1.5rem;
+        padding: 1.25rem 1.5rem;
+        background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    .trip-card-main { flex: 1; min-width: 0; }
+    
+    .trip-card-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+    .trip-number {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #64748b;
+        background: #e2e8f0;
+        padding: 0.25rem 0.6rem;
+        border-radius: 6px;
+        letter-spacing: 0.02em;
+    }
+    .trip-name {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #0f172a;
+        letter-spacing: -0.01em;
+    }
+    .status-pill {
+        font-size: 0.6875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 0.2rem 0.6rem;
+        border-radius: 9999px;
+    }
+    .status-pill.status-warning { background: #fef3c7; color: #b45309; }
+    .status-pill.status-secondary { background: #f1f5f9; color: #475569; }
+    .status-pill.status-info { background: #cffafe; color: #0891b2; }
+    .status-pill.status-success { background: #d1fae5; color: #047857; }
+    
+    .trip-card-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .meta-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.8125rem;
+        color: #475569;
+        background: #fff;
+        padding: 0.35rem 0.75rem;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        font-weight: 500;
+    }
+    .meta-pill i {
+        font-size: 0.9rem;
+        color: #94a3b8;
+    }
+    .meta-pill.meta-crew {
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        border-color: #bfdbfe;
+        color: #1d4ed8;
+    }
+    .meta-pill.meta-crew i { color: #3b82f6; }
+    
+    .trip-card-actions {
+        display: flex;
+        gap: 0.25rem;
+        flex-shrink: 0;
+    }
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        background: #fff;
+        color: #64748b;
+        transition: all 0.2s ease;
+    }
+    .btn-action:hover {
+        background: #f8fafc;
+        color: #334155;
+        border-color: #cbd5e1;
+    }
+    .btn-action-edit {
+        background: #0d6efd;
+        border-color: #0d6efd;
+        color: #fff;
+    }
+    .btn-action-edit:hover {
+        background: #0b5ed7;
+        border-color: #0b5ed7;
+        color: #fff;
+    }
+    .btn-action-delete:hover {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #dc2626;
+    }
+    
+    .trip-card-crews {
+        padding: 1.25rem 1.5rem;
+    }
+    .crews-section-header {
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .crews-label {
+        font-size: 0.6875rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #94a3b8;
+    }
+    .crews-label i {
+        margin-right: 0.4rem;
+        opacity: 0.9;
+    }
+    
+    .trip-crews-table {
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #f1f5f9;
+    }
+    .trip-crews-table thead th {
+        font-size: 0.6875rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #64748b;
+        padding: 0.65rem 1rem;
+        background: #f8fafc;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .trip-crews-table tbody tr {
+        border-bottom: 1px solid #f1f5f9;
+        transition: background 0.15s ease;
+    }
+    .trip-crews-table tbody tr:last-child { border-bottom: none; }
+    .trip-crews-table tbody tr:nth-child(even) { background: #fafbfc; }
+    .trip-crews-table tbody tr:hover { background: #f1f5f9 !important; }
+    .trip-crews-table tbody td {
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+        vertical-align: middle;
+        color: #334155;
+    }
+    .crew-index {
+        color: #94a3b8;
+        font-weight: 600;
+        width: 2.5rem;
+        font-size: 0.8125rem;
+    }
+    .crew-name {
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        color: #0f172a;
+    }
+    .crew-avatar {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+        color: #4338ca;
+        font-size: 0.6875rem;
+        font-weight: 700;
+    }
+    .route-cell { font-size: 0.8125rem; }
+    .route-from, .route-to { color: #475569; }
+    .route-arrow {
+        color: #cbd5e1;
+        margin: 0 0.35rem;
+        font-size: 0.7rem;
+    }
+    
+    .crews-empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 2rem;
+        background: #f8fafc;
+        border-radius: 8px;
+        border: 1px dashed #e2e8f0;
+        color: #64748b;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    .crews-empty i {
+        font-size: 1.5rem;
+        opacity: 0.5;
+    }
+    
+    .trip-empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: #f8fafc;
+        border: 2px dashed #e2e8f0;
+        border-radius: 12px;
+    }
+    .trip-empty-icon {
+        width: 5rem;
+        height: 5rem;
+        margin: 0 auto 1.25rem;
+        border-radius: 12px;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.25rem;
+        color: #94a3b8;
+    }
+    .trip-empty-state h5 { color: #334155; font-weight: 600; }
+    
+    .trips-list-card {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.06);
+    }
+    .trips-list-card .card-body {
+        background: #f8fafc;
+    }
+    .filter-bar {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+    }
+</style>
+@endpush
 @endsection
 
