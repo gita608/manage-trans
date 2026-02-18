@@ -364,9 +364,20 @@
                                         <i class="ri-calendar-line"></i>
                                         {{ $trip->trip_date instanceof \Carbon\Carbon ? $trip->trip_date->format('M d, Y') : \Carbon\Carbon::parse($trip->trip_date)->format('M d, Y') }}
                                     </span>
-                                    <span class="meta-pill">
-                                        <i class="ri-user-line"></i>
-                                        @if($trip->driver){{ $trip->driver->name }}@else<span class="fst-italic">Unassigned</span>@endif
+                                    <span class="meta-pill" id="trip-{{ $trip->id }}-driver">
+                                        @if($trip->driver)
+                                            <i class="ri-user-line"></i>{{ $trip->driver->name }}
+                                        @else
+                                            <span class="assign-driver-inline" data-trip-id="{{ $trip->id }}">
+                                                <select class="form-select form-select-sm assign-driver-select">
+                                                    <option value="">Select driver</option>
+                                                    @foreach($drivers as $d)
+                                                        <option value="{{ $d->id }}">{{ $d->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <button type="button" class="btn btn-sm btn-primary assign-driver-btn">Assign</button>
+                                            </span>
+                                        @endif
                                     </span>
                                     <span class="meta-pill meta-crew">
                                         <i class="ri-group-line"></i>
@@ -548,7 +559,58 @@
                             });
                         }
 
-                        // Initialize Bootstrap tooltips
+                        document.addEventListener('click', function(e) {
+                            var btn = e.target.closest('.assign-driver-btn');
+                            if (!btn) return;
+                            var block = btn.closest('.assign-driver-inline');
+                            var tripId = block ? block.getAttribute('data-trip-id') : null;
+                            var select = block ? block.querySelector('.assign-driver-select') : null;
+                            if (!tripId || !select || !select.value) {
+                                if (select && !select.value) alert('Please select a driver.');
+                                return;
+                            }
+                            btn.disabled = true;
+                            btn.textContent = '...';
+                            fetch('{{ url("/trips") }}/' + tripId + '/assign-driver', {
+                                method: 'PATCH',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                    'Accept': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                },
+                                body: JSON.stringify({ driver_id: parseInt(select.value) })
+                            })
+                            .then(function(r) { return r.json(); })
+                            .then(function(data) {
+                                if (data.success) {
+                                    var cell = document.getElementById('trip-' + tripId + '-driver');
+                                    if (cell) {
+                                        cell.innerHTML = '<i class="ri-user-line"></i>' + data.driver_name;
+                                        var card = cell.closest('.trip-card');
+                                        if (card) {
+                                            card.classList.remove('trip-status-secondary');
+                                            card.classList.add('trip-status-warning');
+                                            var statusPill = card.querySelector('.status-pill');
+                                            if (statusPill) {
+                                                statusPill.textContent = 'Assigned';
+                                                statusPill.className = 'status-pill status-warning';
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    alert(data.message || 'Failed to assign driver.');
+                                    btn.disabled = false;
+                                    btn.textContent = 'Assign';
+                                }
+                            })
+                            .catch(function() {
+                                alert('Failed to assign driver.');
+                                btn.disabled = false;
+                                btn.textContent = 'Assign';
+                            });
+                        });
+
                         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
                         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
                             return new bootstrap.Tooltip(tooltipTriggerEl);
@@ -811,6 +873,21 @@
         color: #94a3b8;
     }
     .trip-empty-state h5 { color: #334155; font-weight: 600; }
+    
+    .assign-driver-inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+    .assign-driver-inline .assign-driver-select {
+        font-size: 0.8125rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        border-color: #cbd5e1;
+    }
+    .assign-driver-inline .assign-driver-btn {
+        white-space: nowrap;
+    }
     
     .trips-list-card {
         border-radius: 12px;

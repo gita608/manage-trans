@@ -298,6 +298,42 @@ class TripController extends Controller
         return redirect()->route('trips.index')->with('success', 'Trip updated successfully!');
     }
 
+    public function assignDriver(Request $request, Trip $trip)
+    {
+        $validated = $request->validate([
+            'driver_id' => ['required', 'exists:drivers,id'],
+        ]);
+
+        $driverId = $validated['driver_id'];
+        $oldDriverId = $trip->driver_id;
+        $driverNewlyAssigned = !$oldDriverId;
+
+        $tripTitle = Trip::generateTripTitle($driverId, $trip->trip_date, $trip->id);
+        $trip->update([
+            'driver_id' => $driverId,
+            'title' => $tripTitle,
+            'status' => $driverNewlyAssigned && $trip->status === TripCrew::STATUS_UNASSIGNED
+                ? TripCrew::STATUS_ASSIGNED
+                : $trip->status,
+        ]);
+
+        if ($driverNewlyAssigned) {
+            $this->sendTripNotification($trip);
+        }
+
+        $driver = Driver::find($driverId);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Driver assigned successfully.',
+                'driver_name' => $driver->name,
+            ]);
+        }
+
+        return redirect()->route('trips.index')->with('success', 'Driver assigned successfully!');
+    }
+
     /**
      * Generate trip title based on driver and date
      */
