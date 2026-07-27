@@ -88,14 +88,14 @@
                                 <tr>
                                     <th style="width: 50px;">#</th>
                                     <th style="min-width: 150px;">Driver Name</th>
+                                    <th>Vessel Name <span class="text-danger">*</span></th>
+                                    <th>Pick-up Time <span class="text-danger">*</span></th>
+                                    <th>Flight Number</th>
                                     <th>Crew Name <span class="text-danger">*</span></th>
                                     <th>Crew Contact No</th>
                                     <th>Crew Contact No 2</th>
-                                    <th>Vessel Name <span class="text-danger">*</span></th>
-                                    <th>Pick-up Time <span class="text-danger">*</span></th>
                                     <th>From <span class="text-danger">*</span></th>
                                     <th>To <span class="text-danger">*</span></th>
-                                    <th>Flight Number</th>
                                     <th>Remarks</th>
                                     <th style="width: 50px;">Action</th>
                                 </tr>
@@ -119,15 +119,6 @@
                                             </select>
                                         </td>
                                         <td>
-                                            <input type="text" class="form-control form-control-sm" name="crews[{{ $index }}][name]" value="{{ $crew['name'] ?? '' }}" placeholder="Enter name" required>
-                                        </td>
-                                        <td>
-                                            <input type="text" class="form-control form-control-sm" name="crews[{{ $index }}][phone]" value="{{ $crew['phone'] ?? '' }}" placeholder="Contact number">
-                                        </td>
-                                        <td>
-                                            <input type="text" class="form-control form-control-sm" name="crews[{{ $index }}][phone_2]" value="{{ $crew['phone_2'] ?? '' }}" placeholder="Contact number">
-                                        </td>
-                                        <td>
                                             <select class="form-select form-select-sm vessel-select2" name="crews[{{ $index }}][vessel_id]" required>
                                                 <option value="">Select</option>
                                                 <option value="__create_new__" class="create-new-vessel-option">Create New</option>
@@ -140,13 +131,22 @@
                                             <input type="time" class="form-control form-control-sm" name="crews[{{ $index }}][pick_up_time]" value="{{ $crew['pick_up_time'] ?? '' }}" required>
                                         </td>
                                         <td>
+                                            <input type="text" class="form-control form-control-sm" name="crews[{{ $index }}][flight_number]" value="{{ $crew['flight_number'] ?? '' }}" placeholder="Flight number">
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm" name="crews[{{ $index }}][name]" value="{{ $crew['name'] ?? '' }}" placeholder="Enter name" required>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm" name="crews[{{ $index }}][phone]" value="{{ $crew['phone'] ?? '' }}" placeholder="Contact number">
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm" name="crews[{{ $index }}][phone_2]" value="{{ $crew['phone_2'] ?? '' }}" placeholder="Contact number">
+                                        </td>
+                                        <td>
                                             <input type="text" class="form-control form-control-sm" name="crews[{{ $index }}][from_location]" value="{{ $crew['from_location'] ?? '' }}" placeholder="From" required>
                                         </td>
                                         <td>
                                             <input type="text" class="form-control form-control-sm" name="crews[{{ $index }}][to_location]" value="{{ $crew['to_location'] ?? '' }}" placeholder="To" required>
-                                        </td>
-                                        <td>
-                                            <input type="text" class="form-control form-control-sm" name="crews[{{ $index }}][flight_number]" value="{{ $crew['flight_number'] ?? '' }}" placeholder="Flight number">
                                         </td>
                                         <td>
                                             <input type="text" class="form-control form-control-sm" name="crews[{{ $index }}][remarks]" value="{{ $crew['remarks'] ?? '' }}" placeholder="Remarks">
@@ -319,15 +319,6 @@
                     </select>
                 </td>
                 <td>
-                    <input type="text" class="form-control form-control-sm" name="crews[${index}][name]" placeholder="Enter name" required>
-                </td>
-                <td>
-                    <input type="text" class="form-control form-control-sm" name="crews[${index}][phone]" placeholder="Contact number">
-                </td>
-                <td>
-                    <input type="text" class="form-control form-control-sm" name="crews[${index}][phone_2]" placeholder="Contact number">
-                </td>
-                <td>
                     <select class="form-select form-select-sm vessel-select2" name="crews[${index}][vessel_id]" required>
                         <option value="">Select</option>
                         <option value="__create_new__" class="create-new-vessel-option">Create New </option>
@@ -338,13 +329,22 @@
                     <input type="time" class="form-control form-control-sm" name="crews[${index}][pick_up_time]" required>
                 </td>
                 <td>
+                    <input type="text" class="form-control form-control-sm" name="crews[${index}][flight_number]" placeholder="Flight number">
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm" name="crews[${index}][name]" placeholder="Enter name" required>
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm" name="crews[${index}][phone]" placeholder="Contact number">
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm" name="crews[${index}][phone_2]" placeholder="Contact number">
+                </td>
+                <td>
                     <input type="text" class="form-control form-control-sm" name="crews[${index}][from_location]" placeholder="From" required>
                 </td>
                 <td>
                     <input type="text" class="form-control form-control-sm" name="crews[${index}][to_location]" placeholder="To" required>
-                </td>
-                <td>
-                    <input type="text" class="form-control form-control-sm" name="crews[${index}][flight_number]" placeholder="Flight number">
                 </td>
                 <td>
                     <input type="text" class="form-control form-control-sm" name="crews[${index}][remarks]" placeholder="Remarks">
