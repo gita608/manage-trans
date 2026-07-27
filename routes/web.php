@@ -231,7 +231,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/reports/trip-summary', [ReportController::class, 'tripSummary'])->name('reports.trip-summary');
         Route::get('/reports/trip-expenses', [ReportController::class, 'tripExpenses'])->name('reports.trip-expenses');
         Route::get('/reports/driver-performance', [ReportController::class, 'driverPerformance'])->name('reports.driver-performance');
-        Route::get('/reports/daily-weekly', [ReportController::class, 'dailyWeekly'])->name('reports.daily-weekly');
     });
 
     // Daily Activity Routes
