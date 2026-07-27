@@ -44,17 +44,7 @@
                     @csrf
 
                     <div class="row mb-4">
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="title" class="form-label">Trip Title <small class="text-muted">(Auto-generated)</small></label>
-                                <input type="text" class="form-control @error('title') is-invalid @enderror" id="title" name="title" value="{{ old('title', 'Trip 1') }}" disabled>
-                                @error('title')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <small class="text-muted">Title will be auto-generated based on driver and date</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="trip_date" class="form-label fw-semibold">Date <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control @error('trip_date') is-invalid @enderror" id="trip_date" name="trip_date" value="{{ old('trip_date', date('Y-m-d')) }}" required>
@@ -63,21 +53,7 @@
                                 @enderror
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="driver_id" class="form-label fw-semibold">Driver Name</label>
-                                <select class="form-select @error('driver_id') is-invalid @enderror" id="driver_id" name="driver_id">
-                                    <option value="">Assign Later</option>
-                                    @foreach($drivers as $driver)
-                                        <option value="{{ $driver->id }}" {{ old('driver_id') == $driver->id ? 'selected' : '' }}>{{ $driver->name }}</option>
-                                    @endforeach
-                                </select>
-                                @error('driver_id')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="col-md-3">
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="partner_id" class="form-label fw-semibold">Partner</label>
                                 <select class="form-select @error('partner_id') is-invalid @enderror" id="partner_id" name="partner_id">
@@ -111,6 +87,7 @@
                             <thead class="table-light">
                                 <tr>
                                     <th style="width: 50px;">#</th>
+                                    <th style="min-width: 150px;">Driver Name</th>
                                     <th>Crew Name <span class="text-danger">*</span></th>
                                     <th>Crew Contact No</th>
                                     <th>Crew Contact No 2</th>
@@ -133,6 +110,14 @@
                                 @foreach($crews as $index => $crew)
                                     <tr class="crew-row" data-index="{{ $index }}">
                                         <td class="text-center fw-semibold">{{ $index + 1 }}</td>
+                                        <td>
+                                            <select class="form-select form-select-sm" name="crews[{{ $index }}][driver_id]">
+                                                <option value="">Assign Later</option>
+                                                @foreach($drivers as $driver)
+                                                    <option value="{{ $driver->id }}" {{ ($crew['driver_id'] ?? '') == $driver->id ? 'selected' : '' }}>{{ $driver->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </td>
                                         <td>
                                             <input type="text" class="form-control form-control-sm" name="crews[{{ $index }}][name]" value="{{ $crew['name'] ?? '' }}" placeholder="Enter name" required>
                                         </td>
@@ -280,6 +265,12 @@
     document.addEventListener('DOMContentLoaded', function() {
         const addCrewBtn = document.getElementById('add-crew-row-btn');
         const crewsContainer = document.getElementById('crews-container');
+        const driverOptions = `
+            <option value="">Assign Later</option>
+            @foreach($drivers as $driver)
+                <option value="{{ $driver->id }}">{{ $driver->name }}</option>
+            @endforeach
+        `;
         const vesselOptions = `
             <option value="">Select</option>
             @foreach($vessels as $vessel)
@@ -322,6 +313,11 @@
             row.setAttribute('data-index', index);
             row.innerHTML = `
                 <td class="text-center fw-semibold">${index + 1}</td>
+                <td>
+                    <select class="form-select form-select-sm" name="crews[${index}][driver_id]">
+                        ${driverOptions}
+                    </select>
+                </td>
                 <td>
                     <input type="text" class="form-control form-control-sm" name="crews[${index}][name]" placeholder="Enter name" required>
                 </td>
