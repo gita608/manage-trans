@@ -122,18 +122,13 @@
                         <thead>
                             <tr>
                                 <th>Date</th>
-                                <th>Trip Title</th>
                                 <th>Crew Name</th>
-                                <th>Driver</th>
-                                <th>Partner</th>
                                 <th>Vessel</th>
-                                <th>Pick-up Time</th>
-                                <th>From</th>
-                                <th>To</th>
+                                <th>Time</th>
+                                <th>Destination From</th>
+                                <th>Destination To</th>
                                 <th>Remarks</th>
-                                <th>Sub Remark</th>
-                                <th>Total Expenses</th>
-                                <th>Status</th>
+                                <th class="text-danger">Sub Remark</th>
                                 <th style="display:none;">Created At</th>
                             </tr>
                         </thead>
@@ -141,41 +136,33 @@
                             @foreach($crews as $crew)
                             @php
                                 $trip = $crew->trip;
-                                $totalExpenses = $trip->tripExpenses->sum('amount') ?? 0;
                             @endphp
                             <tr>
                                 <td data-order="{{ $trip->trip_date->timestamp }}">{{ $trip->trip_date->format('M d, Y') }}</td>
-                                <td>{{ $trip->title ?? '-' }}</td>
-                                <td>{{ $crew->name ?? '-' }}</td>
-                                <td>{{ $trip->driver->name ?? '-' }}</td>
-                                <td>{{ $trip->partner ? $trip->partner->title : '-' }}</td>
+                                <td><strong>{{ $crew->name ?? '-' }}</strong></td>
                                 <td>{{ $crew->vessel ? $crew->vessel->name : '-' }}</td>
                                 <td>{{ $crew->pick_up_time ? \Carbon\Carbon::parse($crew->pick_up_time)->format('h:i A') : '-' }}</td>
                                 <td>
-                                    <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $crew->from_location ?? '-' }}">
+                                    <span class="text-truncate d-inline-block" style="max-width: 140px;" title="{{ $crew->from_location ?? '-' }}">
                                         {{ $crew->from_location ?? '-' }}
                                     </span>
                                 </td>
                                 <td>
-                                    <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $crew->to_location ?? '-' }}">
+                                    <span class="text-truncate d-inline-block" style="max-width: 140px;" title="{{ $crew->to_location ?? '-' }}">
                                         {{ $crew->to_location ?? '-' }}
                                     </span>
                                 </td>
                                 <td>
-                                    <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $crew->remarks ?? '-' }}">
+                                    <span class="text-truncate d-inline-block" style="max-width: 140px;" title="{{ $crew->remarks ?? '-' }}">
                                         {{ $crew->remarks ?? '-' }}
                                     </span>
                                 </td>
                                 <td>
-                                    <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $crew->sub_remark ?? '-' }}">
-                                        {{ $crew->sub_remark ?? '-' }}
-                                    </span>
-                                </td>
-                                <td>{{ number_format($totalExpenses, 2) }}</td>
-                                <td>
-                                    <span class="badge {{ $trip->getStatusBadgeClass() }}">
-                                        {{ ucfirst(str_replace('_', ' ', $trip->status)) }}
-                                    </span>
+                                    @if(!empty($crew->sub_remark) && $crew->sub_remark !== '-')
+                                        <span class="badge-sub-remark">{{ $crew->sub_remark }}</span>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
                                 </td>
                                 <td style="display:none;" data-order="{{ $crew->created_at->timestamp }}">{{ $crew->created_at->format('Y-m-d H:i:s') }}</td>
                             </tr>
@@ -210,6 +197,15 @@
     }
     .dt-buttons .btn {
         margin-right: 0.35rem !important;
+    }
+    .badge-sub-remark {
+        color: #dc3545 !important;
+        background-color: rgba(220, 53, 69, 0.08);
+        border: 1px solid rgba(220, 53, 69, 0.25);
+        font-weight: 700 !important;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        display: inline-block;
     }
 </style>
 @endpush
@@ -246,42 +242,78 @@
                     className: 'btn btn-success btn-sm',
                     title: 'Trip Summary Report',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7],
                         modifier: {
                             page: 'all',
                             search: 'none'
                         },
                         format: {
                             body: function(data, row, column, node) {
-                                // Helper function to strip HTML and extract text
                                 function stripHtml(html) {
                                     if (!html) return '';
-                                    
-                                    // If it's already plain text (no HTML tags), return it
                                     if (typeof html === 'string' && !/<[^>]+>/.test(html)) {
                                         return html.trim();
                                     }
-                                    
-                                    // If we have a DOM node, extract text directly
                                     if (node && node.nodeType === 1) {
                                         return $(node).text().trim() || '';
                                     }
-                                    
-                                    // If it's a string with HTML, create a temporary element to extract text
                                     if (typeof html === 'string') {
                                         var $temp = $('<div>').html(html);
-                                        var text = $temp.text().trim();
-                                        return text || html.replace(/<[^>]+>/g, '').trim();
+                                        return $temp.text().trim() || html.replace(/<[^>]+>/g, '').trim();
                                     }
-                                    
                                     return '';
                                 }
-                                
                                 return stripHtml(data);
                             }
                         }
                     },
-                    filename: 'Trip_Summary_Report_' + new Date().toISOString().split('T')[0]
+                    filename: 'Trip_Summary_Report_' + new Date().toISOString().split('T')[0],
+                    customize: function(xlsx) {
+                        var sheet = xlsx.xl.worksheets['sheet1.xml'];
+                        var styles = xlsx.xl['styles.xml'];
+
+                        try {
+                            var parser = new DOMParser();
+                            var xmlDoc = parser.parseFromString(styles, 'text/xml');
+
+                            // Add Red Font for Sub Remark
+                            var fonts = xmlDoc.getElementsByTagName('fonts')[0];
+                            var fontNode = xmlDoc.createElement('font');
+                            fontNode.innerHTML = '<sz val="11"/><color rgb="FFDC3545"/><name val="Calibri"/><b/>';
+                            fonts.appendChild(fontNode);
+                            fonts.setAttribute('count', fonts.getElementsByTagName('font').length);
+                            var redFontIdx = fonts.getElementsByTagName('font').length - 1;
+
+                            // Add cell format XF for Red Sub Remark
+                            var cellXfs = xmlDoc.getElementsByTagName('cellXfs')[0];
+                            var redXf = xmlDoc.createElement('xf');
+                            redXf.setAttribute('numFmtId', '0');
+                            redXf.setAttribute('fontId', redFontIdx);
+                            redXf.setAttribute('fillId', '0');
+                            redXf.setAttribute('borderId', '0');
+                            redXf.setAttribute('xfId', '0');
+                            redXf.setAttribute('applyFont', '1');
+                            cellXfs.appendChild(redXf);
+                            var redStyleId = cellXfs.getElementsByTagName('xf').length - 1;
+
+                            cellXfs.setAttribute('count', cellXfs.getElementsByTagName('xf').length);
+
+                            var serializer = new XMLSerializer();
+                            xlsx.xl['styles.xml'] = serializer.serializeToString(xmlDoc);
+
+                            // Apply redStyleId to Sub Remark column (H) cells with non-empty content
+                            $('row', sheet).each(function(rIdx) {
+                                if (rIdx > 0) {
+                                    var cell = $(this).find('c[r^="H"]');
+                                    if (cell.length && cell.text().trim() !== '' && cell.text().trim() !== '-') {
+                                        cell.attr('s', redStyleId);
+                                    }
+                                }
+                            });
+                        } catch (e) {
+                            console.error('Error styling Excel export:', e);
+                        }
+                    }
                 },
                 {
                     extend: 'pdfHtml5',
@@ -291,247 +323,96 @@
                     orientation: 'landscape',
                     pageSize: 'A4',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7],
                         modifier: {
                             page: 'all',
                             search: 'none'
                         },
                         format: {
                             body: function(data, row, column, node) {
-                                // Helper function to strip HTML and extract text
                                 function stripHtml(html) {
                                     if (!html) return '';
-                                    
-                                    // If it's already plain text (no HTML tags), return it
                                     if (typeof html === 'string' && !/<[^>]+>/.test(html)) {
                                         return html.trim();
                                     }
-                                    
-                                    // If we have a DOM node, extract text directly
                                     if (node && node.nodeType === 1) {
                                         return $(node).text().trim() || '';
                                     }
-                                    
-                                    // If it's a string with HTML, create a temporary element to extract text
                                     if (typeof html === 'string') {
                                         var $temp = $('<div>').html(html);
-                                        var text = $temp.text().trim();
-                                        return text || html.replace(/<[^>]+>/g, '').trim();
+                                        return $temp.text().trim() || html.replace(/<[^>]+>/g, '').trim();
                                     }
-                                    
                                     return '';
                                 }
-                                
                                 return stripHtml(data);
                             }
                         }
                     },
                     filename: 'Trip_Summary_Report_' + new Date().toISOString().split('T')[0],
                     customize: function(doc) {
-                        // Set document properties
                         doc.info = doc.info || {};
                         doc.info.title = 'Trip Summary Report';
                         doc.info.author = '{{ config("app.name") }}';
                         doc.info.subject = 'Trip Summary Report';
-                        doc.info.keywords = 'trips, summary, report';
                         
-                        // Add header with logo and company info
                         doc.header = function(currentPage, pageCount) {
                             return {
                                 columns: [
-                                    {
-                                        text: '{{ config("app.name") }}',
-                                        style: 'companyName',
-                                        alignment: 'left',
-                                        margin: [40, 20, 0, 0]
-                                    },
-                                    {
-                                        text: 'Trip Summary Report',
-                                        style: 'headerTitle',
-                                        alignment: 'center',
-                                        margin: [0, 20, 0, 0]
-                                    },
-                                    {
-                                        text: 'Page ' + currentPage.toString() + ' of ' + pageCount,
-                                        alignment: 'right',
-                                        style: 'pageNumber',
-                                        margin: [0, 20, 40, 0]
-                                    }
+                                    { text: '{{ config("app.name") }}', style: 'companyName', alignment: 'left', margin: [40, 20, 0, 0] },
+                                    { text: 'Trip Summary Report', style: 'headerTitle', alignment: 'center', margin: [0, 20, 0, 0] },
+                                    { text: 'Page ' + currentPage.toString() + ' of ' + pageCount, alignment: 'right', style: 'pageNumber', margin: [0, 20, 40, 0] }
                                 ]
                             };
                         };
                         
-                        // Add footer with generation date and time
                         doc.footer = function(currentPage, pageCount) {
                             return {
                                 columns: [
-                                    {
-                                        text: 'Generated on: ' + new Date().toLocaleString('en-US', {
-                                            year: 'numeric',
-                                            month: 'long',
-                                            day: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit'
-                                        }),
-                                        alignment: 'left',
-                                        style: 'footer',
-                                        margin: [40, 0, 0, 20]
-                                    },
-                                    {
-                                        text: '© {{ date("Y") }} {{ config("app.name") }}',
-                                        alignment: 'right',
-                                        style: 'footer',
-                                        margin: [0, 0, 40, 20]
-                                    }
+                                    { text: 'Generated on: ' + new Date().toLocaleString(), alignment: 'left', style: 'footer', margin: [40, 0, 0, 20] },
+                                    { text: '© {{ date("Y") }} {{ config("app.name") }}', alignment: 'right', style: 'footer', margin: [0, 0, 40, 20] }
                                 ]
                             };
                         };
+
+                        doc.styles.companyName = { fontSize: 14, bold: true, color: '#1e3a8a' };
+                        doc.styles.headerTitle = { fontSize: 12, bold: true, color: '#374151' };
+                        doc.styles.pageNumber = { fontSize: 9, color: '#6b7280' };
+                        doc.styles.footer = { fontSize: 8, color: '#9ca3af' };
                         
-                        // Add filter information before the table
-                        var filterInfo = [];
-                        var dateFrom = '{{ request("date_from") }}';
-                        var dateTo = '{{ request("date_to") }}';
-                        var driver = '{{ request("driver_id") ? ($drivers->firstWhere("id", request("driver_id"))->name ?? "All Drivers") : "All Drivers" }}';
-                        var vessel = '{{ request("vessel_id") ? ($vessels->firstWhere("id", request("vessel_id"))->name ?? "All Vessels") : "All Vessels" }}';
-                        var status = '{{ request("status") ? ucfirst(str_replace("_", " ", request("status"))) : "All Status" }}';
-                        
-                        if (dateFrom || dateTo || driver !== 'All Drivers' || vessel !== 'All Vessels' || status !== 'All Status') {
-                            filterInfo.push({
-                                text: 'Applied Filters:',
-                                style: 'filterHeader',
-                                margin: [0, 10, 0, 5]
-                            });
-                            
-                            var filters = [];
-                            if (dateFrom) filters.push('Date From: ' + dateFrom);
-                            if (dateTo) filters.push('Date To: ' + dateTo);
-                            if (driver !== 'All Drivers') filters.push('Driver: ' + driver);
-                            if (vessel !== 'All Vessels') filters.push('Vessel: ' + vessel);
-                            if (status !== 'All Status') filters.push('Status: ' + status);
-                            
-                            filterInfo.push({
-                                text: filters.join(' | '),
-                                style: 'filterText',
-                                margin: [0, 0, 0, 10]
-                            });
-                        }
-                        
-                        // Insert filter info before the table
-                        if (filterInfo.length > 0) {
-                            doc.content.splice(1, 0, ...filterInfo);
-                        }
-                        
-                        // Style the document
-                        doc.styles.companyName = {
-                            fontSize: 14,
-                            bold: true,
-                            color: '#1e3a8a'
-                        };
-                        
-                        doc.styles.headerTitle = {
-                            fontSize: 12,
-                            bold: true,
-                            color: '#374151'
-                        };
-                        
-                        doc.styles.pageNumber = {
-                            fontSize: 9,
-                            color: '#6b7280'
-                        };
-                        
-                        doc.styles.footer = {
-                            fontSize: 8,
-                            color: '#9ca3af'
-                        };
-                        
-                        doc.styles.filterHeader = {
-                            fontSize: 11,
-                            bold: true,
-                            color: '#374151'
-                        };
-                        
-                        doc.styles.filterText = {
-                            fontSize: 9,
-                            color: '#6b7280',
-                            italics: true
-                        };
-                        
-                        // Style the table
-                        doc.styles.tableHeader = {
-                            fontSize: 10,
-                            bold: true,
-                            fillColor: '#1e3a8a',
-                            color: '#ffffff',
-                            alignment: 'left'
-                        };
-                        
-                        doc.styles.tableBodyOdd = {
-                            fontSize: 9,
-                            fillColor: '#f9fafb'
-                        };
-                        
-                        doc.styles.tableBodyEven = {
-                            fontSize: 9,
-                            fillColor: '#ffffff'
-                        };
-                        
-                        // Apply styles to table
+                        // Style the sub remark column in PDF
                         if (doc.content[doc.content.length - 1].table) {
                             var table = doc.content[doc.content.length - 1];
-                            
-                            // Style header row
                             table.table.headerRows = 1;
-                            table.table.widths = ['auto', 'auto', '*', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'];
                             
-                            // Add borders and styling
-                            table.layout = {
-                                hLineWidth: function(i, node) {
-                                    return (i === 0 || i === 1 || i === node.table.body.length) ? 1 : 0.5;
-                                },
-                                vLineWidth: function(i, node) {
-                                    return 0.5;
-                                },
-                                hLineColor: function(i, node) {
-                                    return (i === 0 || i === 1 || i === node.table.body.length) ? '#1e3a8a' : '#e5e7eb';
-                                },
-                                vLineColor: function(i, node) {
-                                    return '#e5e7eb';
-                                },
-                                paddingLeft: function(i, node) { return 8; },
-                                paddingRight: function(i, node) { return 8; },
-                                paddingTop: function(i, node) { return 6; },
-                                paddingBottom: function(i, node) { return 6; }
-                            };
-                            
-                            // Style rows
                             for (var i = 0; i < table.table.body.length; i++) {
-                                for (var j = 0; j < table.table.body[i].length; j++) {
-                                    if (i === 0) {
-                                        // Header row
-                                        table.table.body[i][j].fillColor = '#1e3a8a';
-                                        table.table.body[i][j].color = '#ffffff';
-                                        table.table.body[i][j].bold = true;
-                                        table.table.body[i][j].fontSize = 10;
-                                    } else {
-                                        // Data rows - alternating colors
-                                        table.table.body[i][j].fillColor = (i % 2 === 0) ? '#ffffff' : '#f9fafb';
-                                        table.table.body[i][j].fontSize = 9;
+                                var row = table.table.body[i];
+                                for (var j = 0; j < row.length; j++) {
+                                    if (i > 0 && j === 7) {
+                                        // Sub Remark column (index 7) -> Red text (#dc3545), bold
+                                        var txt = (typeof row[j] === 'object' && row[j].text) ? row[j].text : row[j];
+                                        if (txt && txt !== '-' && txt.trim() !== '') {
+                                            row[j] = {
+                                                text: txt,
+                                                color: '#dc3545',
+                                                bold: true,
+                                                fillColor: (i % 2 === 0) ? '#ffffff' : '#f9fafb'
+                                            };
+                                        }
                                     }
                                 }
                             }
                         }
                         
-                        // Add page margins
                         doc.pageMargins = [40, 60, 40, 50];
                     }
                 }
             ],
             pageLength: 25,
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-            order: [[0, 'asc']], // Sort by date (column 0) ascending
+            order: [[0, 'asc']],
             columnDefs: [
                 {
-                    targets: 11,
+                    targets: 8,
                     visible: false,
                     searchable: false
                 }
@@ -545,9 +426,7 @@
                 infoFiltered: "(filtered from _MAX_ total crews)",
                 zeroRecords: "No matching crews found",
                 emptyTable: "No crews available"
-            },
-            responsive: true,
-            paging: true
+            }
         });
     });
 </script>
