@@ -129,6 +129,13 @@
                                 <th>Destination To</th>
                                 <th>Remarks</th>
                                 <th class="text-danger">Sub Remark</th>
+                                <th>Charge (Waiting Charge)</th>
+                                <th>Charge (Port pass)</th>
+                                <th>Charge (DARB and SALIK)</th>
+                                <th>Charge (Parking)</th>
+                                <th>Amount</th>
+                                <th>Actual(-20%) Charged to OMS</th>
+                                <th>COMMENTS</th>
                                 <th style="display:none;">Created At</th>
                             </tr>
                         </thead>
@@ -164,6 +171,13 @@
                                         <span class="text-muted">-</span>
                                     @endif
                                 </td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
                                 <td style="display:none;" data-order="{{ $crew->created_at->timestamp }}">{{ $crew->created_at->format('Y-m-d H:i:s') }}</td>
                             </tr>
                             @endforeach
@@ -242,7 +256,7 @@
                     className: 'btn btn-success btn-sm',
                     title: 'Trip Summary Report',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7],
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
                         modifier: {
                             page: 'all',
                             search: 'none'
@@ -374,7 +388,7 @@
                     orientation: 'landscape',
                     pageSize: 'A4',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7],
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
                         modifier: {
                             page: 'all',
                             search: 'none'
@@ -463,7 +477,7 @@
             order: [[0, 'asc']],
             columnDefs: [
                 {
-                    targets: 8,
+                    targets: 15,
                     visible: false,
                     searchable: false
                 }
