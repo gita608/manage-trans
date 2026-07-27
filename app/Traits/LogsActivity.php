@@ -226,8 +226,10 @@ trait LogsActivity
                 } else {
                     // Simple label string
                     $fieldLabel = $mapping;
+                    $oldDisplay = is_array($oldValue) ? implode(', ', $oldValue) : (string) $oldValue;
+                    $newDisplay = is_array($newValue) ? implode(', ', $newValue) : (string) $newValue;
                     if ($oldValue !== null) {
-                        $changes[] = "{$fieldLabel} changed from '{$oldValue}' to '{$newValue}'";
+                        $changes[] = "{$fieldLabel} changed from '{$oldDisplay}' to '{$newDisplay}'";
                     } else {
                         $changes[] = "{$fieldLabel} updated";
                     }
@@ -235,8 +237,10 @@ trait LogsActivity
             } else {
                 // Default: use field name with formatting
                 $fieldLabel = str_replace('_', ' ', ucwords($field, '_'));
+                $oldDisplay = is_array($oldValue) ? implode(', ', $oldValue) : (string) $oldValue;
+                $newDisplay = is_array($newValue) ? implode(', ', $newValue) : (string) $newValue;
                 if ($oldValue !== null) {
-                    $changes[] = "{$fieldLabel} changed from '{$oldValue}' to '{$newValue}'";
+                    $changes[] = "{$fieldLabel} changed from '{$oldDisplay}' to '{$newDisplay}'";
                 } else {
                     $changes[] = "{$fieldLabel} updated";
                 }
