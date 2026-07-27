@@ -482,6 +482,7 @@
     let driversData = [];
     let autoRefreshInterval = null;
     let currentTileLayer = null;
+    let savedTheme = localStorage.getItem('mapTheme') || 'light';
     const REFRESH_INTERVAL = 30000; // 30 seconds
 
     // Map theme configurations
@@ -527,6 +528,7 @@
         // Load saved theme or default to light
         const themeSel = document.getElementById('themeSelector');
         if (themeSel) themeSel.value = savedTheme;
+        changeMapTheme(savedTheme);
 
         // Load initial driver locations
         loadDriverLocations();
@@ -538,6 +540,7 @@
             theme = 'light'; // Fallback to light if invalid theme
         }
 
+        localStorage.setItem('mapTheme', theme);
         const config = mapThemes[theme];
         
         // Remove current tile layer
@@ -656,6 +659,9 @@
 
     // Update Driver List Sidebar
     function updateDriverList(drivers) {
+        const listContainer = document.getElementById('driverList');
+        if (!listContainer) return;
+
         const searchInput = document.getElementById('driverSearch');
         const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
         

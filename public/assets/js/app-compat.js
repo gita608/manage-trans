@@ -71,6 +71,13 @@
             dummy.id = id;
             dummy.style.display = 'none';
             dummy.click = function() {};
+            dummy.addEventListener = function() {};
+            dummy.removeEventListener = function() {};
+            dummy.setAttribute = function() {};
+            dummy.getAttribute = function() { return null; };
+            dummy.removeAttribute = function() {};
+            dummy.querySelector = function() { return null; };
+            dummy.querySelectorAll = function() { return []; };
             dummyElementCache[id] = dummy;
         }
         return dummyElementCache[id];
