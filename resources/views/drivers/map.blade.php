@@ -773,36 +773,46 @@
             });
 
             // Create popup content
+            const initials = driver.name.substring(0, 2).toUpperCase();
             const popupContent = `
-                <div class="popup-header">
-                    <h6 class="popup-title">${driver.name}</h6>
-                    <span class="availability-badge ${isBusy ? 'busy' : 'free'}">
-                        ${isBusy ? '🔴 Busy' : '🟢 Free'}
-                    </span>
+                <div class="popup-header ${isBusy ? 'header-busy' : 'header-free'}">
+                    <div class="popup-driver-info">
+                        <div class="popup-avatar ${isBusy ? 'busy-av' : 'free-av'}">${initials}</div>
+                        <div>
+                            <div class="popup-title">${driver.name}</div>
+                            <span class="availability-badge ${isBusy ? 'busy' : 'free'}">
+                                ${isBusy ? '🔴 Busy' : '🟢 Free'}
+                            </span>
+                        </div>
+                    </div>
                 </div>
                 <div class="popup-body">
                     <div class="popup-row">
+                        <i class="ri-map-pin-user-line"></i>
                         <span class="popup-label">Status:</span>
-                        <span class="popup-value" style="font-weight:600;color:${isBusy ? '#dc2626' : '#047857'}">
+                        <span class="popup-value" style="color:${isBusy ? '#dc2626' : '#047857'}">
                             ${isBusy ? 'On Active Trip' : 'Available'}
                         </span>
                     </div>
                     <div class="popup-row">
+                        <i class="ri-car-line"></i>
                         <span class="popup-label">Type:</span>
                         <span class="popup-value">${driver.type_label}</span>
                     </div>
                     <div class="popup-row">
+                        <i class="ri-phone-line"></i>
                         <span class="popup-label">Contact:</span>
                         <span class="popup-value">${driver.contact || 'N/A'}</span>
                     </div>
                     <div class="popup-row">
+                        <i class="ri-time-line"></i>
                         <span class="popup-label">Updated:</span>
                         <span class="popup-value">${driver.updated_at_human}</span>
                     </div>
                 </div>
                 <div class="popup-actions">
                     <a href="{{ url('drivers') }}/${driver.id}" class="btn btn-sm btn-primary w-100">
-                        View Profile
+                        <i class="ri-user-line me-1"></i> View Profile
                     </a>
                 </div>
             `;
@@ -834,9 +844,9 @@
 
         if (filteredDrivers.length === 0) {
             listContainer.innerHTML = `
-                <div class="text-center p-4 text-muted">
-                    <i class="ri-user-unfollow-line fs-24 mb-2"></i>
-                    <p class="mb-0">No drivers found</p>
+                <div class="driver-empty">
+                    <i class="ri-user-unfollow-line"></i>
+                    <p>No drivers found</p>
                 </div>
             `;
             return;
@@ -849,23 +859,21 @@
             
             html += `
                 <div class="driver-item" onclick="focusDriver(${driver.id})">
-                    <div class="driver-avatar">
+                    <div class="driver-avatar ${isBusy ? 'avatar-busy' : 'avatar-free'}">
                         ${initials}
                         <span class="status-dot ${isBusy ? 'busy' : 'free'}"></span>
                     </div>
                     <div class="driver-details">
                         <div class="driver-name">${driver.name}</div>
                         <div class="driver-meta">
-                            <span>${driver.type_label}</span>
-                            <span>•</span>
-                            <span class="availability-badge ${isBusy ? 'busy' : 'free'}" style="font-size:10px;padding:1px 6px;">
-                                ${isBusy ? '🔴 Busy' : '🟢 Free'}
+                            <span class="driver-type-tag">${driver.type_label}</span>
+                            <span class="text-muted" style="font-size:10px">•</span>
+                            <span class="availability-badge ${isBusy ? 'busy' : 'free'}">
+                                ${isBusy ? 'Busy' : 'Free'}
                             </span>
                         </div>
                     </div>
-                    <div class="ms-2">
-                        <i class="ri-arrow-right-s-line text-muted"></i>
-                    </div>
+                    <i class="ri-arrow-right-s-line text-muted fs-16"></i>
                 </div>
             `;
         });
