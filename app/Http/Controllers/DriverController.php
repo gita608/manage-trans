@@ -204,21 +204,29 @@ class DriverController extends Controller
      */
     public function locations(Request $request)
     {
-        $drivers = Driver::with('latestLocation')
+        $today = today()->format('Y-m-d');
+
+        $drivers = Driver::with(['latestLocation', 'trips' => function ($q) use ($today) {
+            $q->whereDate('trip_date', $today)
+              ->whereIn('status', [\App\Models\TripCrew::STATUS_ASSIGNED, \App\Models\TripCrew::STATUS_IN_PROGRESS]);
+        }])
             ->whereHas('latestLocation')
             ->get()
             ->map(function($driver) {
                 $location = $driver->latestLocation;
+                $isBusy = $driver->trips->isNotEmpty(); // Has at least one active trip today
+
                 return [
-                    'id' => $driver->id,
-                    'name' => $driver->name,
-                    'type' => $driver->type,
-                    'type_label' => $driver->getTypeLabel(),
-                    'contact' => $driver->contact,
-                    'latitude' => (float) $location->latitude,
-                    'longitude' => (float) $location->longitude,
-                    'updated_at' => $location->updated_at->format('Y-m-d H:i:s'),
+                    'id'               => $driver->id,
+                    'name'             => $driver->name,
+                    'type'             => $driver->type,
+                    'type_label'       => $driver->getTypeLabel(),
+                    'contact'          => $driver->contact,
+                    'latitude'         => (float) $location->latitude,
+                    'longitude'        => (float) $location->longitude,
+                    'updated_at'       => $location->updated_at->format('Y-m-d H:i:s'),
                     'updated_at_human' => $location->updated_at->diffForHumans(),
+                    'is_busy'          => $isBusy,
                 ];
             });
 

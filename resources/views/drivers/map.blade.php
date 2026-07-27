@@ -143,8 +143,28 @@
         border: 2px solid #fff;
     }
 
-    .status-dot.online { background-color: #10b981; }
-    .status-dot.offline { background-color: #ef4444; }
+    .status-dot.free   { background-color: #10b981; }
+    .status-dot.busy   { background-color: #ef4444; }
+
+    .availability-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .availability-badge.free {
+        background: #d1fae5;
+        color: #047857;
+    }
+    .availability-badge.busy {
+        background: #fee2e2;
+        color: #dc2626;
+    }
 
     .driver-details {
         flex: 1;
@@ -414,12 +434,12 @@
                             <div class="stat-label">Total</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-value text-success" id="onlineDrivers">0</div>
-                            <div class="stat-label">Online</div>
+                            <div class="stat-value text-success" id="freeDrivers">0</div>
+                            <div class="stat-label">🟢 Free</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-value text-danger" id="offlineDrivers">0</div>
-                            <div class="stat-label">Offline</div>
+                            <div class="stat-value text-danger" id="busyDrivers">0</div>
+                            <div class="stat-label">🔴 Busy</div>
                         </div>
                     </div>
                     <div class="search-box">
@@ -591,10 +611,10 @@
         drivers.forEach(driver => {
             const lat = driver.latitude;
             const lng = driver.longitude;
-            const isOnline = isRecent(driver.updated_at);
+            const isBusy = driver.is_busy;
 
-            // Determine marker color
-            const markerColor = isOnline ? '#ef4444' : '#6b7280'; // Red for Online, Gray for Offline
+            // Determine marker color: red = busy, green = free
+            const markerColor = isBusy ? '#ef4444' : '#10b981';
 
             // Create custom icon
             const customIcon = L.divIcon({
@@ -620,11 +640,17 @@
             const popupContent = `
                 <div class="popup-header">
                     <h6 class="popup-title">${driver.name}</h6>
-                    <span class="badge ${isOnline ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'}">
-                        ${isOnline ? 'Online' : 'Offline'}
+                    <span class="availability-badge ${isBusy ? 'busy' : 'free'}">
+                        ${isBusy ? '🔴 Busy' : '🟢 Free'}
                     </span>
                 </div>
                 <div class="popup-body">
+                    <div class="popup-row">
+                        <span class="popup-label">Status:</span>
+                        <span class="popup-value" style="font-weight:600;color:${isBusy ? '#dc2626' : '#047857'}">
+                            ${isBusy ? 'On Active Trip' : 'Available'}
+                        </span>
+                    </div>
                     <div class="popup-row">
                         <span class="popup-label">Type:</span>
                         <span class="popup-value">${driver.type_label}</span>
@@ -682,21 +708,23 @@
 
         let html = '';
         filteredDrivers.forEach(driver => {
-            const isOnline = isRecent(driver.updated_at);
+            const isBusy = driver.is_busy;
             const initials = driver.name.substring(0, 2).toUpperCase();
             
             html += `
                 <div class="driver-item" onclick="focusDriver(${driver.id})">
                     <div class="driver-avatar">
                         ${initials}
-                        <span class="status-dot ${isOnline ? 'online' : 'offline'}"></span>
+                        <span class="status-dot ${isBusy ? 'busy' : 'free'}"></span>
                     </div>
                     <div class="driver-details">
                         <div class="driver-name">${driver.name}</div>
                         <div class="driver-meta">
                             <span>${driver.type_label}</span>
                             <span>•</span>
-                            <span>${driver.updated_at_human}</span>
+                            <span class="availability-badge ${isBusy ? 'busy' : 'free'}" style="font-size:10px;padding:1px 6px;">
+                                ${isBusy ? '🔴 Busy' : '🟢 Free'}
+                            </span>
                         </div>
                     </div>
                     <div class="ms-2">
@@ -712,16 +740,16 @@
     // Update Stats
     function updateStats(drivers) {
         const total = drivers.length;
-        const online = drivers.filter(d => isRecent(d.updated_at)).length;
-        const offline = total - online;
+        const busy  = drivers.filter(d => d.is_busy).length;
+        const free  = total - busy;
 
         const elTotal = document.getElementById('totalDrivers');
-        const elOnline = document.getElementById('onlineDrivers');
-        const elOffline = document.getElementById('offlineDrivers');
+        const elFree  = document.getElementById('freeDrivers');
+        const elBusy  = document.getElementById('busyDrivers');
 
         if (elTotal) elTotal.textContent = total;
-        if (elOnline) elOnline.textContent = online;
-        if (elOffline) elOffline.textContent = offline;
+        if (elFree)  elFree.textContent  = free;
+        if (elBusy)  elBusy.textContent  = busy;
     }
 
     // Focus on a specific driver
