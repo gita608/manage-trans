@@ -117,8 +117,8 @@
                 </div>
             </div>
             <div class="card-body">
-                <div class="table-responsive">
-                    <table id="tripSummaryTable" class="table table-hover table-nowrap align-middle mb-0">
+                <div>
+                    <table id="tripSummaryTable" class="table table-hover table-nowrap align-middle mb-0 w-100">
                         <thead>
                             <tr>
                                 <th>Date</th>
@@ -193,11 +193,23 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
 <style>
-    .dt-buttons {
-        margin-bottom: 1rem;
+    .dataTables_wrapper {
+        width: 100%;
     }
-    .dt-button {
-        margin-left: 0.5rem !important;
+    .dataTables_wrapper .dataTables_filter {
+        text-align: right;
+    }
+    .dataTables_wrapper .dataTables_filter input {
+        display: inline-block;
+        width: auto;
+        margin-left: 0.5rem;
+    }
+    .dataTables_wrapper .table-responsive {
+        border: 1px solid #eff2f7;
+        border-radius: 0.35rem;
+    }
+    .dt-buttons .btn {
+        margin-right: 0.35rem !important;
     }
 </style>
 @endpush
@@ -223,7 +235,10 @@
     // Initialize DataTable with Export Buttons
     $(document).ready(function() {
         $('#tripSummaryTable').DataTable({
-            dom: 'Bfrtip',
+            dom: "<'row mb-3 align-items-center'<'col-sm-12 col-md-6 d-flex align-items-center gap-2'B><'col-sm-12 col-md-6 d-flex justify-content-md-end justify-content-start mt-2 mt-md-0'f>>" +
+                 "<'row'<'col-sm-12'<'table-responsive'tr>>>" +
+                 "<'row mt-3 align-items-center'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7 d-flex justify-content-md-end justify-content-start mt-2 mt-md-0'p>>",
+            autoWidth: false,
             buttons: [
                 {
                     extend: 'excelHtml5',

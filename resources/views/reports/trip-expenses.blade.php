@@ -98,70 +98,6 @@
     </div>
 </div>
 
-<!-- Summary Cards -->
-<div class="row g-3 mb-4">
-    <div class="col-xl-6 col-md-6">
-        <div class="card border shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="avatar-sm flex-shrink-0 me-3">
-                        <span class="avatar-title bg-primary-subtle text-primary rounded">
-                            <i class="ri-money-dollar-circle-line fs-4"></i>
-                        </span>
-                    </div>
-                    <div class="flex-grow-1">
-                        <p class="text-uppercase fw-medium text-muted mb-0 fs-12">Total Expenses</p>
-                        <h3 class="mb-0 fw-bold">{{ number_format($totalExpenses, 2) }}</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-6 col-md-6">
-        <div class="card border shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="avatar-sm flex-shrink-0 me-3">
-                        <span class="avatar-title bg-info-subtle text-info rounded">
-                            <i class="ri-file-list-3-line fs-4"></i>
-                        </span>
-                    </div>
-                    <div class="flex-grow-1">
-                        <p class="text-uppercase fw-medium text-muted mb-0 fs-12">Total Transactions</p>
-                        <h3 class="mb-0 fw-bold">{{ $expenses->count() }}</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Charts -->
-<div class="row g-3 mb-4">
-    <div class="col-xl-6">
-        <div class="card border shadow-sm">
-            <div class="card-header border-bottom">
-                <h6 class="card-title mb-0">Expenses by Type</h6>
-            </div>
-            <div class="card-body">
-                <canvas id="typeChart" height="250"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-6">
-        <div class="card border shadow-sm">
-            <div class="card-header border-bottom">
-                <h6 class="card-title mb-0">Expenses by Date</h6>
-            </div>
-            <div class="card-body">
-                <canvas id="dateChart" height="250"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Expense Details Table -->
 <div class="row">
     <div class="col-12">
@@ -173,8 +109,8 @@
                 </div>
             </div>
             <div class="card-body">
-                <div class="table-responsive">
-                    <table id="tripExpensesTable" class="table table-hover table-nowrap align-middle mb-0">
+                <div>
+                    <table id="tripExpensesTable" class="table table-hover table-nowrap align-middle mb-0 w-100">
                         <thead>
                             <tr>
                                 <th>Trip Date</th>
@@ -235,11 +171,23 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
 <style>
-    .dt-buttons {
-        margin-bottom: 1rem;
+    .dataTables_wrapper {
+        width: 100%;
     }
-    .dt-button {
-        margin-left: 0.5rem !important;
+    .dataTables_wrapper .dataTables_filter {
+        text-align: right;
+    }
+    .dataTables_wrapper .dataTables_filter input {
+        display: inline-block;
+        width: auto;
+        margin-left: 0.5rem;
+    }
+    .dataTables_wrapper .table-responsive {
+        border: 1px solid #eff2f7;
+        border-radius: 0.35rem;
+    }
+    .dt-buttons .btn {
+        margin-right: 0.35rem !important;
     }
 </style>
 @endpush
@@ -264,79 +212,13 @@
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
 <script>
-    // Type Chart
-    const typeChartEl = document.getElementById('typeChart');
-    if (typeChartEl) {
-        const typeCtx = typeChartEl.getContext('2d');
-        new Chart(typeCtx, {
-            type: 'doughnut',
-            data: {
-                labels: {!! json_encode(array_keys($expensesByType->toArray())) !!},
-                datasets: [{
-                    data: {!! json_encode(array_values($expensesByType->toArray())) !!},
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.8)',
-                        'rgba(54, 162, 235, 0.8)',
-                        'rgba(255, 206, 86, 0.8)',
-                        'rgba(75, 192, 192, 0.8)',
-                        'rgba(153, 102, 255, 0.8)',
-                        'rgba(255, 159, 64, 0.8)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
-                }
-            }
-        });
-    }
-
-    // Date Chart
-    const dateChartEl = document.getElementById('dateChart');
-    if (dateChartEl) {
-        const dateCtx = dateChartEl.getContext('2d');
-        const dateLabels = {!! json_encode(array_keys($expensesByDate->toArray())) !!};
-        const dateData = {!! json_encode(array_values($expensesByDate->toArray())) !!};
-        
-        new Chart(dateCtx, {
-        type: 'bar',
-        data: {
-            labels: dateLabels,
-            datasets: [{
-                label: 'Expenses',
-                data: dateData,
-                backgroundColor: 'rgba(13, 202, 240, 0.6)',
-                borderColor: 'rgb(13, 202, 240)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-    }
-
     // Initialize DataTable with Export Buttons
     $(document).ready(function() {
         $('#tripExpensesTable').DataTable({
-            dom: 'Bfrtip',
+            dom: "<'row mb-3 align-items-center'<'col-sm-12 col-md-6 d-flex align-items-center gap-2'B><'col-sm-12 col-md-6 d-flex justify-content-md-end justify-content-start mt-2 mt-md-0'f>>" +
+                 "<'row'<'col-sm-12'<'table-responsive'tr>>>" +
+                 "<'row mt-3 align-items-center'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7 d-flex justify-content-md-end justify-content-start mt-2 mt-md-0'p>>",
+            autoWidth: false,
             buttons: [
                 {
                     extend: 'excelHtml5',
