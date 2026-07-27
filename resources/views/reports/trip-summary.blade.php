@@ -129,13 +129,13 @@
                                 <th>Destination To</th>
                                 <th>Remarks</th>
                                 <th class="text-danger">Sub Remark</th>
-                                <th>Charge (Waiting Charge)</th>
-                                <th>Charge (Port pass)</th>
-                                <th>Charge (DARB and SALIK)</th>
-                                <th>Charge (Parking)</th>
-                                <th>Amount</th>
-                                <th>Actual(-20%) Charged to OMS</th>
-                                <th>COMMENTS</th>
+                                <th style="display:none;">Charge (Waiting Charge)</th>
+                                <th style="display:none;">Charge (Port pass)</th>
+                                <th style="display:none;">Charge (DARB and SALIK)</th>
+                                <th style="display:none;">Charge (Parking)</th>
+                                <th style="display:none;">Amount</th>
+                                <th style="display:none;">Actual(-20%) Charged to OMS</th>
+                                <th style="display:none;">COMMENTS</th>
                                 <th style="display:none;">Created At</th>
                             </tr>
                         </thead>
@@ -171,13 +171,13 @@
                                         <span class="text-muted">-</span>
                                     @endif
                                 </td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>-</td>
+                                <td style="display:none;">-</td>
+                                <td style="display:none;">-</td>
+                                <td style="display:none;">-</td>
+                                <td style="display:none;">-</td>
+                                <td style="display:none;">-</td>
+                                <td style="display:none;">-</td>
+                                <td style="display:none;">-</td>
                                 <td style="display:none;" data-order="{{ $crew->created_at->timestamp }}">{{ $crew->created_at->format('Y-m-d H:i:s') }}</td>
                             </tr>
                             @endforeach
