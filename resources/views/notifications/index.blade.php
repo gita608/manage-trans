@@ -24,8 +24,8 @@
 
     <div class="row">
         <div class="col-lg-12">
-            <div class="card">
-                <div class="card-header d-flex align-items-center">
+            <div class="card border shadow-sm">
+                <div class="card-header border-bottom d-flex align-items-center">
                     <h5 class="card-title mb-0 flex-grow-1"><i class="ri-notification-3-line me-2"></i>All Notifications</h5>
                     @if($notifications->where('is_read', false)->count() > 0)
                         <form action="{{ route('notifications.mark-all-as-read') }}" method="POST" class="d-inline">

@@ -37,8 +37,8 @@
 
 <div class="row">
     <div class="col-lg-12">
-        <div class="card">
-            <div class="card-header">
+        <div class="card border shadow-sm">
+            <div class="card-header border-bottom">
                 <h5 class="card-title mb-0"><i class="ri-notification-3-line me-2"></i>Notification Details</h5>
             </div>
             <div class="card-body">

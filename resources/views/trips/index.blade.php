@@ -3,188 +3,111 @@
 @section('title', 'Trips | ' . config('app.name'))
 
 @section('content')
-<!-- start page title -->
-<div class="row">
-    <div class="col-12">
-        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-            <h4 class="mb-sm-0">Trips Management</h4>
+@php
+    $dateRange = request('date_range', 'today');
+    $listTitle = match ($dateRange) {
+        'today' => "Today's Trips",
+        'yesterday' => "Yesterday's Trips",
+        'tomorrow' => "Tomorrow's Trips",
+        'last_7_days' => 'Trips — Last 7 Days',
+        'this_month' => 'Trips — This Month',
+        'custom' => 'Filtered Trips',
+        default => 'Trips',
+    };
+@endphp
 
-            <div class="page-title-right">
-                <ol class="breadcrumb m-0">
-                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Trips</li>
-                </ol>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- end page title -->
-
-@if (session('success'))
-    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
-        <i class="ri-check-double-line me-2 align-middle"></i><strong>Success!</strong> {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif
-
-@if (session('error'))
-    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm" role="alert">
-        <i class="ri-error-warning-line me-2 align-middle"></i><strong>Error!</strong> {{ session('error') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif
+@include('partials.page-header', [
+    'title' => 'Trips Management',
+    'breadcrumbs' => [
+        ['label' => 'Dashboard', 'url' => route('dashboard')],
+        ['label' => 'Trips'],
+    ],
+])
 
 <!-- Statistics Overview Cards -->
-<div class="row g-3 mb-4">
-    <div class="col-xl-2 col-md-4">
-        <div class="card card-animate border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1">
-                        <p class="text-uppercase fw-medium text-muted mb-2">Total Trips</p>
-                        <h4 class="mb-0">{{ $stats['total_trips'] }}</h4>
-                    </div>
-                    <div class="flex-shrink-0">
-                        <div class="avatar-sm">
-                            <span class="avatar-title bg-primary-subtle text-primary rounded fs-3">
-                                <i class="ri-calendar-check-line"></i>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-2 col-md-4">
-        <div class="card card-animate border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1">
-                        <p class="text-uppercase fw-medium text-muted mb-2">Total Crew</p>
-                        <h4 class="mb-0">{{ $stats['total_jobs'] }}</h4>
-                    </div>
-                    <div class="flex-shrink-0">
-                        <div class="avatar-sm">
-                            <span class="avatar-title bg-info-subtle text-info rounded fs-3">
-                                <i class="ri-briefcase-line"></i>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-3 col-md-4">
-        <div class="card card-animate border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1">
-                        <p class="text-uppercase fw-medium text-muted mb-2">In Progress</p>
-                        <h4 class="mb-0">{{ $stats['trips_in_progress'] }}</h4>
-                    </div>
-                    <div class="flex-shrink-0">
-                        <div class="avatar-sm">
-                            <span class="avatar-title bg-warning-subtle text-warning rounded fs-3">
-                                <i class="ri-time-line"></i>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6">
-        <div class="card card-animate border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1">
-                        <p class="text-uppercase fw-medium text-muted mb-2">Completed</p>
-                        <h4 class="mb-0">{{ $stats['trips_completed'] }}</h4>
-                    </div>
-                    <div class="flex-shrink-0">
-                        <div class="avatar-sm">
-                            <span class="avatar-title bg-success-subtle text-success rounded fs-3">
-                                <i class="ri-checkbox-circle-line"></i>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-2 col-md-6">
-        <div class="card card-animate border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1">
-                        <p class="text-uppercase fw-medium text-muted mb-2">Cancelled</p>
-                        <h4 class="mb-0 text-danger">{{ $stats['trips_cancelled'] ?? 0 }}</h4>
-                    </div>
-                    <div class="flex-shrink-0">
-                        <div class="avatar-sm">
-                            <span class="avatar-title bg-danger-subtle text-danger rounded fs-3">
-                                <i class="ri-close-circle-line"></i>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="row row-cols-2 row-cols-md-3 row-cols-xl-5 g-3 mb-4">
+    @include('partials.stat-card', [
+        'label' => 'Total Trips',
+        'value' => $stats['total_trips'],
+        'icon' => 'ri-calendar-check-line',
+        'color' => 'primary',
+        'colClass' => 'col',
+        'useCounter' => false,
+    ])
+    @include('partials.stat-card', [
+        'label' => 'Total Crew',
+        'value' => $stats['total_jobs'],
+        'icon' => 'ri-briefcase-line',
+        'color' => 'info',
+        'colClass' => 'col',
+        'useCounter' => false,
+    ])
+    @include('partials.stat-card', [
+        'label' => 'In Progress',
+        'value' => $stats['trips_in_progress'],
+        'icon' => 'ri-time-line',
+        'color' => 'warning',
+        'colClass' => 'col',
+        'useCounter' => false,
+    ])
+    @include('partials.stat-card', [
+        'label' => 'Completed',
+        'value' => $stats['trips_completed'],
+        'icon' => 'ri-checkbox-circle-line',
+        'color' => 'success',
+        'colClass' => 'col',
+        'useCounter' => false,
+    ])
+    @include('partials.stat-card', [
+        'label' => 'Cancelled',
+        'value' => $stats['trips_cancelled'] ?? 0,
+        'icon' => 'ri-close-circle-line',
+        'color' => 'danger',
+        'colClass' => 'col',
+        'useCounter' => false,
+    ])
 </div>
 
 <!-- Quick Actions -->
 <div class="row g-3 mb-4">
-    <div class="col-xl-6">
+    <div class="col-md-6">
         <div class="card border shadow-sm h-100">
-            <div class="card-body p-4">
-                <div class="d-flex align-items-start justify-content-between">
-                    <div class="flex-grow-1">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="avatar-sm flex-shrink-0 me-3">
-                                <span class="avatar-title bg-primary-subtle text-primary rounded fs-3">
-                                    <i class="ri-add-circle-line"></i>
-                                </span>
-                            </div>
-                            <div>
-                                <h5 class="mb-1">Add New Trip</h5>
-                                <p class="text-muted mb-0 small">Create a trip manually with full details</p>
-                            </div>
-                        </div>
-                        <a href="{{ route('trips.create') }}" class="btn btn-primary">
-                            <i class="ri-add-line me-1"></i> Create Trip
-                        </a>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="avatar-sm flex-shrink-0 me-3">
+                        <span class="avatar-title bg-primary-subtle text-primary rounded fs-3">
+                            <i class="ri-add-circle-line"></i>
+                        </span>
+                    </div>
+                    <div>
+                        <h5 class="mb-1">Add New Trip</h5>
+                        <p class="text-muted mb-0 small">Create a trip manually with full details</p>
                     </div>
                 </div>
+                <a href="{{ route('trips.create') }}" class="btn btn-primary">
+                    <i class="ri-add-line me-1"></i> Create Trip
+                </a>
             </div>
         </div>
     </div>
     
-    <div class="col-xl-6">
+    <div class="col-md-6">
         <div class="card border shadow-sm h-100">
-            <div class="card-body p-4">
-                <div class="d-flex align-items-start justify-content-between">
-                    <div class="flex-grow-1">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="avatar-sm flex-shrink-0 me-3">
-                                <span class="avatar-title bg-success-subtle text-success rounded fs-3">
-                                    <i class="ri-magic-line"></i>
-                                </span>
-                            </div>
-                            <div>
-                                <h5 class="mb-1">Smart Extract (AI)</h5>
-                                <p class="text-muted mb-0 small">Upload an image and auto-create trips</p>
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-success" data-bs-toggle="collapse" data-bs-target="#extractSection">
-                            <i class="ri-upload-cloud-2-line me-1"></i> Upload Image
-                        </button>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="avatar-sm flex-shrink-0 me-3">
+                        <span class="avatar-title bg-success-subtle text-success rounded fs-3">
+                            <i class="ri-magic-line"></i>
+                        </span>
+                    </div>
+                    <div>
+                        <h5 class="mb-1">Smart Extract (AI)</h5>
+                        <p class="text-muted mb-0 small">Upload an image and auto-create trips</p>
                     </div>
                 </div>
+                <button type="button" class="btn btn-success" data-bs-toggle="collapse" data-bs-target="#extractSection">
+                    <i class="ri-upload-cloud-2-line me-1"></i> Upload Image
+                </button>
             </div>
         </div>
     </div>
@@ -282,10 +205,10 @@
 <!-- Trips List -->
 <div class="row">
     <div class="col-lg-12">
-        <div class="card border-0 shadow-sm trips-list-card">
-            <div class="card-header bg-white border-bottom py-3">
-                <div class="d-flex align-items-center justify-content-between">
-                    <h5 class="card-title mb-0 fw-600">Today's Trips</h5>
+        <div class="card border shadow-sm trips-list-card">
+            <div class="card-header border-bottom py-3">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <h5 class="card-title mb-0">{{ $listTitle }}</h5>
                     <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#filterSection">
                         <i class="ri-filter-3-line me-1"></i> Filters
                     </button>
@@ -295,7 +218,7 @@
 
                 <div class="collapse show" id="filterSection">
                     <div class="row g-3 mb-4 p-4 filter-bar">
-                        <div class="col-sm-6 col-md-3">
+                        <div class="col-sm-6 col-xxl-3">
                             <label class="form-label fw-semibold">
                                 <i class="ri-user-line me-1"></i>Driver
                             </label>
@@ -306,7 +229,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-sm-6 col-md-3">
+                        <div class="col-sm-6 col-xxl-3">
                             <label class="form-label fw-semibold">
                                 <i class="ri-ship-line me-1"></i>Vessel
                             </label>
@@ -317,7 +240,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-sm-6 col-md-2">
+                        <div class="col-sm-6 col-xxl-2">
                             <label class="form-label fw-semibold">
                                 <i class="ri-checkbox-circle-line me-1"></i>Status
                             </label>
@@ -330,7 +253,7 @@
                                 <option value="cancelled">Cancelled</option>
                             </select>
                         </div>
-                        <div class="col-sm-6 col-md-2">
+                        <div class="col-sm-6 col-xxl-2">
                             <label class="form-label fw-semibold">
                                 <i class="ri-calendar-line me-1"></i>Date Range
                             </label>
@@ -343,8 +266,8 @@
                                 <option value="custom">Custom Range</option>
                             </select>
                         </div>
-                        <div class="col-sm-6 col-md-2 d-flex align-items-end gap-2">
-                            <button type="button" id="filter-apply" class="btn btn-primary flex-fill">
+                        <div class="col-12 col-xxl-2 d-flex align-items-end gap-2">
+                            <button type="button" id="filter-apply" class="btn btn-primary flex-fill flex-sm-grow-0 flex-xxl-fill px-4">
                                 <i class="ri-search-line me-1"></i> Apply
                             </button>
                             <button type="button" id="filter-reset" class="btn btn-soft-secondary">
@@ -436,7 +359,7 @@
                             </div>
                             @if($trip->crews->isNotEmpty())
                                 <div class="table-responsive">
-                                    <table class="table table-sm trip-crews-table mb-0">
+                                    <table class="table table-sm table-nowrap trip-crews-table mb-0">
                                         <thead>
                                             <tr>
                                                 <th>#</th>
@@ -444,9 +367,9 @@
                                                 <th>Contact</th>
                                                 <th>Vessel</th>
                                                 <th>Pick-up</th>
-                                                <th>Flight</th>
+                                                <th class="d-none d-md-table-cell">Flight</th>
                                                 <th>Route</th>
-                                                <th>Remarks</th>
+                                                <th class="d-none d-lg-table-cell">Remarks</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -467,13 +390,13 @@
                                                     </td>
                                                     <td>{{ $crew->vessel->name ?? '—' }}</td>
                                                     <td>{{ $crew->pick_up_time ? \Carbon\Carbon::parse($crew->pick_up_time)->format('h:i A') : '—' }}</td>
-                                                    <td>{{ $crew->flight_number ?? '—' }}</td>
+                                                    <td class="d-none d-md-table-cell">{{ $crew->flight_number ?? '—' }}</td>
                                                     <td class="route-cell">
                                                         <span class="route-from">{{ $crew->from_location }}</span>
                                                         <i class="ri-arrow-right-line route-arrow"></i>
                                                         <span class="route-to">{{ $crew->to_location }}</span>
                                                     </td>
-                                                    <td>
+                                                    <td class="d-none d-lg-table-cell">
                                                         @if($crew->remarks)
                                                             <span class="badge bg-light text-dark me-1" title="Remarks: {{ $crew->remarks }}"><i class="ri-chat-1-line me-1"></i>{{ \Illuminate\Support\Str::limit($crew->remarks, 15) }}</span>
                                                         @endif
@@ -498,16 +421,14 @@
                         </div>
                     </div>
                 @empty
-                    <div class="trip-empty-state">
-                        <div class="trip-empty-icon">
-                            <i class="ri-calendar-todo-line"></i>
-                        </div>
-                        <h5 class="mb-2">No trips found</h5>
-                        <p class="text-muted mb-0">Try adjusting your filters or create a new trip.</p>
-                    </div>
+                    @include('partials.empty-state', [
+                        'icon' => 'ri-calendar-todo-line',
+                        'title' => 'No trips found',
+                        'hint' => 'Try adjusting your filters or create a new trip.',
+                        'actionUrl' => route('trips.create'),
+                        'actionLabel' => 'Create Trip',
+                    ])
                 @endforelse
-
-
 
                 @push('scripts')
                 <script>
@@ -522,7 +443,6 @@
                         var applyBtn = document.getElementById('filter-apply');
                         var resetBtn = document.getElementById('filter-reset');
 
-                        // Set initial values from query parameters
                         var urlParams = new URLSearchParams(window.location.search);
                         if (urlParams.has('driver')) driverSel.value = urlParams.get('driver');
                         if (urlParams.has('vessel')) vesselSel.value = urlParams.get('vessel');
@@ -538,13 +458,8 @@
                         if (urlParams.has('date_from')) dateFromInp.value = urlParams.get('date_from');
                         if (urlParams.has('date_to')) dateToInp.value = urlParams.get('date_to');
 
-                        // Toggle custom date row
                         dateRangeSel.addEventListener('change', function() {
-                            if (this.value === 'custom') {
-                                customDateRow.style.display = 'block';
-                            } else {
-                                customDateRow.style.display = 'none';
-                            }
+                            customDateRow.style.display = this.value === 'custom' ? 'block' : 'none';
                         });
 
                         function applyFilters() {
@@ -565,23 +480,20 @@
                         }
 
                         applyBtn.addEventListener('click', applyFilters);
-
                         resetBtn.addEventListener('click', function () {
                             window.location.href = '{{ route('trips.index') }}';
                         });
 
-                        // Handle image extraction form submission
                         var extractForm = document.getElementById('extract-form');
                         var extractBtn = document.getElementById('extract-btn');
                         
                         if (extractForm) {
-                            extractForm.addEventListener('submit', function(e) {
+                            extractForm.addEventListener('submit', function() {
                                 extractBtn.disabled = true;
                                 extractBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
                             });
                         }
 
-                        // Image preview
                         var imageInput = document.getElementById('image');
                         var imagePreview = document.getElementById('imagePreview');
                         var previewImg = document.getElementById('previewImg');
@@ -653,7 +565,7 @@
                         });
 
                         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-                        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                        tooltipTriggerList.map(function (tooltipTriggerEl) {
                             return new bootstrap.Tooltip(tooltipTriggerEl);
                         });
                     });
@@ -663,302 +575,5 @@
         </div>
     </div>
 </div>
-
-@push('styles')
-<style>
-    .trip-card {
-        background: #fff;
-        border: 1px solid rgba(0,0,0,0.06);
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
-        transition: box-shadow 0.2s ease, transform 0.2s ease;
-    }
-    .trip-card:hover {
-        box-shadow: 0 8px 24px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.04);
-    }
-    .trip-card.trip-status-warning { border-left: 4px solid #f59e0b; }
-    .trip-card.trip-status-secondary { border-left: 4px solid #64748b; }
-    .trip-card.trip-status-info { border-left: 4px solid #06b6d4; }
-    .trip-card.trip-status-success { border-left: 4px solid #10b981; }
-    
-    .trip-card-header {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 1.5rem;
-        padding: 1.25rem 1.5rem;
-        background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-        border-bottom: 1px solid rgba(0,0,0,0.05);
-    }
-    .trip-card-main { flex: 1; min-width: 0; }
-    
-    .trip-card-title {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 1rem;
-        flex-wrap: wrap;
-    }
-    .trip-number {
-        font-size: 0.75rem;
-        font-weight: 700;
-        color: #64748b;
-        background: #e2e8f0;
-        padding: 0.25rem 0.6rem;
-        border-radius: 6px;
-        letter-spacing: 0.02em;
-    }
-    .trip-name {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: #0f172a;
-        letter-spacing: -0.01em;
-    }
-    .status-pill {
-        font-size: 0.6875rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        padding: 0.2rem 0.6rem;
-        border-radius: 9999px;
-    }
-    .status-pill.status-warning { background: #fef3c7; color: #b45309; }
-    .status-pill.status-secondary { background: #f1f5f9; color: #475569; }
-    .status-pill.status-info { background: #cffafe; color: #0891b2; }
-    .status-pill.status-success { background: #d1fae5; color: #047857; }
-    .status-pill.status-danger, .status-pill.status-bg-danger {
-        background: #fee2e2 !important;
-        color: #dc2626 !important;
-        border: 1px solid #fca5a5 !important;
-        font-weight: 700;
-    }
-
-    .trip-card.trip-status-bg-danger {
-        border-left: 5px solid #ef4444 !important;
-        background: #fffdfd !important;
-    }
-    .trip-card.trip-status-bg-danger .trip-card-header {
-        background: #fef2f2 !important;
-        border-bottom: 1px solid #fee2e2 !important;
-    }
-    
-    .trip-card-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-    .meta-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        font-size: 0.8125rem;
-        color: #475569;
-        background: #fff;
-        padding: 0.35rem 0.75rem;
-        border-radius: 8px;
-        border: 1px solid #e2e8f0;
-        font-weight: 500;
-    }
-    .meta-pill i {
-        font-size: 0.9rem;
-        color: #94a3b8;
-    }
-    .meta-pill.meta-crew {
-        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-        border-color: #bfdbfe;
-        color: #1d4ed8;
-    }
-    .meta-pill.meta-crew i { color: #3b82f6; }
-    
-    .trip-card-actions {
-        display: flex;
-        gap: 0.25rem;
-        flex-shrink: 0;
-    }
-    .btn-action {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 36px;
-        height: 36px;
-        border-radius: 8px;
-        border: 1px solid #e2e8f0;
-        background: #fff;
-        color: #64748b;
-        transition: all 0.2s ease;
-    }
-    .btn-action:hover {
-        background: #f8fafc;
-        color: #334155;
-        border-color: #cbd5e1;
-    }
-    .btn-action-edit {
-        background: #0d6efd;
-        border-color: #0d6efd;
-        color: #fff;
-    }
-    .btn-action-edit:hover {
-        background: #0b5ed7;
-        border-color: #0b5ed7;
-        color: #fff;
-    }
-    .btn-action-delete:hover {
-        background: #fef2f2;
-        border-color: #fecaca;
-        color: #dc2626;
-    }
-    
-    .trip-card-crews {
-        padding: 1.25rem 1.5rem;
-    }
-    .crews-section-header {
-        margin-bottom: 1rem;
-        padding-bottom: 0.75rem;
-        border-bottom: 1px solid #f1f5f9;
-    }
-    .crews-label {
-        font-size: 0.6875rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: #94a3b8;
-    }
-    .crews-label i {
-        margin-right: 0.4rem;
-        opacity: 0.9;
-    }
-    
-    .trip-crews-table {
-        border-radius: 8px;
-        overflow: hidden;
-        border: 1px solid #f1f5f9;
-    }
-    .trip-crews-table thead th {
-        font-size: 0.6875rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: #64748b;
-        padding: 0.65rem 1rem;
-        background: #f8fafc;
-        border-bottom: 2px solid #e2e8f0;
-    }
-    .trip-crews-table tbody tr {
-        border-bottom: 1px solid #f1f5f9;
-        transition: background 0.15s ease;
-    }
-    .trip-crews-table tbody tr:last-child { border-bottom: none; }
-    .trip-crews-table tbody tr:nth-child(even) { background: #fafbfc; }
-    .trip-crews-table tbody tr:hover { background: #f1f5f9 !important; }
-    .trip-crews-table tbody td {
-        padding: 0.75rem 1rem;
-        font-size: 0.875rem;
-        vertical-align: middle;
-        color: #334155;
-    }
-    .crew-index {
-        color: #94a3b8;
-        font-weight: 600;
-        width: 2.5rem;
-        font-size: 0.8125rem;
-    }
-    .crew-name {
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-        color: #0f172a;
-    }
-    .crew-avatar {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
-        color: #4338ca;
-        font-size: 0.6875rem;
-        font-weight: 700;
-    }
-    .route-cell { font-size: 0.8125rem; }
-    .route-from, .route-to { color: #475569; }
-    .route-arrow {
-        color: #cbd5e1;
-        margin: 0 0.35rem;
-        font-size: 0.7rem;
-    }
-    
-    .crews-empty {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.75rem;
-        padding: 2rem;
-        background: #f8fafc;
-        border-radius: 8px;
-        border: 1px dashed #e2e8f0;
-        color: #64748b;
-        font-size: 0.875rem;
-        font-weight: 500;
-    }
-    .crews-empty i {
-        font-size: 1.5rem;
-        opacity: 0.5;
-    }
-    
-    .trip-empty-state {
-        text-align: center;
-        padding: 4rem 2rem;
-        background: #f8fafc;
-        border: 2px dashed #e2e8f0;
-        border-radius: 12px;
-    }
-    .trip-empty-icon {
-        width: 5rem;
-        height: 5rem;
-        margin: 0 auto 1.25rem;
-        border-radius: 12px;
-        background: #fff;
-        border: 1px solid #e2e8f0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2.25rem;
-        color: #94a3b8;
-    }
-    .trip-empty-state h5 { color: #334155; font-weight: 600; }
-    
-    .assign-driver-inline {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-    }
-    .assign-driver-inline .assign-driver-select {
-        font-size: 0.8125rem;
-        padding: 0.25rem 0.5rem;
-        border-radius: 6px;
-        border-color: #cbd5e1;
-    }
-    .assign-driver-inline .assign-driver-btn {
-        white-space: nowrap;
-    }
-    
-    .trips-list-card {
-        border-radius: 12px;
-        overflow: hidden;
-        border: 1px solid rgba(0,0,0,0.06);
-    }
-    .trips-list-card .card-body {
-        background: #f8fafc;
-    }
-    .filter-bar {
-        background: #fff;
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
-    }
-</style>
-@endpush
 @endsection
 

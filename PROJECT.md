@@ -16,8 +16,9 @@ ManageTrans is a **Transportation & Fleet Management System** built with **Larav
 | **Database** | SQLite (default local) / MySQL / PostgreSQL |
 | **Cloud** | AWS Textract (manifest OCR), Firebase FCM (`kreait/firebase-php`) |
 | **Frontend** | Blade + Bootstrap (Velzon theme in `public/assets/`), Vite + Tailwind 4 (minimal) |
+| **Install** | Installable web app (manifest + service worker) for phone home screens and desktop |
 | **Audit** | `LogsActivity` trait → `activity_logs` table |
-| **Helpers** | `app/helpers.php` — `getSetting()`, `updateSetting()`, `getAppTimezone()`, `formatDate()` |
+| **Helpers** | `app/helpers.php` — `getSetting()`, `updateSetting()`, `getAppTimezone()`, `formatDate()`, `brandingUrl()`, `assetVersioned()` |
 
 ---
 
@@ -194,6 +195,7 @@ erDiagram
 
 ### 7. Settings & Public Pages
 * Settings keys: `app_name`, `app_logo`, `favicon`, `app_timezone`, `enable_signup`, `enable_forgot_password`.
+* Render branding with `brandingUrl('app_logo', 'assets/images/logo-dark.png')`, never a bare `asset('storage/' . getSetting(...))`. Settings outlive uploaded files — storage gets cleared between environments — and the helper checks the file on disk before using its URL, falling back to a bundled asset instead of a broken image.
 * Public: `/privacy-policy`, `/contact-us`.
 
 ---
@@ -202,7 +204,7 @@ erDiagram
 
 | Area | Middleware | Notable paths |
 | :--- | :--- | :--- |
-| Public | none | `/`, `/403`, `/privacy-policy`, `/contact-us` |
+| Public | none | `/`, `/403`, `/privacy-policy`, `/contact-us`, `/manifest.webmanifest` |
 | Guest | `guest` | `/login`, `/register`, `/password/reset` |
 | Auth | `auth` | `/logout`, `/profile` |
 | Dashboard | `permission:view_dashboard` | `/dashboard` |
@@ -264,10 +266,50 @@ Public uploads (expenses, daily activities, photos) → `public` disk → `asset
 
 ## Frontend
 
-* Layout: `resources/views/layouts/app.blade.php` (Velzon).
-* Partials: header, sidebar (permission-gated menu), footer, datatable.
+* Layouts: `layouts/app.blade.php` (authenticated shell), `layouts/auth.blade.php` (login/register), `layouts/guest.blade.php` (error pages). All three are Velzon-based.
+* Partials: header, sidebar (permission-gated menu), footer, datatable, page-header, stat-card, filter-card, empty-state, flash-alerts, pwa-head, pwa-scripts.
 * Modules: `trips/` (incl. `review-extraction`), `drivers/` (+ map), `vessels/`, `partners/`, `staff/`, `reports/`, `notifications/`, `permissions/`, `daily-activities/`, `activity-logs/`, `settings/`, `public/`, `errors/`.
 * Primary UI assets live under `public/assets/`; Vite entrypoints are minimal.
+* Shared CSS: `public/assets/css/custom.css` plus `dark-mode-custom.css`. Both are linked with `assetVersioned()` so a `?v=<mtime>` cache buster changes whenever the file does.
+
+### Responsive conventions
+
+| Concern | Approach |
+| :--- | :--- |
+| Wide list tables | Wrap in `.table-responsive`; DataTables collapses columns into a child row **below 992px only** (see `partials/datatable.blade.php`), keeping the full table on desktop |
+| Crew entry grids | `.table-crews` sets a scroll floor and pins the action column; pair with a `.table-scroll-hint` line |
+| Key/value detail tables | `.table-details` (percentage-width label column instead of `width="200"`) |
+| Square media | `.mt-profile-photo`; inline maps use `.mt-inline-map` |
+| Toolbars | `d-flex` groups in card headers need `flex-wrap gap-2` |
+
+Any new page should render at 375px with no horizontal page overflow: check `document.documentElement.scrollWidth === clientWidth`. The usual culprits are a table without `.table-responsive` and a flex child missing `min-width: 0` around long unbreakable values.
+
+---
+
+## Installable web app (PWA)
+
+The app installs to a phone home screen and to the desktop (Chrome/Edge).
+
+| Piece | Location | Notes |
+| :--- | :--- | :--- |
+| Manifest | `GET /manifest.webmanifest` → `PwaController@manifest` | Built from settings so `app_name` flows through; unauthenticated route |
+| Service worker | `public/sw.js` | Registered by `public/assets/js/pwa.js` at scope `/` |
+| Offline fallback | `public/offline.html` | Plain HTML so it works with no PHP or network |
+| Icons | `public/assets/images/pwa/` | 192, 512, maskable 192/512, Apple touch 180 |
+| Install UI | `partials/pwa-head`, `partials/pwa-scripts` | Included by all three layouts and the standalone public pages |
+
+**Caching policy — do not widen it casually.** The service worker caches only `/assets/**` (stale-while-revalidate) plus the offline page. HTML is always fetched from the network, because every page carries a CSRF token and session-specific content; caching it causes 419 errors and leaks one user's page to the next. Non-GET requests are never intercepted. Old `?v=` revisions of an asset are pruned when a new one is stored. Bump `CACHE_VERSION` in `sw.js` when changing the precache list.
+
+Install triggers: Chrome/Edge fire `beforeinstallprompt` (captured at script parse time, since it can fire before `DOMContentLoaded`) and the topbar shows a download button. Pages without a topbar get a floating pill. iOS Safari has no install API, so it shows an "Add to Home Screen" modal instead.
+
+Regenerate icons after changing the logo:
+
+```bash
+php artisan pwa:icons                       # uses the configured app_logo, else the bundled brand source
+php artisan pwa:icons --source=path/to.png
+```
+
+The command trims the source's surrounding whitespace before scaling, and keeps maskable artwork inside the inner safe zone that Android crops to.
 
 ---
 
@@ -297,5 +339,8 @@ composer test
 5. **Audit:** Prefer `LogsActivity`; use `saveQuietly()` when writing manual activity logs.
 6. **Migrations:** Always reversible (`up` / `down`).
 7. **Vessel link:** Via `TripCrew::vessel()`, not a direct `trips.vessel_id`.
+8. **Service worker:** Cache static assets only. Never cache HTML or non-GET requests (CSRF + session).
+9. **Branding:** Use `brandingUrl()` for logos and favicons so a missing upload degrades to a bundled asset.
+10. **Mobile:** New views must render at 375px without horizontal page overflow.
 
 For agent-focused coding rules, see [AGENTS.md](./AGENTS.md).

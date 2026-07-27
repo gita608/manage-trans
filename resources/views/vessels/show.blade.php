@@ -26,13 +26,13 @@
     <div class="col-lg-12">
         <div class="card">
             <div class="card-header">
-                <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                     <h5 class="card-title mb-0">Vessel Information</h5>
-                    <div>
+                    <div class="d-flex gap-2">
                         <a href="{{ route('vessels.edit', $vessel) }}" class="btn btn-primary">
                             <i class="ri-pencil-line align-middle me-1"></i> Edit
                         </a>
-                        <form action="{{ route('vessels.destroy', $vessel) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this vessel?');">
+                        <form action="{{ route('vessels.destroy', $vessel) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this vessel?');">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn btn-danger">
@@ -43,10 +43,11 @@
                 </div>
             </div>
             <div class="card-body">
-                <table class="table table-borderless">
+                <div class="table-responsive">
+                <table class="table table-borderless table-details">
                     <tbody>
                         <tr>
-                            <th width="200">ID:</th>
+                            <th>ID:</th>
                             <td>{{ $vessel->id }}</td>
                         </tr>
                         <tr>
@@ -67,6 +68,7 @@
                         </tr>
                     </tbody>
                 </table>
+                </div>
             </div>
             <div class="card-footer">
                 <a href="{{ route('vessels.index') }}" class="btn btn-secondary">

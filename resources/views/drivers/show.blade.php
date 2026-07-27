@@ -26,13 +26,13 @@
     <div class="col-lg-12">
         <div class="card">
             <div class="card-header">
-                <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                     <h5 class="card-title mb-0">Driver Information</h5>
-                    <div>
+                    <div class="d-flex gap-2">
                         <a href="{{ route('drivers.edit', $driver) }}" class="btn btn-primary">
                             <i class="ri-pencil-line align-middle me-1"></i> Edit
                         </a>
-                        <form action="{{ route('drivers.destroy', $driver) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this driver?');">
+                        <form action="{{ route('drivers.destroy', $driver) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this driver?');">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn btn-danger">
@@ -46,18 +46,19 @@
                 <div class="row">
                     <div class="col-md-4 text-center mb-4">
                         @if($driver->photo)
-                            <img src="{{ asset('storage/' . $driver->photo) }}" alt="{{ $driver->name }}" class="img-thumbnail" style="max-width: 300px; max-height: 300px;">
+                            <img src="{{ asset('storage/' . $driver->photo) }}" alt="{{ $driver->name }}" class="img-thumbnail mt-profile-photo">
                         @else
-                            <div class="bg-primary-subtle d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 300px; height: 300px;">
+                            <div class="bg-primary-subtle d-inline-flex align-items-center justify-content-center rounded-circle mt-profile-photo">
                                 <span class="text-primary display-1">{{ substr($driver->name, 0, 1) }}</span>
                             </div>
                         @endif
                     </div>
                     <div class="col-md-8">
-                        <table class="table table-borderless">
+                        <div class="table-responsive">
+                        <table class="table table-borderless table-details">
                             <tbody>
                                 <tr>
-                                    <th width="200">Name:</th>
+                                    <th>Name:</th>
                                     <td>{{ $driver->name }}</td>
                                 </tr>
                                 <tr>
@@ -114,6 +115,7 @@
                                 </tr>
                             </tbody>
                         </table>
+                        </div>
                     </div>
                 </div>
 
@@ -125,7 +127,7 @@
                         </h5>
                         <div class="row">
                             <div class="col-md-12">
-                                <div id="driverMap" style="height: 400px; width: 100%; border-radius: 8px;"></div>
+                                <div id="driverMap" class="mt-inline-map"></div>
                                 <div class="mt-3">
                                     <p class="text-muted mb-1">
                                         <strong>Last Updated:</strong> {{ $driver->latestLocation->updated_at->format('M d, Y h:i A') }}
@@ -158,7 +160,7 @@
                         <h5 class="card-title mb-3">Documents</h5>
                         <div class="row">
                             @foreach($driver->documents as $document)
-                                <div class="col-md-3 mb-3">
+                                <div class="col-6 col-md-4 col-xl-3 mb-3">
                                     <div class="card border shadow-none mb-0 h-100">
                                         <div class="card-body p-3 text-center">
                                             <div class="mb-3">

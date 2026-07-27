@@ -8,7 +8,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="Premium Multipurpose Admin & Dashboard Template" name="description" />
     <!-- App favicon -->
-    <link rel="shortcut icon" href="{{ getSetting('favicon') ? asset('storage/' . getSetting('favicon')) : asset('assets/images/favicon.ico') }}">
+    <link rel="shortcut icon" href="{{ brandingUrl('favicon', 'assets/images/favicon.ico') }}">
+
+    @include('partials.pwa-head')
 
     <!-- jsvectormap css -->
     <link href="{{ asset('assets/libs/jsvectormap/css/jsvectormap.min.css') }}" rel="stylesheet" type="text/css" />
@@ -387,6 +389,8 @@
     <!-- App.js Compatibility Wrapper - Must load before app.js -->
     <script src="{{ asset('assets/js/app-compat.js') }}"></script>
     <script src="{{ asset('assets/js/app.js') }}"></script>
+        @include('partials.pwa-scripts')
+
     </body>
 
 </html>

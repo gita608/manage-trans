@@ -36,6 +36,43 @@
         z-index: 2;
     }
 
+    .map-sidebar-toggle {
+        display: none;
+        border: none;
+        background: rgba(255,255,255,0.2);
+        color: #fff;
+        border-radius: 8px;
+        width: 36px;
+        height: 36px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @media (max-width: 991.98px) {
+        .map-wrapper {
+            flex-direction: column;
+            height: auto;
+            min-height: 0;
+        }
+        .map-sidebar {
+            width: 100%;
+            border-right: none;
+            border-bottom: 1px solid #e2e8f0;
+            max-height: none;
+        }
+        .map-sidebar.is-collapsed .sidebar-scroll,
+        .map-sidebar.is-collapsed .stats-grid {
+            display: none;
+        }
+        .map-sidebar-toggle {
+            display: inline-flex;
+        }
+        #map {
+            min-height: 50vh !important;
+            height: 50vh !important;
+        }
+    }
+
     .sidebar-brand {
         padding: 18px 20px 14px;
         background: linear-gradient(135deg, #405189 0%, #2d3e73 100%);
@@ -533,7 +570,9 @@
                         </div>
                         <div class="sidebar-brand-sub">Live availability — updates every 30s</div>
                     </div>
-                    <i class="ri-live-line text-white opacity-75 fs-18"></i>
+                    <button type="button" class="map-sidebar-toggle" id="mapSidebarToggle" aria-label="Toggle driver list">
+                        <i class="ri-menu-fold-line"></i>
+                    </button>
                 </div>
 
                 <!-- Stat Cards -->
@@ -985,6 +1024,25 @@
     document.addEventListener('DOMContentLoaded', function() {
         initMap();
         setupAutoRefresh();
+
+        var toggleBtn = document.getElementById('mapSidebarToggle');
+        var sidebar = document.querySelector('.map-sidebar');
+        if (toggleBtn && sidebar) {
+            toggleBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('is-collapsed');
+                var icon = toggleBtn.querySelector('i');
+                if (icon) {
+                    icon.className = sidebar.classList.contains('is-collapsed')
+                        ? 'ri-menu-unfold-line'
+                        : 'ri-menu-fold-line';
+                }
+            });
+            if (window.innerWidth < 992) {
+                sidebar.classList.add('is-collapsed');
+                var icon = toggleBtn.querySelector('i');
+                if (icon) icon.className = 'ri-menu-unfold-line';
+            }
+        }
     });
 </script>
 @endpush

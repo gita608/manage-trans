@@ -43,6 +43,53 @@ if (!function_exists('updateSetting')) {
     }
 }
 
+if (!function_exists('brandingUrl')) {
+    /**
+     * URL for a branding image stored in settings, falling back to a bundled asset.
+     *
+     * Settings can outlive the uploaded file (e.g. storage cleared between environments),
+     * so the file is checked on disk before its URL is used.
+     *
+     * @param string $settingKey
+     * @param string $fallbackAsset
+     * @return string
+     */
+    function brandingUrl($settingKey, $fallbackAsset)
+    {
+        $path = getSetting($settingKey);
+
+        if ($path && is_file(storage_path('app/public/' . $path))) {
+            return asset('storage/' . $path);
+        }
+
+        return asset($fallbackAsset);
+    }
+}
+
+if (!function_exists('assetVersioned')) {
+    /**
+     * Asset URL with a cache-busting version based on the file's last modified time.
+     *
+     * @param string $path
+     * @return string
+     */
+    function assetVersioned($path)
+    {
+        $url = asset($path);
+
+        try {
+            $file = public_path($path);
+            if (is_file($file)) {
+                return $url . '?v=' . filemtime($file);
+            }
+        } catch (\Exception $e) {
+            // Fall through to the unversioned URL.
+        }
+
+        return $url;
+    }
+}
+
 if (!function_exists('getAppTimezone')) {
     /**
      * Get the application timezone from settings or config.

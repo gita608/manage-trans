@@ -24,7 +24,7 @@
     <div class="col-lg-12">
         <div class="card border shadow-sm">
             <div class="card-body p-4">
-                <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                     <div class="d-flex align-items-center">
                         <div class="avatar-sm flex-shrink-0 me-3">
                             <span class="avatar-title bg-warning-subtle text-warning rounded fs-3">

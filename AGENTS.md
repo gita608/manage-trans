@@ -14,7 +14,8 @@ For full architecture, ER diagrams, permissions list, and API tables, see [PROJE
 * **Frontend**: Blade + Bootstrap (Velzon in `public/assets/`), Vite + Tailwind 4 (minimal)
 * **Auth**: Session (`User` Admin/Staff) for web; Sanctum Bearer tokens (`Driver`) for mobile API
 * **Integrations**: AWS Textract (OCR), Firebase Cloud Messaging (`kreait/firebase-php`)
-* **Helpers**: `getSetting()`, `updateSetting()`, `getAppTimezone()`, `formatDate()` in `app/helpers.php`
+* **Install**: Installable web app — manifest route + `public/sw.js` + generated icons
+* **Helpers**: `getSetting()`, `updateSetting()`, `getAppTimezone()`, `formatDate()`, `brandingUrl()`, `assetVersioned()` in `app/helpers.php`
 
 ---
 
@@ -75,7 +76,15 @@ Load `tripExpenses.expenseType` / `tripIssues.issueType` when those are rendered
 * Use `FirebaseNotificationService` for driver push; also persist `Notification` rows when appropriate.
 * Trigger points include trip assignment and 10,000 km milestones.
 
-### 3.7 Scope discipline
+### 3.7 Frontend, mobile & PWA
+* **Branding**: use `brandingUrl('app_logo', 'assets/images/logo-dark.png')` — never `asset('storage/' . getSetting('app_logo'))`. Settings can point at files that no longer exist; the helper falls back to a bundled asset.
+* **CSS/JS in `public/assets/`**: link via `assetVersioned()` so edits bust the browser cache.
+* **Service worker (`public/sw.js`)**: caches `/assets/**` and `offline.html` only. **Never** cache HTML or non-GET requests — pages carry CSRF tokens and session state. Bump `CACHE_VERSION` when changing the precache list.
+* **Icons**: regenerate with `php artisan pwa:icons` after a logo change; don't hand-edit `public/assets/images/pwa/`.
+* **New pages must survive 375px**: wrap wide tables in `.table-responsive`, add `flex-wrap gap-2` to card-header toolbars, and give flex children `min-width: 0` when they hold long unbreakable values. Verify `scrollWidth === clientWidth` on `<html>`.
+* **DataTables**: shared config lives in `partials/datatable.blade.php`; column collapsing is deliberately limited to <992px so desktop keeps every column.
+
+### 3.8 Scope discipline
 * Match existing patterns (Velzon Blade, controller style, validation).
 * Do not invent unrelated refactors or docs the user did not ask for.
 * Do not commit unless the user explicitly requests a commit.
@@ -87,6 +96,7 @@ Load `tripExpenses.expenseType` / `tripIssues.issueType` when those are rendered
 ```bash
 php artisan migrate
 php artisan db:seed --class=PermissionSeeder
+php artisan pwa:icons     # regenerate home-screen icons from the app logo
 composer test
 composer run dev          # serve + queue + pail + Vite
 ```
@@ -102,3 +112,6 @@ composer run dev          # serve + queue + pail + Vite
 - [ ] Activity logs not duplicated (`saveQuietly` when needed)
 - [ ] Textract temp files cleaned up
 - [ ] Migrations reversible
+- [ ] Service worker still caches static assets only (no HTML, no POST)
+- [ ] Logos/favicons go through `brandingUrl()`
+- [ ] New views have no horizontal overflow at 375px

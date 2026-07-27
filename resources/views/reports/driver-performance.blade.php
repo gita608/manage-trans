@@ -3,30 +3,21 @@
 @section('title', 'Driver Performance Report | ' . config('app.name'))
 
 @section('content')
-<!-- start page title -->
-<div class="row">
-    <div class="col-12">
-        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-            <h4 class="mb-sm-0">Driver Performance Report</h4>
-
-            <div class="page-title-right">
-                <ol class="breadcrumb m-0">
-                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="{{ route('reports.index') }}">Reports</a></li>
-                    <li class="breadcrumb-item active">Driver Performance</li>
-                </ol>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- end page title -->
+@include('partials.page-header', [
+    'title' => 'Driver Performance Report',
+    'breadcrumbs' => [
+        ['label' => 'Dashboard', 'url' => route('dashboard')],
+        ['label' => 'Reports', 'url' => route('reports.index')],
+        ['label' => 'Driver Performance'],
+    ],
+])
 
 <!-- Filters -->
 <div class="row mb-4">
     <div class="col-12">
         <div class="card border shadow-sm">
             <div class="card-header border-bottom">
-                <h6 class="card-title mb-0">Filters</h6>
+                <h5 class="card-title mb-0"><i class="ri-filter-3-line me-1 align-middle"></i>Filters</h5>
             </div>
             <div class="card-body">
                 <form method="GET" action="{{ route('reports.driver-performance') }}">
@@ -110,7 +101,7 @@
                 <h6 class="card-title mb-0">Driver Performance Details</h6>
             </div>
             <div class="card-body">
-                <div>
+                <div class="table-responsive">
                     <table id="driverPerformanceTable" class="table table-hover table-nowrap align-middle mb-0 w-100">
                         <thead>
                             <tr>
@@ -181,6 +172,7 @@
 @push('styles')
 <!-- DataTables CSS -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
 <style>
     .dataTables_wrapper {
@@ -211,6 +203,8 @@
 <!-- DataTables JS -->
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
 
 <!-- DataTables Buttons -->
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>

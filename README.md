@@ -22,6 +22,7 @@ ManageTrans is a Laravel-based transportation management platform with:
 * **Activity logs** — Audit trail across domain models
 * **Settings** — App name, branding, timezone, auth toggles
 * **Public pages** — Privacy policy, contact
+* **Installable app** — Works on phones and installs to the home screen or desktop, with an offline fallback page
 
 ## Tech Stack
 
@@ -31,6 +32,7 @@ ManageTrans is a Laravel-based transportation management platform with:
 | Auth | Sessions (staff), Sanctum (drivers) |
 | DB | SQLite (default) / MySQL / PostgreSQL |
 | Frontend | Blade, Bootstrap (Velzon), Vite |
+| Install | Web app manifest + service worker (installable, offline fallback) |
 | Services | AWS Textract, Firebase FCM |
 
 ## Documentation
@@ -79,6 +81,23 @@ composer run dev
 ```
 
 Starts the PHP server, queue worker, Pail log viewer, and Vite.
+
+## Installing it as an app
+
+Staff can install ManageTrans like a native app — it opens full screen with its own home screen icon.
+
+* **Android / desktop Chrome or Edge** — use the install button in the topbar, or the browser's own install prompt.
+* **iPhone / iPad** — tap the install button and follow the Share → *Add to Home Screen* steps shown; Safari has no automatic prompt.
+
+Installation requires HTTPS (`localhost` is exempt), so make sure production is served over TLS and that `/manifest.webmanifest` and `/sw.js` are reachable at the domain root.
+
+After changing the logo in Settings, regenerate the home screen icons:
+
+```bash
+php artisan pwa:icons
+```
+
+Only static theme assets are cached offline. Pages themselves always come from the network, so nothing stale or session-specific is ever served; going offline shows a simple fallback page instead.
 
 ## Testing
 

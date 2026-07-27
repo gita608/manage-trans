@@ -3,36 +3,20 @@
 @section('title', 'Drivers | ' . config('app.name'))
 
 @section('content')
-<!-- start page title -->
-<div class="row">
-    <div class="col-12">
-        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-            <h4 class="mb-sm-0">Drivers Management</h4>
-
-            <div class="page-title-right">
-                <ol class="breadcrumb m-0">
-                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Drivers</li>
-                </ol>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- end page title -->
-
-@if (session('success'))
-    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
-        <i class="ri-check-double-line me-2 align-middle"></i><strong>Success!</strong> {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif
+@include('partials.page-header', [
+    'title' => 'Drivers Management',
+    'breadcrumbs' => [
+        ['label' => 'Dashboard', 'url' => route('dashboard')],
+        ['label' => 'Drivers'],
+    ],
+])
 
 <!-- Quick Action Card -->
 <div class="row mb-4">
     <div class="col-lg-12">
         <div class="card border shadow-sm">
             <div class="card-body p-4">
-                <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                     <div class="d-flex align-items-center">
                         <div class="avatar-sm flex-shrink-0 me-3">
                             <span class="avatar-title bg-primary-subtle text-primary rounded fs-3">
@@ -112,7 +96,7 @@
                                     <td>{{ $driver->contact ?? '-' }}</td>
                                     <td>{{ $driver->age ?? '-' }}</td>
                                     <td>
-                                        <span class="text-truncate d-inline-block" style="max-width: 200px;" title="{{ $driver->vehicle_info }}">
+                                        <span class="text-truncate d-inline-block mt-note-truncate" title="{{ $driver->vehicle_info }}">
                                             {{ $driver->vehicle_info ?? '-' }}
                                         </span>
                                     </td>

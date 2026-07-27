@@ -3,30 +3,21 @@
 @section('title', 'Trip Summary Report | ' . config('app.name'))
 
 @section('content')
-<!-- start page title -->
-<div class="row">
-    <div class="col-12">
-        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-            <h4 class="mb-sm-0">Trip Summary Report</h4>
-
-            <div class="page-title-right">
-                <ol class="breadcrumb m-0">
-                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="{{ route('reports.index') }}">Reports</a></li>
-                    <li class="breadcrumb-item active">Trip Summary</li>
-                </ol>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- end page title -->
+@include('partials.page-header', [
+    'title' => 'Trip Summary Report',
+    'breadcrumbs' => [
+        ['label' => 'Dashboard', 'url' => route('dashboard')],
+        ['label' => 'Reports', 'url' => route('reports.index')],
+        ['label' => 'Trip Summary'],
+    ],
+])
 
 <!-- Filters -->
 <div class="row mb-4">
     <div class="col-12">
         <div class="card border shadow-sm">
             <div class="card-header border-bottom">
-                <h6 class="card-title mb-0">Filters</h6>
+                <h5 class="card-title mb-0"><i class="ri-filter-3-line me-1 align-middle"></i>Filters</h5>
             </div>
             <div class="card-body">
                 <form method="GET" action="{{ route('reports.trip-summary') }}" id="filterForm">
@@ -117,7 +108,7 @@
                 </div>
             </div>
             <div class="card-body">
-                <div>
+                <div class="table-responsive">
                     <table id="tripSummaryTable" class="table table-hover table-nowrap align-middle mb-0 w-100">
                         <thead>
                             <tr>

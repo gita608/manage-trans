@@ -3,84 +3,39 @@
 @section('title', 'Daily Activities | ' . config('app.name'))
 
 @section('content')
-<!-- start page title -->
-<div class="row">
-    <div class="col-12">
-        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-            <h4 class="mb-sm-0">Daily Activities</h4>
+@include('partials.page-header', [
+    'title' => 'Daily Activities',
+    'breadcrumbs' => [
+        ['label' => 'Dashboard', 'url' => route('dashboard')],
+        ['label' => 'Daily Activities'],
+    ],
+])
 
-            <div class="page-title-right">
-                <ol class="breadcrumb m-0">
-                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Daily Activities</li>
-                </ol>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- end page title -->
-
-<!-- Statistics Overview Cards -->
 <div class="row g-3 mb-4">
-    <div class="col-xl-4 col-md-6">
-        <div class="card card-animate border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1">
-                        <p class="text-uppercase fw-medium text-muted mb-2">Total Activities</p>
-                        <h4 class="mb-0">{{ $totalActivities }}</h4>
-                    </div>
-                    <div class="flex-shrink-0">
-                        <div class="avatar-sm">
-                            <span class="avatar-title bg-primary-subtle text-primary rounded fs-3">
-                                <i class="ri-calendar-check-line"></i>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-4 col-md-6">
-        <div class="card card-animate border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1">
-                        <p class="text-uppercase fw-medium text-muted mb-2">Today's Activities</p>
-                        <h4 class="mb-0">{{ $todayActivities }}</h4>
-                    </div>
-                    <div class="flex-shrink-0">
-                        <div class="avatar-sm">
-                            <span class="avatar-title bg-success-subtle text-success rounded fs-3">
-                                <i class="ri-calendar-todo-line"></i>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-4 col-md-6">
-        <div class="card card-animate border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1">
-                        <p class="text-uppercase fw-medium text-muted mb-2">This Month</p>
-                        <h4 class="mb-0">{{ $thisMonthActivities }}</h4>
-                    </div>
-                    <div class="flex-shrink-0">
-                        <div class="avatar-sm">
-                            <span class="avatar-title bg-info-subtle text-info rounded fs-3">
-                                <i class="ri-calendar-line"></i>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('partials.stat-card', [
+        'label' => 'Total Activities',
+        'value' => $totalActivities,
+        'icon' => 'ri-calendar-check-line',
+        'color' => 'primary',
+        'colClass' => 'col-xl-4 col-md-6',
+        'useCounter' => false,
+    ])
+    @include('partials.stat-card', [
+        'label' => "Today's Activities",
+        'value' => $todayActivities,
+        'icon' => 'ri-calendar-todo-line',
+        'color' => 'success',
+        'colClass' => 'col-xl-4 col-md-6',
+        'useCounter' => false,
+    ])
+    @include('partials.stat-card', [
+        'label' => 'This Month',
+        'value' => $thisMonthActivities,
+        'icon' => 'ri-calendar-line',
+        'color' => 'info',
+        'colClass' => 'col-xl-4 col-md-6',
+        'useCounter' => false,
+    ])
 </div>
 
 <!-- Daily Activities List -->
@@ -88,7 +43,7 @@
     <div class="col-lg-12">
         <div class="card border shadow-sm">
             <div class="card-header border-bottom">
-                <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                     <div>
                         <h5 class="card-title mb-0">Daily Activities</h5>
                         @if(!request()->filled('date_range') && !request()->filled('date_from') && !request()->filled('date_to'))
@@ -111,7 +66,7 @@
             <div class="card-body">
                 <!-- Filters -->
                 <form method="GET" action="{{ route('daily-activities.index') }}" class="collapse show mb-4" id="filterSection">
-                    <div class="row g-3 p-3 bg-light rounded">
+                    <div class="row g-3 p-3 filter-bar">
                         <div class="col-md-3">
                             <label class="form-label fw-semibold">
                                 <i class="ri-user-line me-1"></i>Driver

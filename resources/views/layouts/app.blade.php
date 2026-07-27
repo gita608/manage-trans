@@ -8,7 +8,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="Premium Multipurpose Admin & Dashboard Template" name="description" />
     <!-- App favicon -->
-    <link rel="shortcut icon" href="{{ getSetting('favicon') ? asset('storage/' . getSetting('favicon')) : asset('assets/images/favicon.ico') }}">
+    <link rel="shortcut icon" href="{{ brandingUrl('favicon', 'assets/images/favicon.ico') }}">
+
+    @include('partials.pwa-head')
 
     <!-- Dark Mode Persistence Fix - MUST load before layout.js -->
     <script src="{{ asset('assets/js/dark-mode-fix.js') }}"></script>
@@ -21,9 +23,9 @@
     <!-- App Css-->
     <link href="{{ asset('assets/css/app.min.css') }}" rel="stylesheet" type="text/css" />
     <!-- custom Css-->
-    <link href="{{ asset('assets/css/custom.min.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ assetVersioned('assets/css/custom.css') }}" rel="stylesheet" type="text/css" />
     <!-- Dark Mode Custom Styles -->
-    <link href="{{ asset('assets/css/dark-mode-custom.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ assetVersioned('assets/css/dark-mode-custom.css') }}" rel="stylesheet" type="text/css" />
     
     @stack('styles')
 
@@ -48,6 +50,8 @@
 
             <div class="page-content">
                 <div class="container-fluid">
+
+                    @include('partials.flash-alerts')
 
                     @yield('content')
 
@@ -92,6 +96,8 @@
     <script src="{{ asset('assets/js/app-compat.js') }}"></script>
     <!-- App js -->
     <script src="{{ asset('assets/js/app.js') }}"></script>
+
+    @include('partials.pwa-scripts')
 </body>
 
 </html>

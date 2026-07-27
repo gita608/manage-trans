@@ -22,7 +22,7 @@
     <div class="col-xl-12">
         <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
             <div class="card-header bg-primary-subtle border-bottom border-primary-subtle p-4">
-                <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                     <div>
                         <h5 class="card-title mb-1 text-primary"><i class="ri-file-list-3-line me-2"></i>Verify Data Before Saving</h5>
                         <p class="text-muted mb-0 fs-13">Please review the extracted data below. You can edit any field before saving.</p>
@@ -90,6 +90,9 @@
                         </div>
                     </div>
 
+                    <p class="table-scroll-hint px-4">
+                        <i class="ri-arrow-left-right-line"></i> Scroll sideways to review every column.
+                    </p>
                     <div class="table-responsive">
                         <table class="table table-hover table-nowrap align-middle mb-0 custom-table">
                             <thead class="bg-light text-muted text-uppercase fs-11">

@@ -692,3 +692,131 @@
     background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
 }
 
+/* ========================================
+   Trip cards / trips list — dark mode
+   ======================================== */
+
+[data-bs-theme="dark"] .trip-card {
+    background: var(--vz-secondary-bg, #212529);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-bs-theme="dark"] .trip-card-header {
+    background: linear-gradient(180deg, #2a2f34 0%, #212529 100%);
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+[data-bs-theme="dark"] .trip-name,
+[data-bs-theme="dark"] .crew-name {
+    color: #f1f5f9;
+}
+
+[data-bs-theme="dark"] .trip-number {
+    background: #374151;
+    color: #cbd5e1;
+}
+
+[data-bs-theme="dark"] .meta-pill {
+    background: #2a2f34;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+}
+
+[data-bs-theme="dark"] .meta-pill.meta-crew {
+    background: rgba(59, 130, 246, 0.15);
+    border-color: rgba(59, 130, 246, 0.35);
+    color: #93c5fd;
+}
+
+[data-bs-theme="dark"] .btn-action {
+    background: #2a2f34;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+}
+
+[data-bs-theme="dark"] .btn-action:hover {
+    background: #374151;
+    color: #f1f5f9;
+}
+
+[data-bs-theme="dark"] .trip-crews-table {
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-bs-theme="dark"] .trip-crews-table thead th {
+    background: #2a2f34;
+    color: #94a3b8;
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-bs-theme="dark"] .trip-crews-table tbody tr {
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-bs-theme="dark"] .trip-crews-table tbody tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+[data-bs-theme="dark"] .trip-crews-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.06) !important;
+}
+
+[data-bs-theme="dark"] .trip-crews-table tbody td {
+    color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .crews-section-header {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-bs-theme="dark"] .crews-empty,
+[data-bs-theme="dark"] .trip-empty-state {
+    background: #2a2f34;
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #94a3b8;
+}
+
+[data-bs-theme="dark"] .trip-empty-icon {
+    background: #212529;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-bs-theme="dark"] .trip-empty-state h5 {
+    color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .trips-list-card .card-body {
+    background: #1a1d21;
+}
+
+[data-bs-theme="dark"] .filter-bar {
+    background: #212529;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-bs-theme="dark"] .trip-card.trip-status-bg-danger .trip-card-header,
+[data-bs-theme="dark"] .trip-card.trip-status-danger .trip-card-header {
+    background: rgba(239, 68, 68, 0.12);
+    border-bottom-color: rgba(239, 68, 68, 0.25);
+}
+
+[data-bs-theme="dark"] .map-wrapper {
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-bs-theme="dark"] .map-sidebar {
+    background: #1a1d21;
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Pinned crew-table action column must match the row it sits on */
+[data-bs-theme="dark"] .table-crews tbody td:last-child {
+    background: #212529;
+    box-shadow: -5px 0 6px -5px rgba(0, 0, 0, 0.6);
+}
+
+[data-bs-theme="dark"] .table-crews thead th:last-child {
+    background: #2a2f34;
+    box-shadow: -5px 0 6px -5px rgba(0, 0, 0, 0.6);
+}
+

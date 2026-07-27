@@ -18,6 +18,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\DailyActivityController;
 use App\Http\Controllers\PublicPagesController;
 use App\Http\Controllers\PartnerController;
+use App\Http\Controllers\PwaController;
 
 // Root route - show login for guests, redirect to dashboard if authenticated
 Route::get('/', [AuthController::class, 'root'])->name('home');
@@ -26,6 +27,9 @@ Route::get('/', [AuthController::class, 'root'])->name('home');
 Route::get('/403', function () {
     return view('errors.403', ['message' => session('error') ?? 'You do not have permission to access this resource.']);
 })->name('error.403');
+
+// Installable web app manifest (must be reachable without authentication)
+Route::get('/manifest.webmanifest', [PwaController::class, 'manifest'])->name('pwa.manifest');
 
 // Public Pages (No authentication required)
 Route::get('/privacy-policy', [PublicPagesController::class, 'privacyPolicy'])->name('privacy-policy');

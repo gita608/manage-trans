@@ -11,3 +11,6 @@ Key Guidelines:
 6. Seed RBAC with `php artisan db:seed --class=PermissionSeeder` (not in default `DatabaseSeeder`).
 7. Textract temps on `local` disk must be deleted after parse; public media on `public` disk.
 8. Manual audit logs after API writes: `$model->saveQuietly()` first to avoid duplicate `LogsActivity` entries.
+9. `public/sw.js` caches static `/assets/**` only — never HTML or non-GET requests (CSRF/session). Regenerate icons with `php artisan pwa:icons`.
+10. Logos/favicons render through `brandingUrl()`; `public/assets` CSS/JS link through `assetVersioned()`.
+11. New Blade views must render at 375px with no horizontal overflow (wrap wide tables in `.table-responsive`, `flex-wrap` card-header toolbars).

@@ -29,8 +29,8 @@
 
 <div class="row">
     <div class="col-12">
-        <div class="card">
-            <div class="card-header">
+        <div class="card border shadow-sm">
+            <div class="card-header border-bottom">
                 <ul class="nav nav-tabs-custom card-header-tabs border-bottom-0" role="tablist">
                     <li class="nav-item">
                         <a class="nav-link active" data-bs-toggle="tab" href="#role-permissions" role="tab">

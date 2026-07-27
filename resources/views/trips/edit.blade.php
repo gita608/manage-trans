@@ -92,14 +92,17 @@
 
                     <hr class="my-4">
 
-                    <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                         <h5 class="mb-0">Crew Details</h5>
                         <button type="button" class="btn btn-primary btn-sm" id="add-crew-row-btn">
                             <i class="ri-add-line align-middle me-1"></i> Add Crew Row
                         </button>
                     </div>
+                    <p class="table-scroll-hint">
+                        <i class="ri-arrow-left-right-line"></i> Scroll sideways to reach every crew field.
+                    </p>
                     <div class="table-responsive">
-                        <table class="table table-bordered" id="crews-table">
+                        <table class="table table-bordered table-crews" id="crews-table">
                             <thead class="table-light">
                                 <tr>
                                     <th style="width: 50px;">#</th>
