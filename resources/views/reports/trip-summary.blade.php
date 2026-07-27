@@ -269,47 +269,98 @@
                     },
                     filename: 'Trip_Summary_Report_' + new Date().toISOString().split('T')[0],
                     customize: function(xlsx) {
-                        var sheet = xlsx.xl.worksheets['sheet1.xml'];
-                        var styles = xlsx.xl['styles.xml'];
-
                         try {
-                            var parser = new DOMParser();
-                            var xmlDoc = parser.parseFromString(styles, 'text/xml');
+                            var stylesDoc = xlsx.xl['styles.xml'];
+                            var sheetDoc = xlsx.xl.worksheets['sheet1.xml'];
 
-                            // Add Red Font for Sub Remark
-                            var fonts = xmlDoc.getElementsByTagName('fonts')[0];
-                            var fontNode = xmlDoc.createElement('font');
-                            fontNode.innerHTML = '<sz val="11"/><color rgb="FFDC3545"/><name val="Calibri"/><b/>';
+                            // 1. Add Red Font (#DC3545, Bold)
+                            var fonts = stylesDoc.getElementsByTagName('fonts')[0];
+                            var fontCount = parseInt(fonts.getAttribute('count') || fonts.getElementsByTagName('font').length);
+
+                            var fontNode = stylesDoc.createElement('font');
+                            
+                            var sz = stylesDoc.createElement('sz');
+                            sz.setAttribute('val', '11');
+                            fontNode.appendChild(sz);
+
+                            var color = stylesDoc.createElement('color');
+                            color.setAttribute('rgb', 'FFDC3545');
+                            fontNode.appendChild(color);
+
+                            var name = stylesDoc.createElement('name');
+                            name.setAttribute('val', 'Calibri');
+                            fontNode.appendChild(name);
+
+                            var b = stylesDoc.createElement('b');
+                            fontNode.appendChild(b);
+
                             fonts.appendChild(fontNode);
-                            fonts.setAttribute('count', fonts.getElementsByTagName('font').length);
-                            var redFontIdx = fonts.getElementsByTagName('font').length - 1;
+                            fonts.setAttribute('count', (fontCount + 1).toString());
 
-                            // Add cell format XF for Red Sub Remark
-                            var cellXfs = xmlDoc.getElementsByTagName('cellXfs')[0];
-                            var redXf = xmlDoc.createElement('xf');
-                            redXf.setAttribute('numFmtId', '0');
-                            redXf.setAttribute('fontId', redFontIdx);
-                            redXf.setAttribute('fillId', '0');
-                            redXf.setAttribute('borderId', '0');
-                            redXf.setAttribute('xfId', '0');
-                            redXf.setAttribute('applyFont', '1');
-                            cellXfs.appendChild(redXf);
-                            var redStyleId = cellXfs.getElementsByTagName('xf').length - 1;
+                            // 2. Add Light Red Fill (#FFC7CE)
+                            var fills = stylesDoc.getElementsByTagName('fills')[0];
+                            var fillCount = parseInt(fills.getAttribute('count') || fills.getElementsByTagName('fill').length);
 
-                            cellXfs.setAttribute('count', cellXfs.getElementsByTagName('xf').length);
+                            var fillNode = stylesDoc.createElement('fill');
+                            var patternFill = stylesDoc.createElement('patternFill');
+                            patternFill.setAttribute('patternType', 'solid');
 
-                            var serializer = new XMLSerializer();
-                            xlsx.xl['styles.xml'] = serializer.serializeToString(xmlDoc);
+                            var fgColor = stylesDoc.createElement('fgColor');
+                            fgColor.setAttribute('rgb', 'FFC7CE');
+                            patternFill.appendChild(fgColor);
 
-                            // Apply redStyleId to Sub Remark column (H) cells with non-empty content
-                            $('row', sheet).each(function(rIdx) {
-                                if (rIdx > 0) {
-                                    var cell = $(this).find('c[r^="H"]');
-                                    if (cell.length && cell.text().trim() !== '' && cell.text().trim() !== '-') {
-                                        cell.attr('s', redStyleId);
+                            var bgColor = stylesDoc.createElement('bgColor');
+                            bgColor.setAttribute('indexed', '64');
+                            patternFill.appendChild(bgColor);
+
+                            fillNode.appendChild(patternFill);
+                            fills.appendChild(fillNode);
+                            fills.setAttribute('count', (fillCount + 1).toString());
+
+                            // 3. Add Cell XF combining Red Font and Light Red Fill
+                            var cellXfs = stylesDoc.getElementsByTagName('cellXfs')[0];
+                            var xfCount = parseInt(cellXfs.getAttribute('count') || cellXfs.getElementsByTagName('xf').length);
+
+                            var xfNode = stylesDoc.createElement('xf');
+                            xfNode.setAttribute('numFmtId', '0');
+                            xfNode.setAttribute('fontId', fontCount.toString());
+                            xfNode.setAttribute('fillId', fillCount.toString());
+                            xfNode.setAttribute('borderId', '0');
+                            xfNode.setAttribute('xfId', '0');
+                            xfNode.setAttribute('applyFont', '1');
+                            xfNode.setAttribute('applyFill', '1');
+
+                            cellXfs.appendChild(xfNode);
+                            cellXfs.setAttribute('count', (xfCount + 1).toString());
+
+                            var redStyleIndex = xfCount;
+
+                            // 4. Find column letter for "Sub Remark" in sheetDoc header (row 1)
+                            var subRemarkCol = 'H';
+                            var cells = sheetDoc.getElementsByTagName('c');
+                            for (var h = 0; h < cells.length; h++) {
+                                var cCell = cells[h];
+                                var rRef = cCell.getAttribute('r') || '';
+                                if (rRef.indexOf('1') !== -1 && rRef.length <= 2) {
+                                    var txt = (cCell.textContent || '').trim().toLowerCase();
+                                    if (txt.indexOf('sub remark') !== -1) {
+                                        subRemarkCol = rRef.replace(/[0-9]/g, '');
+                                        break;
                                     }
                                 }
-                            });
+                            }
+
+                            // 5. Apply redStyleIndex to non-empty sub remark cells (excluding row 1 header)
+                            for (var i = 0; i < cells.length; i++) {
+                                var cell = cells[i];
+                                var ref = cell.getAttribute('r') || '';
+                                if (ref.indexOf(subRemarkCol) === 0 && ref !== (subRemarkCol + '1')) {
+                                    var val = (cell.textContent || '').trim();
+                                    if (val !== '' && val !== '-') {
+                                        cell.setAttribute('s', redStyleIndex.toString());
+                                    }
+                                }
+                            }
                         } catch (e) {
                             console.error('Error styling Excel export:', e);
                         }
