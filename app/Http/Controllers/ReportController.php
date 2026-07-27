@@ -127,6 +127,7 @@ class ReportController extends Controller
         $drivers = Driver::orderBy('name')->get();
         $vessels = Vessel::orderBy('name')->get();
         $partners = Partner::orderBy('is_default', 'desc')->orderBy('title')->get();
+        $expenseTypes = \App\Models\TripExpenseType::orderBy('id')->get();
 
         return view('reports.trip-summary', compact(
             'crews',
@@ -138,7 +139,8 @@ class ReportController extends Controller
             'tripsByDate',
             'drivers',
             'vessels',
-            'partners'
+            'partners',
+            'expenseTypes'
         ));
     }
 

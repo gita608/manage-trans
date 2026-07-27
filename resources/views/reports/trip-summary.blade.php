@@ -129,10 +129,9 @@
                                 <th>Destination To</th>
                                 <th>Remarks</th>
                                 <th class="text-danger">Sub Remark</th>
-                                <th>Charge (Waiting Charge)</th>
-                                <th>Charge (Port pass)</th>
-                                <th>Charge (DARB and SALIK)</th>
-                                <th>Charge (Parking)</th>
+                                @foreach($expenseTypes as $type)
+                                    <th>Charge ({{ $type->title }})</th>
+                                @endforeach
                                 <th>Amount</th>
                                 <th>Actual(-20%) Charged to OMS</th>
                                 <th>COMMENTS</th>
@@ -143,52 +142,12 @@
                             @foreach($crews as $crew)
                             @php
                                 $trip = $crew->trip;
-                                $expenses = $trip ? $trip->tripExpenses : collect([]);
-
-                                // 1. Waiting Charge
-                                $waitingExpense = $expenses->first(function($exp) {
-                                    $title = strtolower($exp->expenseType->title ?? '');
-                                    return str_contains($title, 'waiting');
-                                });
-                                $waitingVal = '-';
-                                if ($waitingExpense) {
-                                    if (!empty($waitingExpense->hours) && $waitingExpense->hours > 0) {
-                                        $waitingVal = number_format($waitingExpense->hours, 2) . ' hrs';
-                                    } elseif (!empty($waitingExpense->amount) && $waitingExpense->amount > 0) {
-                                        $waitingVal = number_format($waitingExpense->amount, 2);
-                                    }
-                                }
-
-                                // 2. Port pass
-                                $portPassSum = $expenses->filter(function($exp) {
-                                    $title = strtolower($exp->expenseType->title ?? '');
-                                    return str_contains($title, 'port');
-                                })->sum('amount');
-                                $portPassVal = $portPassSum > 0 ? number_format($portPassSum, 2) : '-';
-
-                                // 3. DARB and SALIK
-                                $darbSalikSum = $expenses->filter(function($exp) {
-                                    $title = strtolower($exp->expenseType->title ?? '');
-                                    return str_contains($title, 'darb') || str_contains($title, 'salik');
-                                })->sum('amount');
-                                $darbSalikVal = $darbSalikSum > 0 ? number_format($darbSalikSum, 2) : '-';
-
-                                // 4. Parking
-                                $parkingSum = $expenses->filter(function($exp) {
-                                    $title = strtolower($exp->expenseType->title ?? '');
-                                    return str_contains($title, 'parking');
-                                })->sum('amount');
-                                $parkingVal = $parkingSum > 0 ? number_format($parkingSum, 2) : '-';
-
-                                // 5. Total Amount
-                                $totalAmount = $expenses->sum('amount');
+                                $expensesByType = $trip ? $trip->tripExpenses->groupBy('expense_type_id') : collect([]);
+                                $totalAmount = $trip ? $trip->tripExpenses->sum('amount') : 0;
+                                $actualOmsVal = $totalAmount > 0 ? number_format($totalAmount * 0.80, 2) : '0.00';
                                 $totalAmountVal = $totalAmount > 0 ? number_format($totalAmount, 2) : '0.00';
 
-                                // 6. Actual(-20%) Charged to OMS
-                                $actualOmsVal = $totalAmount > 0 ? number_format($totalAmount * 0.80, 2) : '0.00';
-
-                                // 7. Comments
-                                $commentsList = $expenses->pluck('description')->filter()->unique();
+                                $commentsList = $trip ? $trip->tripExpenses->pluck('description')->filter()->unique() : collect([]);
                                 $commentsVal = $commentsList->isNotEmpty() ? $commentsList->implode(' | ') : '-';
                             @endphp
                             <tr>
@@ -218,10 +177,22 @@
                                         <span class="text-muted">-</span>
                                     @endif
                                 </td>
-                                <td>{{ $waitingVal }}</td>
-                                <td>{{ $portPassVal }}</td>
-                                <td>{{ $darbSalikVal }}</td>
-                                <td>{{ $parkingVal }}</td>
+                                @foreach($expenseTypes as $type)
+                                    @php
+                                        $typeExpenses = $expensesByType->get($type->id);
+                                        $cellVal = '-';
+                                        if ($typeExpenses && $typeExpenses->isNotEmpty()) {
+                                            $firstExp = $typeExpenses->first();
+                                            if ($type->hasInputType('hours') && !empty($firstExp->hours) && $firstExp->hours > 0) {
+                                                $cellVal = number_format($firstExp->hours, 2) . ' hrs';
+                                            } else {
+                                                $sumAmt = $typeExpenses->sum('amount');
+                                                $cellVal = $sumAmt > 0 ? number_format($sumAmt, 2) : '-';
+                                            }
+                                        }
+                                    @endphp
+                                    <td>{{ $cellVal }}</td>
+                                @endforeach
                                 <td class="fw-bold">{{ $totalAmountVal }}</td>
                                 <td class="fw-bold text-success">{{ $actualOmsVal }}</td>
                                 <td>
@@ -311,7 +282,7 @@
                     className: 'btn btn-success btn-sm',
                     title: 'Trip Summary Report',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+                        columns: {!! json_encode(range(0, 7 + $expenseTypes->count() + 2)) !!},
                         modifier: {
                             page: 'all',
                             search: 'none'
@@ -443,7 +414,7 @@
                     orientation: 'landscape',
                     pageSize: 'A4',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+                        columns: {!! json_encode(range(0, 7 + $expenseTypes->count() + 2)) !!},
                         modifier: {
                             page: 'all',
                             search: 'none'
