@@ -281,54 +281,93 @@ class TripController extends Controller
             'crews.*.address' => ['nullable', 'string'],
         ]);
 
-        $newDriverId = $validated['driver_id'] ?? null;
-        if (!$newDriverId) {
-            foreach ($request->crews as $cData) {
-                if (!empty($cData['driver_id'])) {
-                    $newDriverId = $cData['driver_id'];
-                    break;
+        $tripDate = $validated['trip_date'];
+        $partnerId = $validated['partner_id'] ?? null;
+        $rootDriverId = $validated['driver_id'] ?? null;
+
+        // Group submitted crews by driver_id
+        $groupedTrips = [];
+        foreach ($request->crews as $crewData) {
+            $driverId = !empty($crewData['driver_id']) ? $crewData['driver_id'] : $rootDriverId;
+            $key = $driverId ? (string)$driverId : 'unassigned';
+
+            if (!isset($groupedTrips[$key])) {
+                $groupedTrips[$key] = [
+                    'driver_id' => $driverId ?: null,
+                    'crews' => []
+                ];
+            }
+
+            unset($crewData['driver_id']);
+            $groupedTrips[$key]['crews'][] = $crewData;
+        }
+
+        $isFirst = true;
+        foreach ($groupedTrips as $group) {
+            $driverId = $group['driver_id'];
+
+            if ($isFirst) {
+                // Update the current trip with the primary driver group
+                $oldDriverId = $trip->driver_id;
+                $driverChanged = $oldDriverId != $driverId;
+                $driverNewlyAssigned = !$oldDriverId && $driverId;
+
+                $tripDateFormatted = $trip->trip_date instanceof \Carbon\Carbon 
+                    ? $trip->trip_date->format('Y-m-d') 
+                    : Carbon::parse($trip->trip_date)->format('Y-m-d');
+                $dateChanged = $tripDateFormatted !== Carbon::parse($tripDate)->format('Y-m-d');
+
+                $tripTitle = $trip->title;
+                if ($driverChanged || $dateChanged) {
+                    $tripTitle = Trip::generateTripTitle($driverId, $tripDate, $trip->id);
+                }
+
+                $updateData = [
+                    'driver_id' => $driverId,
+                    'partner_id' => $partnerId,
+                    'trip_date' => $tripDate,
+                    'title' => $tripTitle,
+                ];
+
+                if ($driverNewlyAssigned && $trip->status === TripCrew::STATUS_UNASSIGNED) {
+                    $updateData['status'] = TripCrew::STATUS_ASSIGNED;
+                } elseif (!$driverId && $trip->status === TripCrew::STATUS_ASSIGNED) {
+                    $updateData['status'] = TripCrew::STATUS_UNASSIGNED;
+                }
+
+                $trip->update($updateData);
+                $trip->crews()->delete();
+
+                foreach ($group['crews'] as $crewData) {
+                    $trip->crews()->create($crewData);
+                }
+
+                if ($driverNewlyAssigned) {
+                    $this->sendTripNotification($trip);
+                }
+
+                $isFirst = false;
+            } else {
+                // Create new trip for additional driver groups
+                $newTitle = Trip::generateTripTitle($driverId, $tripDate);
+                $newStatus = $driverId ? TripCrew::STATUS_ASSIGNED : TripCrew::STATUS_UNASSIGNED;
+
+                $newTrip = Trip::create([
+                    'driver_id' => $driverId,
+                    'partner_id' => $partnerId,
+                    'trip_date' => $tripDate,
+                    'title' => $newTitle,
+                    'status' => $newStatus,
+                ]);
+
+                foreach ($group['crews'] as $crewData) {
+                    $newTrip->crews()->create($crewData);
+                }
+
+                if ($driverId) {
+                    $this->sendTripNotification($newTrip);
                 }
             }
-        }
-
-        $oldDriverId = $trip->driver_id;
-        $driverChanged = $oldDriverId != $newDriverId;
-        $driverNewlyAssigned = !$oldDriverId && $newDriverId;
-
-        $tripDateFormatted = $trip->trip_date instanceof \Carbon\Carbon 
-            ? $trip->trip_date->format('Y-m-d') 
-            : Carbon::parse($trip->trip_date)->format('Y-m-d');
-        $dateChanged = $tripDateFormatted !== Carbon::parse($validated['trip_date'])->format('Y-m-d');
-
-        $tripTitle = $trip->title;
-        if ($driverChanged || $dateChanged) {
-            $tripTitle = Trip::generateTripTitle($newDriverId, $validated['trip_date'], $trip->id);
-        }
-
-        $updateData = [
-            'driver_id' => $newDriverId,
-            'partner_id' => $validated['partner_id'] ?? null,
-            'trip_date' => $validated['trip_date'],
-            'title' => $tripTitle,
-        ];
-
-        if ($driverNewlyAssigned && $trip->status === TripCrew::STATUS_UNASSIGNED) {
-            $updateData['status'] = TripCrew::STATUS_ASSIGNED;
-        } elseif (!$newDriverId && $trip->status === TripCrew::STATUS_ASSIGNED) {
-            $updateData['status'] = TripCrew::STATUS_UNASSIGNED;
-        }
-
-        $trip->update($updateData);
-
-        $trip->crews()->delete();
-
-        foreach ($request->crews as $crewData) {
-            unset($crewData['driver_id']);
-            $trip->crews()->create($crewData);
-        }
-
-        if ($driverNewlyAssigned) {
-            $this->sendTripNotification($trip);
         }
 
         return redirect()->route('trips.index')->with('success', 'Trip updated successfully!');
