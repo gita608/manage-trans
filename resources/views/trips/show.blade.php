@@ -124,6 +124,7 @@
                                         <th scope="col">Route</th>
                                         <th scope="col">Flight No</th>
                                         <th scope="col">Remarks</th>
+                                        <th scope="col">Sub Remark</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -172,6 +173,15 @@
                                                     <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $crew->remarks }}">
                                                         <i class="ri-message-2-line fs-16"></i>
                                                     </button>
+                                                @else
+                                                    <span class="text-muted">-</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if($crew->sub_remark)
+                                                    <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $crew->sub_remark }}">
+                                                        {{ $crew->sub_remark }}
+                                                    </span>
                                                 @else
                                                     <span class="text-muted">-</span>
                                                 @endif

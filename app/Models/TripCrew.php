@@ -18,6 +18,7 @@ class TripCrew extends Model
         'to_location',
         'flight_number',
         'remarks',
+        'sub_remark',
         // Note: status is now stored on trips table, not trip_crews
         // Keeping constants here for backward compatibility
     ];

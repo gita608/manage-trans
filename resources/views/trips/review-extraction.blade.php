@@ -71,8 +71,8 @@
                                 <i class="ri-information-fill fs-24 text-info"></i>
                             </div>
                             <div class="flex-grow-1">
-                                <h6 class="alert-heading fw-bold mb-1">How Grouping Works</h6>
-                                <p class="mb-0 text-muted">Rows with the same <strong>Driver</strong> and <strong>Date</strong> will be automatically grouped into a single Trip. Uncheck any rows you wish to discard.</p>
+                                <h6 class="alert-heading fw-bold mb-1"><i class="ri-route-line me-1"></i> Driver Assignment & Automatic Trip Splitting</h6>
+                                <p class="mb-0 text-muted">Rows assigned to the same <strong>Driver</strong> and <strong>Date</strong> will be automatically grouped into a single Trip dispatch. Assigning different drivers will split rows into separate trips. Rows set as <em>"Assign Later"</em> will remain unassigned.</p>
                             </div>
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
@@ -87,7 +87,7 @@
                                             <input class="form-check-input" type="checkbox" id="checkAll" checked>
                                         </div>
                                     </th>
-                                    <th scope="col" style="width: 200px;">Driver</th>
+                                    <th scope="col" style="width: 200px;">Driver <i class="ri-information-line text-info ms-1" data-bs-toggle="tooltip" title="Selecting different drivers will group rows into separate trips per driver."></i></th>
                                     <th scope="col" style="width: 200px;">Vessel</th>
                                     <th scope="col" style="width: 110px;">Pick-up</th>
                                     <th scope="col" style="width: 100px;">Flight No</th>
@@ -96,6 +96,7 @@
                                     <th scope="col" style="width: 150px;">Crew Contact No 2</th>
                                     <th scope="col" style="width: 180px;">Route</th>
                                     <th scope="col" style="min-width: 150px;">Remarks</th>
+                                    <th scope="col" style="min-width: 150px;">Sub Remark</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white">
@@ -163,6 +164,9 @@
                                         </td>
                                         <td>
                                             <input type="text" name="trips[{{ $index }}][remarks]" class="form-control form-control-sm border-light bg-light-subtle" value="{{ $row['remarks'] }}" placeholder="Remarks">
+                                        </td>
+                                        <td>
+                                            <input type="text" name="trips[{{ $index }}][sub_remark]" class="form-control form-control-sm border-light bg-light-subtle" value="{{ $row['sub_remark'] ?? '' }}" placeholder="Sub Remark">
                                         </td>
                                     </tr>
                                 @endforeach

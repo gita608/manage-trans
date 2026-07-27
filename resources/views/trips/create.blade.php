@@ -74,6 +74,19 @@
                         </div>
                     </div>
 
+                    <div class="alert alert-info border-0 shadow-sm rounded-3 mb-4 d-flex align-items-start" role="alert">
+                        <div class="flex-shrink-0 me-3">
+                            <i class="ri-information-fill fs-22 text-info"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="alert-heading fw-bold mb-1"><i class="ri-route-line me-1"></i> Driver Assignment & Automatic Trip Splitting</h6>
+                            <small class="text-muted d-block">
+                                You can select a driver per crew row. If crew rows have different drivers assigned for the same date, the system automatically splits them into separate trips for each driver. Leaving a row as <strong>"Assign Later"</strong> creates an unassigned trip dispatch.
+                            </small>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+
                     <hr class="my-4">
 
                     <div class="d-flex align-items-center justify-content-between mb-3">
@@ -87,7 +100,7 @@
                             <thead class="table-light">
                                 <tr>
                                     <th style="width: 50px;">#</th>
-                                    <th style="min-width: 150px;">Driver Name</th>
+                                    <th style="min-width: 160px;">Driver Name <i class="ri-information-line text-info ms-1" data-bs-toggle="tooltip" title="Selecting different drivers will split rows into separate trips for each driver."></i></th>
                                     <th>Vessel Name <span class="text-danger">*</span></th>
                                     <th>Pick-up Time <span class="text-danger">*</span></th>
                                     <th>Flight Number</th>
@@ -97,6 +110,7 @@
                                     <th>From <span class="text-danger">*</span></th>
                                     <th>To <span class="text-danger">*</span></th>
                                     <th>Remarks</th>
+                                    <th>Sub Remark</th>
                                     <th style="width: 50px;">Action</th>
                                 </tr>
                             </thead>
@@ -104,7 +118,7 @@
                                 @php
                                     $crews = old('crews', []);
                                     if (empty($crews)) {
-                                        $crews = [['name' => '', 'driver_id' => '', 'vessel_id' => '', 'pick_up_time' => '', 'from_location' => '', 'to_location' => '', 'phone' => '', 'phone_2' => '', 'remarks' => '', 'address' => '']];
+                                        $crews = [['name' => '', 'driver_id' => '', 'vessel_id' => '', 'pick_up_time' => '', 'from_location' => '', 'to_location' => '', 'phone' => '', 'phone_2' => '', 'remarks' => '', 'sub_remark' => '', 'address' => '']];
                                     }
                                 @endphp
                                 @foreach($crews as $index => $crew)
@@ -150,6 +164,9 @@
                                         </td>
                                         <td>
                                             <input type="text" class="form-control form-control-sm" name="crews[{{ $index }}][remarks]" value="{{ $crew['remarks'] ?? '' }}" placeholder="Remarks">
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm" name="crews[{{ $index }}][sub_remark]" value="{{ $crew['sub_remark'] ?? '' }}" placeholder="Sub Remark">
                                         </td>
                                         <td class="text-center">
                                             <button type="button" class="btn btn-sm btn-danger remove-row-btn" {{ count($crews) == 1 ? 'disabled' : '' }} title="Remove row">
@@ -348,6 +365,9 @@
                 </td>
                 <td>
                     <input type="text" class="form-control form-control-sm" name="crews[${index}][remarks]" placeholder="Remarks">
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm" name="crews[${index}][sub_remark]" placeholder="Sub Remark">
                 </td>
                 <td class="text-center">
                     <button type="button" class="btn btn-sm btn-danger remove-row-btn" title="Remove row">

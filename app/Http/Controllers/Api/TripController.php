@@ -199,6 +199,7 @@ class TripController extends Controller
                     'name' => $crew->vessel->name,
                 ] : null,
                 'remarks' => $crew->remarks,
+                'sub_remark' => $crew->sub_remark,
                 'flight_number' => $crew->flight_number,
             ];
         }
@@ -473,6 +474,7 @@ class TripController extends Controller
             'to_location' => ['sometimes', 'nullable', 'string', 'max:255'],
             'flight_number' => ['nullable', 'string', 'max:255'],
             'remarks' => ['nullable', 'string'],
+            'sub_remark' => ['nullable', 'string'],
             // Note: status is now on trips table, not trip_crews
         ]);
 
@@ -556,6 +558,7 @@ class TripController extends Controller
                     'name' => $crew->vessel->name,
                 ] : null,
                 'remarks' => $crew->remarks,
+                'sub_remark' => $crew->sub_remark,
                 'flight_number' => $crew->flight_number,
             ],
         ], 200);

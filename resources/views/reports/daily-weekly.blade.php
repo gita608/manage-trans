@@ -286,6 +286,8 @@
                                 <th>Pick-up Time</th>
                                 <th>From</th>
                                 <th>To</th>
+                                <th>Remarks</th>
+                                <th>Sub Remark</th>
                                 <th>Status</th>
                                 <th style="display:none;">Created At</th>
                             </tr>
@@ -311,6 +313,16 @@
                                 <td>
                                     <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $crew->to_location ?? '-' }}">
                                         {{ $crew->to_location ?? '-' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $crew->remarks ?? '-' }}">
+                                        {{ $crew->remarks ?? '-' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $crew->sub_remark ?? '-' }}">
+                                        {{ $crew->sub_remark ?? '-' }}
                                     </span>
                                 </td>
                                 <td>
@@ -446,7 +458,7 @@
                     className: 'btn btn-success btn-sm',
                     title: 'Daily Weekly Report',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
                         modifier: {
                             page: 'all',
                             search: 'none'

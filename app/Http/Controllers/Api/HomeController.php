@@ -117,6 +117,7 @@ class HomeController extends Controller
                 'vessel' => $crew->vessel->name,
                 'flight_number' => $crew->flight_number,
                 'remarks' => $crew->remarks,
+                'sub_remark' => $crew->sub_remark,
                 'pick_up_time' => $crew->pick_up_time ? Carbon::parse($crew->pick_up_time)->subHours(12)->format('h:i A') : null,
                 'from_location' => $crew->from_location,
                 'to_location' => $crew->to_location,

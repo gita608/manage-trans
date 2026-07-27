@@ -164,6 +164,7 @@ class TripController extends Controller
             'crews.*.to_location' => ['required', 'string', 'max:255'],
             'crews.*.flight_number' => ['nullable', 'string', 'max:255'],
             'crews.*.remarks' => ['nullable', 'string'],
+            'crews.*.sub_remark' => ['nullable', 'string'],
             'crews.*.name' => ['required', 'string', 'max:255'],
             'crews.*.phone' => ['nullable', 'string', 'max:255'],
             'crews.*.phone_2' => ['nullable', 'string', 'max:255'],
@@ -275,6 +276,7 @@ class TripController extends Controller
             'crews.*.to_location' => ['required', 'string', 'max:255'],
             'crews.*.flight_number' => ['nullable', 'string', 'max:255'],
             'crews.*.remarks' => ['nullable', 'string'],
+            'crews.*.sub_remark' => ['nullable', 'string'],
             'crews.*.name' => ['required', 'string', 'max:255'],
             'crews.*.phone' => ['nullable', 'string', 'max:255'],
             'crews.*.phone_2' => ['nullable', 'string', 'max:255'],
@@ -517,6 +519,8 @@ class TripController extends Controller
             'trips.*.crew_phone_2' => ['nullable', 'string', 'max:255'],
             'trips.*.from_location' => ['required', 'string'],
             'trips.*.to_location' => ['required', 'string'],
+            'trips.*.remarks' => ['nullable', 'string'],
+            'trips.*.sub_remark' => ['nullable', 'string'],
         ]);
 
         $createdCount = 0;
@@ -569,6 +573,7 @@ class TripController extends Controller
                 'from_location' => $tripData['from_location'],
                 'to_location' => $tripData['to_location'],
                 'remarks' => $tripData['remarks'] ?? null,
+                'sub_remark' => $tripData['sub_remark'] ?? null,
             ];
         }
 
@@ -693,6 +698,7 @@ class TripController extends Controller
                 'from_location' => $fromLocation ?: 'N/A',
                 'to_location' => $toLocation ?: 'N/A',
                 'remarks' => $followUp,
+                'sub_remark' => null,
             ];
         }
 

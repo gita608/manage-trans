@@ -417,6 +417,7 @@
                                                 <th>Pick-up</th>
                                                 <th>Flight</th>
                                                 <th>Route</th>
+                                                <th>Remarks</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -442,6 +443,17 @@
                                                         <span class="route-from">{{ $crew->from_location }}</span>
                                                         <i class="ri-arrow-right-line route-arrow"></i>
                                                         <span class="route-to">{{ $crew->to_location }}</span>
+                                                    </td>
+                                                    <td>
+                                                        @if($crew->remarks)
+                                                            <span class="badge bg-light text-dark me-1" title="Remarks: {{ $crew->remarks }}"><i class="ri-chat-1-line me-1"></i>{{ \Illuminate\Support\Str::limit($crew->remarks, 15) }}</span>
+                                                        @endif
+                                                        @if($crew->sub_remark)
+                                                            <span class="badge bg-light text-info" title="Sub Remark: {{ $crew->sub_remark }}"><i class="ri-chat-3-line me-1"></i>{{ \Illuminate\Support\Str::limit($crew->sub_remark, 15) }}</span>
+                                                        @endif
+                                                        @if(!$crew->remarks && !$crew->sub_remark)
+                                                            <span class="text-muted">—</span>
+                                                        @endif
                                                     </td>
                                                 </tr>
                                             @endforeach
