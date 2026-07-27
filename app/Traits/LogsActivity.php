@@ -128,8 +128,24 @@ trait LogsActivity
     protected function getActivityIdentifier(): string
     {
         $config = $this->getActivityConfig();
-        $identifierField = $config['identifier_field'] ?? 'name';
-        return $this->{$identifierField} ?? 'Unknown';
+        if (isset($config['identifier_field']) && !empty($this->{$config['identifier_field']})) {
+            return (string) $this->{$config['identifier_field']};
+        }
+
+        if (!empty($this->name)) {
+            return (string) $this->name;
+        }
+        if (!empty($this->title)) {
+            return (string) $this->title;
+        }
+        if (!empty($this->note)) {
+            return (string) \Illuminate\Support\Str::limit($this->note, 30);
+        }
+        if (!empty($this->description)) {
+            return (string) \Illuminate\Support\Str::limit($this->description, 30);
+        }
+
+        return '#' . ($this->id ?? 'Unknown');
     }
 
     /**
@@ -213,13 +229,17 @@ trait LogsActivity
                     // Array mapping (e.g., enum values)
                     if (isset($mapping['label'])) {
                         $fieldLabel = $mapping['label'];
-                        $oldLabel = $mapping[$oldValue] ?? $oldValue ?? 'unknown';
-                        $newLabel = $mapping[$newValue] ?? $newValue ?? 'unknown';
+                        $oldVal = $mapping[$oldValue] ?? $oldValue ?? 'unknown';
+                        $newVal = $mapping[$newValue] ?? $newValue ?? 'unknown';
+                        $oldLabel = is_array($oldVal) ? implode(', ', $oldVal) : (string) $oldVal;
+                        $newLabel = is_array($newVal) ? implode(', ', $newVal) : (string) $newVal;
                         $changes[] = "{$fieldLabel} changed from '{$oldLabel}' to '{$newLabel}'";
                     } else {
                         // Simple array mapping
-                        $oldLabel = $mapping[$oldValue] ?? $oldValue ?? 'unknown';
-                        $newLabel = $mapping[$newValue] ?? $newValue ?? 'unknown';
+                        $oldVal = $mapping[$oldValue] ?? $oldValue ?? 'unknown';
+                        $newVal = $mapping[$newValue] ?? $newValue ?? 'unknown';
+                        $oldLabel = is_array($oldVal) ? implode(', ', $oldVal) : (string) $oldVal;
+                        $newLabel = is_array($newVal) ? implode(', ', $newVal) : (string) $newVal;
                         $fieldLabel = str_replace('_', ' ', ucwords($field, '_'));
                         $changes[] = "{$fieldLabel} changed from '{$oldLabel}' to '{$newLabel}'";
                     }

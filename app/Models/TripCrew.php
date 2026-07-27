@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\LogsActivity;
 
 class TripCrew extends Model
 {
+    use LogsActivity;
     protected $fillable = [
         'trip_id',
         'vessel_id',

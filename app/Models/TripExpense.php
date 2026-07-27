@@ -4,9 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Traits\LogsActivity;
 
 class TripExpense extends Model
 {
+    use LogsActivity;
     protected $fillable = [
         'trip_id',
         'driver_id',
