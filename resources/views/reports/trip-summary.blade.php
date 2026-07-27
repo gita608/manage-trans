@@ -130,11 +130,11 @@
                                 <th>Remarks</th>
                                 <th class="text-danger">Sub Remark</th>
                                 @foreach($expenseTypes as $type)
-                                    <th>Charge ({{ $type->title }})</th>
+                                    <th style="display:none;">Charge ({{ $type->title }})</th>
                                 @endforeach
-                                <th>Amount</th>
-                                <th>Actual(-20%) Charged to OMS</th>
-                                <th>COMMENTS</th>
+                                <th style="display:none;">Amount</th>
+                                <th style="display:none;">Actual(-20%) Charged to OMS</th>
+                                <th style="display:none;">COMMENTS</th>
                                 <th style="display:none;">Created At</th>
                             </tr>
                         </thead>
@@ -191,19 +191,11 @@
                                             }
                                         }
                                     @endphp
-                                    <td>{{ $cellVal }}</td>
+                                    <td style="display:none;">{{ $cellVal }}</td>
                                 @endforeach
-                                <td class="fw-bold">{{ $totalAmountVal }}</td>
-                                <td class="fw-bold text-success">{{ $actualOmsVal }}</td>
-                                <td>
-                                    @if($commentsVal !== '-')
-                                        <span class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ $commentsVal }}">
-                                            {{ $commentsVal }}
-                                        </span>
-                                    @else
-                                        <span class="text-muted">-</span>
-                                    @endif
-                                </td>
+                                <td style="display:none;" class="fw-bold">{{ $totalAmountVal }}</td>
+                                <td style="display:none;" class="fw-bold text-success">{{ $actualOmsVal }}</td>
+                                <td style="display:none;">{{ $commentsVal }}</td>
                                 <td style="display:none;" data-order="{{ $crew->created_at->timestamp }}">{{ $crew->created_at->format('Y-m-d H:i:s') }}</td>
                             </tr>
                             @endforeach
@@ -282,7 +274,7 @@
                     className: 'btn btn-success btn-sm',
                     title: 'Trip Summary Report',
                     exportOptions: {
-                        columns: {!! json_encode(range(0, 7 + $expenseTypes->count() + 2)) !!},
+                        columns: {!! json_encode(range(0, 7 + $expenseTypes->count() + 3)) !!},
                         modifier: {
                             page: 'all',
                             search: 'none'
@@ -414,7 +406,7 @@
                     orientation: 'landscape',
                     pageSize: 'A4',
                     exportOptions: {
-                        columns: {!! json_encode(range(0, 7 + $expenseTypes->count() + 2)) !!},
+                        columns: {!! json_encode(range(0, 7 + $expenseTypes->count() + 3)) !!},
                         modifier: {
                             page: 'all',
                             search: 'none'
