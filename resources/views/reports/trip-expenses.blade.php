@@ -265,41 +265,46 @@
 
 <script>
     // Type Chart
-    const typeCtx = document.getElementById('typeChart').getContext('2d');
-    new Chart(typeCtx, {
-        type: 'doughnut',
-        data: {
-            labels: {!! json_encode(array_keys($expensesByType->toArray())) !!},
-            datasets: [{
-                data: {!! json_encode(array_values($expensesByType->toArray())) !!},
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.8)',
-                    'rgba(54, 162, 235, 0.8)',
-                    'rgba(255, 206, 86, 0.8)',
-                    'rgba(75, 192, 192, 0.8)',
-                    'rgba(153, 102, 255, 0.8)',
-                    'rgba(255, 159, 64, 0.8)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom'
+    const typeChartEl = document.getElementById('typeChart');
+    if (typeChartEl) {
+        const typeCtx = typeChartEl.getContext('2d');
+        new Chart(typeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {!! json_encode(array_keys($expensesByType->toArray())) !!},
+                datasets: [{
+                    data: {!! json_encode(array_values($expensesByType->toArray())) !!},
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 206, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(153, 102, 255, 0.8)',
+                        'rgba(255, 159, 64, 0.8)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
                 }
             }
-        }
-    });
+        });
+    }
 
     // Date Chart
-    const dateCtx = document.getElementById('dateChart').getContext('2d');
-    const dateLabels = {!! json_encode(array_keys($expensesByDate->toArray())) !!};
-    const dateData = {!! json_encode(array_values($expensesByDate->toArray())) !!};
-    
-    new Chart(dateCtx, {
+    const dateChartEl = document.getElementById('dateChart');
+    if (dateChartEl) {
+        const dateCtx = dateChartEl.getContext('2d');
+        const dateLabels = {!! json_encode(array_keys($expensesByDate->toArray())) !!};
+        const dateData = {!! json_encode(array_values($expensesByDate->toArray())) !!};
+        
+        new Chart(dateCtx, {
         type: 'bar',
         data: {
             labels: dateLabels,
@@ -326,6 +331,7 @@
             }
         }
     });
+    }
 
     // Initialize DataTable with Export Buttons
     $(document).ready(function() {

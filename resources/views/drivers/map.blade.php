@@ -525,9 +525,8 @@
         }).addTo(map);
 
         // Load saved theme or default to light
-        const savedTheme = localStorage.getItem('mapTheme') || 'light';
-        changeMapTheme(savedTheme);
-        document.getElementById('themeSelector').value = savedTheme;
+        const themeSel = document.getElementById('themeSelector');
+        if (themeSel) themeSel.value = savedTheme;
 
         // Load initial driver locations
         loadDriverLocations();
@@ -657,8 +656,8 @@
 
     // Update Driver List Sidebar
     function updateDriverList(drivers) {
-        const listContainer = document.getElementById('driverList');
-        const searchTerm = document.getElementById('driverSearch').value.toLowerCase();
+        const searchInput = document.getElementById('driverSearch');
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
         
         const filteredDrivers = drivers.filter(driver => 
             driver.name.toLowerCase().includes(searchTerm) || 
@@ -710,9 +709,13 @@
         const online = drivers.filter(d => isRecent(d.updated_at)).length;
         const offline = total - online;
 
-        document.getElementById('totalDrivers').textContent = total;
-        document.getElementById('onlineDrivers').textContent = online;
-        document.getElementById('offlineDrivers').textContent = offline;
+        const elTotal = document.getElementById('totalDrivers');
+        const elOnline = document.getElementById('onlineDrivers');
+        const elOffline = document.getElementById('offlineDrivers');
+
+        if (elTotal) elTotal.textContent = total;
+        if (elOnline) elOnline.textContent = online;
+        if (elOffline) elOffline.textContent = offline;
     }
 
     // Focus on a specific driver
@@ -740,12 +743,12 @@
     }
 
     // Search functionality
-    document.getElementById('driverSearch').addEventListener('input', function() {
+    document.getElementById('driverSearch')?.addEventListener('input', function() {
         updateDriverList(driversData);
     });
 
     // Theme selector
-    document.getElementById('themeSelector').addEventListener('change', function() {
+    document.getElementById('themeSelector')?.addEventListener('change', function() {
         changeMapTheme(this.value);
     });
 
@@ -753,18 +756,23 @@
     function setupAutoRefresh() {
         const checkbox = document.getElementById('autoRefresh');
         const badge = document.getElementById('autoRefreshBadge');
+        if (!checkbox) return;
 
         checkbox.addEventListener('change', function() {
             if (this.checked) {
                 startAutoRefresh();
-                badge.classList.remove('inactive');
-                badge.classList.add('active');
-                badge.querySelector('span').textContent = 'Live Updates';
+                if (badge) {
+                    badge.classList.remove('inactive');
+                    badge.classList.add('active');
+                    badge.querySelector('span').textContent = 'Live Updates';
+                }
             } else {
                 stopAutoRefresh();
-                badge.classList.remove('active');
-                badge.classList.add('inactive');
-                badge.querySelector('span').textContent = 'Updates Paused';
+                if (badge) {
+                    badge.classList.remove('active');
+                    badge.classList.add('inactive');
+                    badge.querySelector('span').textContent = 'Updates Paused';
+                }
             }
         });
 
@@ -788,11 +796,11 @@
     }
 
     // Manual Refresh
-    document.getElementById('refreshBtn').addEventListener('click', function() {
+    document.getElementById('refreshBtn')?.addEventListener('click', function() {
         const icon = this.querySelector('i');
-        icon.classList.add('ri-spin-line'); // Add spin animation
+        if (icon) icon.classList.add('ri-spin-line');
         loadDriverLocations();
-        setTimeout(() => icon.classList.remove('ri-spin-line'), 1000);
+        setTimeout(() => icon && icon.classList.remove('ri-spin-line'), 1000);
     });
 
     // Initialize
