@@ -106,106 +106,6 @@
     </div>
 </div>
 
-<!-- Summary Cards -->
-<div class="row g-3 mb-4">
-    <div class="col-xl-3 col-md-6">
-        <div class="card border shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="avatar-sm flex-shrink-0 me-3">
-                        <span class="avatar-title bg-primary-subtle text-primary rounded">
-                            <i class="ri-route-line fs-4"></i>
-                        </span>
-                    </div>
-                    <div class="flex-grow-1">
-                        <p class="text-uppercase fw-medium text-muted mb-0 fs-12">Total Trips</p>
-                        <h3 class="mb-0 fw-bold">{{ $totalTrips }}</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6">
-        <div class="card border shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="avatar-sm flex-shrink-0 me-3">
-                        <span class="avatar-title bg-warning-subtle text-warning rounded">
-                            <i class="ri-task-line fs-4"></i>
-                        </span>
-                    </div>
-                    <div class="flex-grow-1">
-                        <p class="text-uppercase fw-medium text-muted mb-0 fs-12">Assigned</p>
-                        <h3 class="mb-0 fw-bold">{{ $assignedTrips }}</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6">
-        <div class="card border shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="avatar-sm flex-shrink-0 me-3">
-                        <span class="avatar-title bg-info-subtle text-info rounded">
-                            <i class="ri-time-line fs-4"></i>
-                        </span>
-                    </div>
-                    <div class="flex-grow-1">
-                        <p class="text-uppercase fw-medium text-muted mb-0 fs-12">In Progress</p>
-                        <h3 class="mb-0 fw-bold">{{ $inProgressTrips }}</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6">
-        <div class="card border shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="avatar-sm flex-shrink-0 me-3">
-                        <span class="avatar-title bg-success-subtle text-success rounded">
-                            <i class="ri-checkbox-circle-line fs-4"></i>
-                        </span>
-                    </div>
-                    <div class="flex-grow-1">
-                        <p class="text-uppercase fw-medium text-muted mb-0 fs-12">Completed</p>
-                        <h3 class="mb-0 fw-bold">{{ $completedTrips }}</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Charts -->
-<div class="row g-3 mb-4">
-    <div class="col-xl-6">
-        <div class="card border shadow-sm">
-            <div class="card-header border-bottom">
-                <h6 class="card-title mb-0">Trips by Status</h6>
-            </div>
-            <div class="card-body">
-                <canvas id="statusChart" height="250"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-6">
-        <div class="card border shadow-sm">
-            <div class="card-header border-bottom">
-                <h6 class="card-title mb-0">Trips by Date</h6>
-            </div>
-            <div class="card-body">
-                <canvas id="dateChart" height="250"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Trip Details Table -->
 <div class="row">
     <div class="col-12">
@@ -303,8 +203,6 @@
 @endpush
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <!-- jQuery (required for DataTables) -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
@@ -322,70 +220,6 @@
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
 <script>
-    // Status Chart
-    const statusCtx = document.getElementById('statusChart').getContext('2d');
-    new Chart(statusCtx, {
-        type: 'doughnut',
-        data: {
-            labels: {!! json_encode(array_keys($statusData)) !!},
-            datasets: [{
-                data: {!! json_encode(array_values($statusData)) !!},
-                backgroundColor: [
-                    'rgba(255, 193, 7, 0.8)',
-                    'rgba(13, 202, 240, 0.8)',
-                    'rgba(25, 135, 84, 0.8)'
-                ],
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                }
-            }
-        }
-    });
-
-    // Date Chart
-    const dateCtx = document.getElementById('dateChart').getContext('2d');
-    const dateLabels = {!! json_encode(array_keys($tripsByDate->toArray())) !!};
-    const dateData = {!! json_encode(array_values($tripsByDate->toArray())) !!};
-    
-    new Chart(dateCtx, {
-        type: 'line',
-        data: {
-            labels: dateLabels,
-            datasets: [{
-                label: 'Trips',
-                data: dateData,
-                borderColor: 'rgb(13, 202, 240)',
-                backgroundColor: 'rgba(13, 202, 240, 0.1)',
-                tension: 0.4,
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
-                }
-            }
-        }
-    });
-
     // Initialize DataTable with Export Buttons
     $(document).ready(function() {
         $('#tripSummaryTable').DataTable({

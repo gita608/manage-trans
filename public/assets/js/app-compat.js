@@ -37,5 +37,52 @@
             }
         }
     })();
+
+    // Catch-all safety proxy for optional theme element IDs accessed by app.js
+    var dummyElementCache = {};
+    var optionalThemeIds = [
+        'navbar-menu',
+        'vertical-hover',
+        'removeNotificationModal',
+        'delete-notification',
+        'NotificationModalbtn-close',
+        'notificationDropdown',
+        'notification-actions',
+        'sidebar-size-small-hover',
+        'sidebar-size-default',
+        'layout-width-fluid',
+        'sidebar-view-default',
+        'sidebar-color-gradient',
+        'collapseBgGradient',
+        'search-close-options',
+        'search-dropdown',
+        'search-options',
+        'search-dropdown-reponsive',
+        'search-options-reponsive',
+        'cart-item-total',
+        'empty-cart',
+        'checkout-elem',
+        'reset-layout'
+    ];
+
+    function createDummy(id) {
+        if (!dummyElementCache[id]) {
+            var dummy = document.createElement('div');
+            dummy.id = id;
+            dummy.style.display = 'none';
+            dummy.click = function() {};
+            dummyElementCache[id] = dummy;
+        }
+        return dummyElementCache[id];
+    }
+
+    var originalGetElementById = document.getElementById.bind(document);
+    document.getElementById = function(id) {
+        var el = originalGetElementById(id);
+        if (!el && optionalThemeIds.indexOf(id) !== -1) {
+            return createDummy(id);
+        }
+        return el;
+    };
 })();
 
