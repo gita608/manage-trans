@@ -42,6 +42,13 @@
                     <div class="p-4 bg-light-subtle border-bottom">
                         <div class="row g-3 mb-3">
                             <div class="col-md-4">
+                                <label for="common_trip_date" class="form-label fw-semibold">
+                                    <i class="ri-calendar-line me-1"></i>Trip Date (Applies to All Trips)
+                                </label>
+                                <input type="date" class="form-control" id="common_trip_date" name="trip_date" value="{{ $parsedData[0]['trip_date'] ?? date('Y-m-d') }}" required>
+                                <small class="text-muted">This date will be applied to all trips below</small>
+                            </div>
+                            <div class="col-md-4">
                                 <label for="partner_id" class="form-label fw-semibold">
                                     <i class="ri-group-line me-1"></i>Partner (Applies to All Trips)
                                 </label>
@@ -82,7 +89,6 @@
                                     </th>
                                     <th scope="col" style="width: 200px;">Driver</th>
                                     <th scope="col" style="width: 200px;">Vessel</th>
-                                    <th scope="col" style="width: 130px;">Date</th>
                                     <th scope="col" style="width: 110px;">Pick-up</th>
                                     <th scope="col" style="width: 100px;">Flight No</th>
                                     <th scope="col" style="width: 250px;">Crew Name</th>
@@ -98,6 +104,7 @@
                                         <td class="ps-4">
                                             <div class="form-check form-check-primary">
                                                 <input class="form-check-input row-check" type="checkbox" name="trips[{{ $index }}][selected]" value="1" checked>
+                                                <input type="hidden" name="trips[{{ $index }}][trip_date]" class="row-trip-date" value="{{ $row['trip_date'] }}">
                                             </div>
                                         </td>
                                         <td>
@@ -125,9 +132,6 @@
                                                     @if($row['vessel_id'] == $vessel->id) @php $vesselFound = true; @endphp @endif
                                                 @endforeach
                                             </select>
-                                        </td>
-                                        <td>
-                                            <input type="date" name="trips[{{ $index }}][trip_date]" class="form-control form-control-sm border-light bg-light-subtle" value="{{ $row['trip_date'] }}" required>
                                         </td>
                                         <td>
                                             <input type="time" name="trips[{{ $index }}][pick_up_time]" class="form-control form-control-sm border-light bg-light-subtle" value="{{ $row['pick_up_time'] }}" required>
@@ -410,6 +414,19 @@
                 }
             });
         });
+
+        // Sync common trip date to all row dates
+        const commonTripDate = document.getElementById('common_trip_date');
+        if (commonTripDate) {
+            commonTripDate.addEventListener('change', function() {
+                const newDate = this.value;
+                if (newDate) {
+                    document.querySelectorAll('input[name$="[trip_date]"]').forEach(input => {
+                        input.value = newDate;
+                    });
+                }
+            });
+        }
 
         const cancelReviewBtn = document.getElementById('cancel-review-btn');
         if (cancelReviewBtn) {

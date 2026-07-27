@@ -430,10 +430,11 @@ class TripController extends Controller
         $request->validate([
             'trips' => ['required', 'array'],
             'partner_id' => ['nullable', 'exists:partners,id'],
+            'trip_date' => ['nullable', 'date'],
             'trips.*.selected' => ['nullable'], // Checkbox
             'trips.*.driver_id' => ['nullable'], // Can be "new:Name" or ID
             'trips.*.vessel_id' => ['nullable'], // Can be "new:Name" or ID
-            'trips.*.trip_date' => ['required', 'date'],
+            'trips.*.trip_date' => ['nullable', 'date'],
             'trips.*.pick_up_time' => ['required'],
             'trips.*.flight_number' => ['nullable', 'string'],
             'trips.*.crew_name' => ['required', 'string'],
@@ -447,6 +448,7 @@ class TripController extends Controller
         
         // Group items by Driver + Date to create consolidated trips
         $groupedTrips = [];
+        $defaultTripDate = $request->input('trip_date') ?: today()->format('Y-m-d');
 
         foreach ($request->trips as $index => $tripData) {
             if (!isset($tripData['selected'])) {
@@ -471,7 +473,7 @@ class TripController extends Controller
                 continue;
             }
 
-            $date = $tripData['trip_date'];
+            $date = !empty($tripData['trip_date']) ? $tripData['trip_date'] : $defaultTripDate;
             $key = ($driverId ?: 'unassigned') . '_' . $date;
 
             if (!isset($groupedTrips[$key])) {
