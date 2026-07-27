@@ -1,0 +1,10 @@
+# Cursor Rules for ManageTrans
+
+Please read `AGENTS.md` and `PROJECT.md` in the workspace root for comprehensive system architecture, database relationships, and API specifications.
+
+Key Guidelines:
+1. Framework: Laravel 12 (PHP 8.2+).
+2. Database: SQLite / MySQL. Note that `trips.status` is on the `trips` table, and `trips` has many `trip_crews`.
+3. Web routes (`routes/web.php`) require `permission:XYZ` middleware.
+4. Mobile API routes (`routes/api.php`) use Sanctum authentication (`auth:sanctum`) and return standardized `{ "success": boolean, "data": ... }` JSON.
+5. Always eager load relationships (`with(['driver', 'crews.vessel'])`) to avoid N+1 queries.
