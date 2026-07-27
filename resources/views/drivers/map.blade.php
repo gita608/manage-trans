@@ -6,400 +6,497 @@
 <!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""/> 
+    crossorigin=""/>
 <style>
-    /* Layout & Container */
-    .map-wrapper {
+    /* ===== LAYOUT ===== */
+    .map-page-wrapper {
         display: flex;
-        height: calc(100vh - 140px); /* Adjust based on header/footer height */
-        min-height: 600px;
-        background: #fff;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-        border: 1px solid #eef0f3;
+        flex-direction: column;
+        gap: 0;
     }
 
-    /* Sidebar Styles */
+    .map-wrapper {
+        display: flex;
+        height: calc(100vh - 155px);
+        min-height: 620px;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+        border: 1px solid #e2e8f0;
+    }
+
+    /* ===== SIDEBAR ===== */
     .map-sidebar {
-        width: 320px;
+        width: 340px;
         flex-shrink: 0;
         display: flex;
         flex-direction: column;
-        border-right: 1px solid #eef0f3;
-        background: #fff;
+        background: #f8fafc;
+        border-right: 1px solid #e2e8f0;
         z-index: 2;
     }
 
-    .sidebar-header {
-        padding: 20px;
-        border-bottom: 1px solid #eef0f3;
+    .sidebar-brand {
+        padding: 18px 20px 14px;
+        background: linear-gradient(135deg, #405189 0%, #2d3e73 100%);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .sidebar-brand-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: -0.01em;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .sidebar-brand-title i {
+        font-size: 18px;
+        opacity: 0.9;
+    }
+    .sidebar-brand-sub {
+        font-size: 11px;
+        color: rgba(255,255,255,0.65);
+        margin-top: 2px;
+        font-weight: 400;
+    }
+
+    /* ===== STAT CARDS ===== */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0;
+        background: linear-gradient(135deg, #405189 0%, #2d3e73 100%);
+        padding: 0 16px 16px;
+    }
+    .stat-card {
+        background: rgba(255,255,255,0.12);
+        backdrop-filter: blur(8px);
+        border-radius: 10px;
+        padding: 12px 10px;
+        text-align: center;
+        border: 1px solid rgba(255,255,255,0.18);
+        transition: background 0.2s;
+    }
+    .stat-card:hover {
+        background: rgba(255,255,255,0.18);
+    }
+    .stat-value {
+        font-size: 22px;
+        font-weight: 800;
+        color: #fff;
+        line-height: 1;
+        margin-bottom: 4px;
+    }
+    .stat-value.free  { color: #6ee7b7; }
+    .stat-value.busy  { color: #fca5a5; }
+    .stat-label {
+        font-size: 10px;
+        color: rgba(255,255,255,0.7);
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        font-weight: 600;
+    }
+    .stat-dot {
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        margin-right: 3px;
+        vertical-align: middle;
+    }
+    .stat-dot.free { background: #6ee7b7; }
+    .stat-dot.busy { background: #fca5a5; }
+
+    /* ===== SIDEBAR BODY ===== */
+    .sidebar-body {
+        padding: 14px 16px;
+        border-bottom: 1px solid #e2e8f0;
         background: #fff;
     }
 
-    .stats-row {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 15px;
-    }
-
-    .stat-card {
-        flex: 1;
-        background: #f8f9fa;
-        padding: 10px;
-        border-radius: 8px;
-        text-align: center;
-    }
-
-    .stat-value {
-        font-size: 18px;
-        font-weight: 700;
-        color: #1f2937;
-        line-height: 1.2;
-    }
-
-    .stat-label {
-        font-size: 11px;
-        color: #6b7280;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
+    /* ===== SEARCH ===== */
     .search-box {
         position: relative;
     }
-
     .search-box i {
         position: absolute;
-        left: 12px;
+        left: 11px;
         top: 50%;
         transform: translateY(-50%);
-        color: #9ca3af;
+        color: #94a3b8;
+        font-size: 15px;
+        pointer-events: none;
     }
-
     .search-input {
         width: 100%;
-        padding: 10px 10px 10px 36px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        font-size: 14px;
+        padding: 9px 12px 9px 34px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 13.5px;
+        background: #f8fafc;
+        color: #1e293b;
         transition: all 0.2s;
     }
-
     .search-input:focus {
         outline: none;
         border-color: #405189;
-        box-shadow: 0 0 0 3px rgba(64, 81, 137, 0.1);
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(64,81,137,0.1);
+    }
+    .search-input::placeholder { color: #94a3b8; }
+
+    /* ===== STATUS LEGEND ===== */
+    .status-legend {
+        margin-top: 12px;
+        padding: 10px 13px;
+        background: #f0f9ff;
+        border-radius: 10px;
+        border: 1px solid #bae6fd;
+    }
+    .legend-title {
+        font-size: 10.5px;
+        font-weight: 700;
+        color: #0369a1;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .legend-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 5px;
+        font-size: 12px;
+        line-height: 1.45;
+        color: #374151;
+    }
+    .legend-item:last-child { margin-bottom: 0; }
+    .legend-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        margin-top: 3px;
+        box-shadow: 0 0 0 2px rgba(255,255,255,0.8);
+    }
+    .legend-dot.free { background: #10b981; box-shadow: 0 0 0 2px rgba(16,185,129,0.2); }
+    .legend-dot.busy { background: #ef4444; box-shadow: 0 0 0 2px rgba(239,68,68,0.2); }
+
+    /* ===== DRIVER LIST ===== */
+    .driver-list-header {
+        padding: 10px 16px 4px;
+        font-size: 10.5px;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        background: #f8fafc;
+        border-bottom: 1px solid #f1f5f9;
     }
 
     .driver-list {
         flex: 1;
         overflow-y: auto;
-        padding: 10px;
+        padding: 8px;
+        background: #f8fafc;
     }
+    .driver-list::-webkit-scrollbar { width: 4px; }
+    .driver-list::-webkit-scrollbar-track { background: transparent; }
+    .driver-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 
     .driver-item {
         display: flex;
         align-items: center;
-        padding: 12px;
-        border-radius: 8px;
+        padding: 11px 12px;
+        border-radius: 10px;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all 0.18s ease;
         border: 1px solid transparent;
         margin-bottom: 4px;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
-
     .driver-item:hover {
-        background-color: #f3f4f6;
-    }
-
-    .driver-item.active {
-        background-color: #eff6ff;
+        background: #eff6ff;
         border-color: #bfdbfe;
+        box-shadow: 0 2px 8px rgba(64,81,137,0.1);
+        transform: translateX(2px);
+    }
+    .driver-item.active {
+        background: #eff6ff;
+        border-color: #93c5fd;
+        box-shadow: 0 2px 8px rgba(64,81,137,0.12);
     }
 
+    /* ===== DRIVER AVATAR ===== */
     .driver-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background-color: #e5e7eb;
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
         margin-right: 12px;
-        font-weight: 600;
-        color: #4b5563;
+        font-weight: 700;
+        font-size: 14px;
+        color: #fff;
         flex-shrink: 0;
         position: relative;
+        background: linear-gradient(135deg, #405189 0%, #667eea 100%);
+        box-shadow: 0 2px 6px rgba(64,81,137,0.25);
+    }
+    .driver-avatar.avatar-busy {
+        background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+        box-shadow: 0 2px 6px rgba(239,68,68,0.25);
+    }
+    .driver-avatar.avatar-free {
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+        box-shadow: 0 2px 6px rgba(16,185,129,0.25);
     }
 
     .status-dot {
         position: absolute;
-        bottom: 0;
-        right: 0;
-        width: 10px;
-        height: 10px;
+        bottom: -2px;
+        right: -2px;
+        width: 11px;
+        height: 11px;
         border-radius: 50%;
-        border: 2px solid #fff;
+        border: 2px solid #f8fafc;
     }
+    .status-dot.free { background: #10b981; }
+    .status-dot.busy { background: #ef4444; }
 
-    .status-dot.free   { background-color: #10b981; }
-    .status-dot.busy   { background-color: #ef4444; }
-
-    .availability-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 11px;
-        font-weight: 600;
-        padding: 2px 8px;
-        border-radius: 9999px;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-    .availability-badge.free {
-        background: #d1fae5;
-        color: #047857;
-    }
-    .availability-badge.busy {
-        background: #fee2e2;
-        color: #dc2626;
-    }
-
-    .driver-details {
-        flex: 1;
-        min-width: 0; /* For text truncation */
-    }
-
+    .driver-details { flex: 1; min-width: 0; }
     .driver-name {
         font-weight: 600;
-        color: #1f2937;
-        font-size: 14px;
-        margin-bottom: 2px;
+        color: #0f172a;
+        font-size: 13.5px;
+        margin-bottom: 3px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
-
     .driver-meta {
-        font-size: 12px;
-        color: #6b7280;
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+    .driver-type-tag {
+        font-size: 10.5px;
+        color: #64748b;
+        font-weight: 500;
     }
 
-    /* Map Area */
+    .availability-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 1px 7px;
+        border-radius: 9999px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+    .availability-badge.free { background: #d1fae5; color: #047857; }
+    .availability-badge.busy { background: #fee2e2; color: #dc2626; }
+
+    /* ===== MAP AREA ===== */
     .map-container {
         flex: 1;
         position: relative;
         z-index: 1;
     }
+    #map { width: 100%; height: 100%; }
 
-    #map {
-        width: 100%;
-        height: 100%;
-    }
-
-    /* Map Controls Overlay */
+    /* ===== MAP CONTROLS TOOLBAR ===== */
     .map-controls {
         position: absolute;
-        top: 20px;
-        right: 20px;
+        top: 16px;
+        right: 16px;
         z-index: 1000;
-        background: white;
-        padding: 8px;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(8px);
+        padding: 8px 12px;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06);
         display: flex;
         align-items: center;
         gap: 10px;
+        border: 1px solid rgba(0,0,0,0.06);
+    }
+    .controls-divider {
+        width: 1px;
+        height: 20px;
+        background: #e2e8f0;
     }
 
-    /* Custom Popup */
+    /* ===== POPUP STYLING ===== */
     .leaflet-popup-content-wrapper {
-        border-radius: 8px;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        border-radius: 14px;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.06);
         padding: 0;
         overflow: hidden;
+        border: 1px solid #e2e8f0;
     }
-    
-    .leaflet-popup-content {
-        margin: 0;
-        width: 260px !important;
-    }
+    .leaflet-popup-content { margin: 0; width: 270px !important; }
+    .leaflet-popup-tip-container { margin-top: -1px; }
 
     .popup-header {
-        background: #f8f9fa;
-        padding: 12px 16px;
-        border-bottom: 1px solid #e5e7eb;
+        padding: 14px 16px 12px;
         display: flex;
         align-items: center;
         justify-content: space-between;
+        border-bottom: 1px solid #f1f5f9;
     }
+    .popup-header.header-busy  { background: linear-gradient(135deg, #fff5f5 0%, #fff 100%); }
+    .popup-header.header-free  { background: linear-gradient(135deg, #f0fdf4 0%, #fff 100%); }
 
-    .popup-title {
-        font-weight: 600;
-        color: #111827;
-        margin: 0;
-        font-size: 14px;
-    }
-
-    .popup-body {
-        padding: 16px;
-    }
-
-    .popup-row {
-        display: flex;
-        margin-bottom: 8px;
-        font-size: 13px;
-    }
-
-    .popup-label {
-        color: #6b7280;
-        width: 80px;
-        flex-shrink: 0;
-    }
-
-    .popup-value {
-        color: #374151;
-        font-weight: 500;
-    }
-
-    .popup-actions {
-        padding: 12px 16px;
-        background: #f9fafb;
-        border-top: 1px solid #e5e7eb;
-    }
-
-    /* Custom Marker */
-    .custom-marker-pin {
+    .popup-driver-info { display: flex; align-items: center; gap: 10px; }
+    .popup-avatar {
         width: 36px;
         height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 13px;
+        color: #fff;
+        flex-shrink: 0;
+    }
+    .popup-avatar.busy-av { background: linear-gradient(135deg, #ef4444, #f87171); }
+    .popup-avatar.free-av  { background: linear-gradient(135deg, #10b981, #34d399); }
+
+    .popup-title {
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0 0 2px;
+        font-size: 14px;
+    }
+    .popup-body { padding: 12px 16px; }
+    .popup-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 7px;
+        font-size: 12.5px;
+        gap: 8px;
+    }
+    .popup-row:last-child { margin-bottom: 0; }
+    .popup-row i { color: #94a3b8; font-size: 14px; flex-shrink: 0; }
+    .popup-label { color: #64748b; width: 70px; flex-shrink: 0; font-size: 12px; }
+    .popup-value { color: #1e293b; font-weight: 600; }
+    .popup-actions {
+        padding: 10px 16px;
+        background: #f8fafc;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    /* ===== CUSTOM MARKER ===== */
+    .custom-marker-pin {
+        width: 34px;
+        height: 34px;
         border-radius: 50% 50% 50% 0;
-        background: #405189;
         position: absolute;
         transform: rotate(-45deg);
         left: 50%;
         top: 50%;
-        margin: -15px 0 0 -15px;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-        border: 2px solid white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        margin: -17px 0 0 -17px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        border: 2.5px solid rgba(255,255,255,0.9);
+        transition: transform 0.2s;
     }
-
     .custom-marker-pin::after {
         content: '';
         width: 10px;
         height: 10px;
         margin: 3px 0 0 3px;
-        background: #fff;
+        background: rgba(255,255,255,0.8);
         position: absolute;
         border-radius: 50%;
     }
 
-    .marker-icon {
-        transform: rotate(45deg);
-        color: white;
-        font-size: 16px;
-    }
-    
-    /* Auto refresh indicator */
+    /* ===== REFRESH BADGE ===== */
     .refresh-badge {
         display: inline-flex;
         align-items: center;
-        padding: 4px 8px;
-        border-radius: 4px;
+        padding: 5px 10px;
+        border-radius: 8px;
         font-size: 12px;
-        font-weight: 500;
-        transition: all 0.3s;
+        font-weight: 600;
+        transition: all 0.25s;
+        gap: 6px;
+        white-space: nowrap;
     }
-    
-    .refresh-badge.active {
-        background-color: #ecfdf5;
-        color: #059669;
-    }
-    
-    .refresh-badge.inactive {
-        background-color: #f3f4f6;
-        color: #6b7280;
-    }
-
+    .refresh-badge.active  { background: #ecfdf5; color: #059669; }
+    .refresh-badge.inactive { background: #f1f5f9; color: #6b7280; }
     .pulse-dot {
-        width: 6px;
-        height: 6px;
-        background-color: currentColor;
+        width: 6px; height: 6px;
+        background: currentColor;
         border-radius: 50%;
-        margin-right: 6px;
+        flex-shrink: 0;
     }
-    
-    .refresh-badge.active .pulse-dot {
-        animation: pulse 2s infinite;
-    }
-    
+    .refresh-badge.active .pulse-dot { animation: pulse 1.8s ease-in-out infinite; }
     @keyframes pulse {
-        0% { opacity: 1; }
-        50% { opacity: 0.4; }
-        100% { opacity: 1; }
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50%       { opacity: 0.35; transform: scale(0.7); }
     }
 
-    /* Driver Name Tooltip */
-     .driver-name-tooltip {
-         background: transparent;
-         border: none;
-         box-shadow: none;
-         font-weight: 700;
-         color: #1f2937;
-         text-shadow: 
-             -1px -1px 0 #fff,  
-              1px -1px 0 #fff,
-             -1px  1px 0 #fff,
-              1px  1px 0 #fff;
-         font-size: 12px;
-         margin-top: 0;
-     }
+    /* ===== DRIVER TOOLTIP ===== */
+    .driver-name-tooltip {
+        background: rgba(15,23,42,0.85) !important;
+        border: none !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
+        border-radius: 6px !important;
+        font-weight: 600;
+        color: #fff !important;
+        font-size: 11.5px;
+        padding: 3px 8px !important;
+        margin-top: 4px !important;
+        white-space: nowrap;
+    }
+    .driver-name-tooltip::before { display: none !important; }
 
-     /* Theme Selector */
-     .theme-selector {
-         position: relative;
-     }
+    /* ===== THEME SELECTOR ===== */
+    .theme-selector { position: relative; }
+    .theme-selector select {
+        appearance: none;
+        background: transparent;
+        border: none;
+        padding: 4px 22px 4px 6px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #475569;
+        cursor: pointer;
+    }
+    .theme-selector select:focus { outline: none; }
+    .theme-selector::after {
+        content: '\ea4e';
+        font-family: 'remixicon';
+        position: absolute;
+        right: 4px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        color: #94a3b8;
+        font-size: 13px;
+    }
 
-     .theme-selector select {
-         appearance: none;
-         background: white;
-         border: 1px solid #e5e7eb;
-         border-radius: 6px;
-         padding: 6px 28px 6px 10px;
-         font-size: 12px;
-         font-weight: 500;
-         color: #374151;
-         cursor: pointer;
-         transition: all 0.2s;
-     }
-
-     .theme-selector select:hover {
-         border-color: #405189;
-     }
-
-     .theme-selector select:focus {
-         outline: none;
-         border-color: #405189;
-         box-shadow: 0 0 0 3px rgba(64, 81, 137, 0.1);
-     }
-
-     .theme-selector::after {
-         content: '\ea4e';
-         font-family: 'remixicon';
-         position: absolute;
-         right: 8px;
-         top: 50%;
-         transform: translateY(-50%);
-         pointer-events: none;
-         color: #6b7280;
-         font-size: 14px;
-     }
+    /* ===== EMPTY STATE ===== */
+    .driver-empty {
+        padding: 30px 20px;
+        text-align: center;
+        color: #94a3b8;
+    }
+    .driver-empty i { font-size: 32px; margin-bottom: 8px; opacity: 0.5; display: block; }
+    .driver-empty p { font-size: 13px; margin: 0; }
 </style>
 @endpush
 
@@ -427,28 +524,62 @@
         <div class="map-wrapper">
             <!-- Sidebar -->
             <div class="map-sidebar">
-                <div class="sidebar-header">
-                    <div class="stats-row">
-                        <div class="stat-card">
-                            <div class="stat-value" id="totalDrivers">0</div>
-                            <div class="stat-label">Total</div>
+
+                <!-- Brand Header -->
+                <div class="sidebar-brand">
+                    <div>
+                        <div class="sidebar-brand-title">
+                            <i class="ri-map-pin-2-fill"></i> Driver Locations
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-value text-success" id="freeDrivers">0</div>
-                            <div class="stat-label">🟢 Free</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value text-danger" id="busyDrivers">0</div>
-                            <div class="stat-label">🔴 Busy</div>
-                        </div>
+                        <div class="sidebar-brand-sub">Live availability — updates every 30s</div>
                     </div>
+                    <i class="ri-live-line text-white opacity-75 fs-18"></i>
+                </div>
+
+                <!-- Stat Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalDrivers">0</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value free" id="freeDrivers">0</div>
+                        <div class="stat-label"><span class="stat-dot free"></span>Free</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value busy" id="busyDrivers">0</div>
+                        <div class="stat-label"><span class="stat-dot busy"></span>Busy</div>
+                    </div>
+                </div>
+
+                <!-- Search & Legend -->
+                <div class="sidebar-body">
                     <div class="search-box">
                         <i class="ri-search-line"></i>
                         <input type="text" id="driverSearch" class="search-input" placeholder="Search drivers...">
                     </div>
+
+                    <!-- Status Criteria Legend -->
+                    <div class="status-legend">
+                        <div class="legend-title">
+                            <i class="ri-information-line"></i> Status Criteria
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot free"></span>
+                            <span><strong>Free</strong> — No active trips today, or all trips completed / cancelled</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot busy"></span>
+                            <span><strong>Busy</strong> — Has at least one trip today that is <em>Assigned</em> or <em>In Progress</em></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Driver List -->
+                <div class="driver-list-header">
+                    <i class="ri-group-line me-1"></i> Drivers on Map
                 </div>
                 <div class="driver-list" id="driverList">
-                    <!-- Driver items will be populated here -->
                     <div class="text-center p-4 text-muted">
                         <div class="spinner-border text-primary spinner-border-sm mb-2" role="status"></div>
                         <p class="mb-0 small">Loading drivers...</p>
@@ -462,6 +593,7 @@
                 
                 <!-- Map Controls -->
                 <div class="map-controls">
+                    <i class="ri-map-2-line text-muted fs-16"></i>
                     <div class="theme-selector">
                         <select id="themeSelector" title="Change Map Theme">
                             <option value="light">Light</option>
@@ -470,16 +602,20 @@
                             <option value="osm">OpenStreetMap</option>
                         </select>
                     </div>
-                    
+
+                    <div class="controls-divider"></div>
+
                     <div class="refresh-badge active" id="autoRefreshBadge">
                         <div class="pulse-dot"></div>
-                        <span>Live Updates</span>
+                        <span>Live</span>
                     </div>
                     
-                    <div class="form-check form-switch mb-0 ms-2">
+                    <div class="form-check form-switch mb-0">
                         <input class="form-check-input" type="checkbox" id="autoRefresh" checked>
                     </div>
                     
+                    <div class="controls-divider"></div>
+
                     <button type="button" class="btn btn-icon btn-sm btn-light shadow-none border" id="refreshBtn" title="Refresh Now">
                         <i class="ri-refresh-line"></i>
                     </button>
