@@ -80,8 +80,11 @@
                                     <td><strong>{{ $expenseType->title }}</strong></td>
                                     <td>
                                         <div class="d-flex gap-1 flex-wrap">
-                                            @if($expenseType->hasInputType('number'))
-                                                <span class="badge bg-success-subtle text-success"><i class="ri-hashtag me-1"></i>Number (Amount)</span>
+                                            @if($expenseType->hasInputType('amount'))
+                                                <span class="badge bg-success-subtle text-success"><i class="ri-money-dollar-circle-line me-1"></i>Number (Amount)</span>
+                                            @endif
+                                            @if($expenseType->hasInputType('hours'))
+                                                <span class="badge bg-primary-subtle text-primary"><i class="ri-time-line me-1"></i>Number (Hours)</span>
                                             @endif
                                             @if($expenseType->hasInputType('text'))
                                                 <span class="badge bg-info-subtle text-info"><i class="ri-text me-1"></i>Text (Note)</span>

@@ -47,7 +47,14 @@ class TripExpenseType extends Model
      */
     public function hasInputType(string $type): bool
     {
-        return in_array($type, $this->input_types ?? ['number', 'image']);
+        $types = $this->input_types ?? ['number', 'image'];
+        if ($type === 'amount') {
+            return in_array('amount', $types) || in_array('number', $types);
+        }
+        if ($type === 'number') {
+            return in_array('number', $types) || in_array('amount', $types) || in_array('hours', $types);
+        }
+        return in_array($type, $types);
     }
 
     /**

@@ -57,9 +57,16 @@
 
                         <div class="d-flex gap-4 flex-wrap">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="input_types[]" value="number" id="input_type_number" {{ is_array(old('input_types', ['number', 'image'])) && in_array('number', old('input_types', ['number', 'image'])) ? 'checked' : '' }}>
-                                <label class="form-check-label fw-medium" for="input_type_number">
-                                    <i class="ri-hashtag text-success me-1"></i> Number (Amount)
+                                <input class="form-check-input" type="checkbox" name="input_types[]" value="amount" id="input_type_amount" {{ is_array(old('input_types', ['amount', 'image'])) && (in_array('amount', old('input_types', ['amount', 'image'])) || in_array('number', old('input_types', ['amount', 'image']))) ? 'checked' : '' }}>
+                                <label class="form-check-label fw-medium" for="input_type_amount">
+                                    <i class="ri-money-dollar-circle-line text-success me-1"></i> Number (Amount)
+                                </label>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="input_types[]" value="hours" id="input_type_hours" {{ is_array(old('input_types')) && in_array('hours', old('input_types')) ? 'checked' : '' }}>
+                                <label class="form-check-label fw-medium" for="input_type_hours">
+                                    <i class="ri-time-line text-primary me-1"></i> Number (Hours)
                                 </label>
                             </div>
 
@@ -71,7 +78,7 @@
                             </div>
 
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="input_types[]" value="image" id="input_type_image" {{ is_array(old('input_types', ['number', 'image'])) && in_array('image', old('input_types', ['number', 'image'])) ? 'checked' : '' }}>
+                                <input class="form-check-input" type="checkbox" name="input_types[]" value="image" id="input_type_image" {{ is_array(old('input_types', ['amount', 'image'])) && in_array('image', old('input_types', ['amount', 'image'])) ? 'checked' : '' }}>
                                 <label class="form-check-label fw-medium" for="input_type_image">
                                     <i class="ri-image-line text-warning me-1"></i> Image (Receipt Upload)
                                 </label>

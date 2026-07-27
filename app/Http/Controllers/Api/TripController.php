@@ -236,9 +236,10 @@ class TripController extends Controller
                 'expense_type' => [
                     'id' => $expense->expenseType->id ?? null,
                     'title' => $expense->expenseType->title ?? 'Unknown',
-                    'input_types' => $expense->expenseType->input_types ?? ['number', 'image'],
+                    'input_types' => $expense->expenseType->input_types ?? ['amount', 'image'],
                 ],
                 'amount' => (float) $expense->amount,
+                'hours' => $expense->hours !== null ? (float) $expense->hours : null,
                 'description' => $expense->description,
                 'receipt' => $expense->receipt ? asset('storage/' . $expense->receipt) : null,
                 'created_at' => $createdAt ? [
@@ -408,10 +409,16 @@ class TripController extends Controller
             'expense_type_id' => ['required', 'exists:trip_expense_types,id'],
         ];
 
-        if (in_array('number', $inputTypes)) {
+        if (in_array('amount', $inputTypes) || in_array('number', $inputTypes)) {
             $rules['amount'] = ['required', 'numeric', 'min:0'];
         } else {
             $rules['amount'] = ['nullable', 'numeric', 'min:0'];
+        }
+
+        if (in_array('hours', $inputTypes)) {
+            $rules['hours'] = ['required', 'numeric', 'min:0'];
+        } else {
+            $rules['hours'] = ['nullable', 'numeric', 'min:0'];
         }
 
         if (in_array('text', $inputTypes)) {
@@ -442,6 +449,7 @@ class TripController extends Controller
             'driver_id' => $driver->id,
             'expense_type_id' => $request->expense_type_id,
             'amount' => $request->amount ?? 0,
+            'hours' => $request->hours,
             'description' => $request->description,
             'receipt' => $receiptPath,
         ]);

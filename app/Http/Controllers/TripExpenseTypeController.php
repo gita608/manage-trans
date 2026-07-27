@@ -33,7 +33,7 @@ class TripExpenseTypeController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255', 'unique:trip_expense_types'],
             'input_types' => ['required', 'array', 'min:1'],
-            'input_types.*' => ['string', Rule::in(['number', 'text', 'image'])],
+            'input_types.*' => ['string', Rule::in(['amount', 'number', 'hours', 'text', 'image'])],
         ]);
 
         TripExpenseType::create($validated);
@@ -57,7 +57,7 @@ class TripExpenseTypeController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255', Rule::unique('trip_expense_types')->ignore($tripExpenseType->id)],
             'input_types' => ['required', 'array', 'min:1'],
-            'input_types.*' => ['string', Rule::in(['number', 'text', 'image'])],
+            'input_types.*' => ['string', Rule::in(['amount', 'number', 'hours', 'text', 'image'])],
         ]);
 
         $tripExpenseType->update($validated);

@@ -116,6 +116,7 @@
                                 <th>Trip Date</th>
                                 <th>Expense Type</th>
                                 <th>Amount</th>
+                                <th>Hours</th>
                                 <th>Note / Description</th>
                                 <th>Submitted By</th>
                                 <th>Partner</th>
@@ -137,6 +138,7 @@
                                     </span>
                                 </td>
                                 <td class="fw-bold">{{ number_format($expense->amount, 2) }}</td>
+                                <td>{{ $expense->hours !== null ? number_format($expense->hours, 2) . ' hrs' : '-' }}</td>
                                 <td>
                                     @if($expense->description)
                                         <span class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ $expense->description }}">
@@ -236,7 +238,7 @@
                     className: 'btn btn-success btn-sm',
                     title: 'Trip Expenses Report',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7],
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8],
                         modifier: {
                             page: 'all',
                             search: 'none'
@@ -282,7 +284,7 @@
                     orientation: 'landscape',
                     pageSize: 'A4',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7],
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8],
                         modifier: {
                             page: 'all',
                             search: 'none'

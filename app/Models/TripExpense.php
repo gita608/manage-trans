@@ -12,6 +12,7 @@ class TripExpense extends Model
         'driver_id',
         'expense_type_id',
         'amount',
+        'hours',
         'description',
         'receipt',
     ];
@@ -25,6 +26,7 @@ class TripExpense extends Model
     {
         return [
             'amount' => 'decimal:2',
+            'hours' => 'decimal:2',
         ];
     }
 

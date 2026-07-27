@@ -65,9 +65,16 @@
 
                         <div class="d-flex gap-4 flex-wrap">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="input_types[]" value="number" id="input_type_number" {{ in_array('number', $selectedTypes) ? 'checked' : '' }}>
-                                <label class="form-check-label fw-medium" for="input_type_number">
-                                    <i class="ri-hashtag text-success me-1"></i> Number (Amount)
+                                <input class="form-check-input" type="checkbox" name="input_types[]" value="amount" id="input_type_amount" {{ in_array('amount', $selectedTypes) || in_array('number', $selectedTypes) ? 'checked' : '' }}>
+                                <label class="form-check-label fw-medium" for="input_type_amount">
+                                    <i class="ri-money-dollar-circle-line text-success me-1"></i> Number (Amount)
+                                </label>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="input_types[]" value="hours" id="input_type_hours" {{ in_array('hours', $selectedTypes) ? 'checked' : '' }}>
+                                <label class="form-check-label fw-medium" for="input_type_hours">
+                                    <i class="ri-time-line text-primary me-1"></i> Number (Hours)
                                 </label>
                             </div>
 
