@@ -268,6 +268,7 @@ class TripController extends Controller
             'trip_date' => ['required', 'date'],
             'title' => ['nullable', 'string', 'max:255'],
             'crews' => ['required', 'array', 'min:1'],
+            'crews.*.driver_id' => ['nullable', 'exists:drivers,id'],
             'crews.*.vessel_id' => ['required', 'exists:vessels,id'],
             'crews.*.pick_up_time' => ['required'],
             'crews.*.from_location' => ['required', 'string', 'max:255'],
@@ -281,6 +282,15 @@ class TripController extends Controller
         ]);
 
         $newDriverId = $validated['driver_id'] ?? null;
+        if (!$newDriverId) {
+            foreach ($request->crews as $cData) {
+                if (!empty($cData['driver_id'])) {
+                    $newDriverId = $cData['driver_id'];
+                    break;
+                }
+            }
+        }
+
         $oldDriverId = $trip->driver_id;
         $driverChanged = $oldDriverId != $newDriverId;
         $driverNewlyAssigned = !$oldDriverId && $newDriverId;
@@ -313,6 +323,7 @@ class TripController extends Controller
         $trip->crews()->delete();
 
         foreach ($request->crews as $crewData) {
+            unset($crewData['driver_id']);
             $trip->crews()->create($crewData);
         }
 

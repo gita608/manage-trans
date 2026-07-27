@@ -45,20 +45,7 @@
                     @method('PUT')
 
                     <div class="row mb-4">
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="title" class="form-label">Trip Title <small class="text-muted">(Auto-generated)</small></label>
-                                <input type="text" class="form-control @error('title') is-invalid @enderror" 
-                                       id="title" name="title" 
-                                       value="{{ old('title', $trip->title) }}" 
-                                       disabled>
-                                @error('title')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <small class="text-muted">Title will be auto-generated based on driver and date</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="trip_date" class="form-label fw-semibold">Date <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control @error('trip_date') is-invalid @enderror" 
@@ -69,23 +56,7 @@
                                 @enderror
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="driver_id" class="form-label fw-semibold">Driver Name</label>
-                                <select class="form-select @error('driver_id') is-invalid @enderror" id="driver_id" name="driver_id">
-                                    <option value="">Assign Later</option>
-                                    @foreach($drivers as $driver)
-                                        <option value="{{ $driver->id }}" {{ old('driver_id', $trip->driver_id) == $driver->id ? 'selected' : '' }}>
-                                            {{ $driver->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('driver_id')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="col-md-3">
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="partner_id" class="form-label fw-semibold">Partner</label>
                                 <select class="form-select @error('partner_id') is-invalid @enderror" id="partner_id" name="partner_id">
@@ -119,14 +90,15 @@
                             <thead class="table-light">
                                 <tr>
                                     <th style="width: 50px;">#</th>
+                                    <th style="min-width: 150px;">Driver Name</th>
+                                    <th>Vessel Name <span class="text-danger">*</span></th>
+                                    <th>Pick-up Time <span class="text-danger">*</span></th>
+                                    <th>Flight Number</th>
                                     <th>Crew Name <span class="text-danger">*</span></th>
                                     <th>Crew Contact No</th>
                                     <th>Crew Contact No 2</th>
-                                    <th>Vessel Name <span class="text-danger">*</span></th>
-                                    <th>Pick-up Time <span class="text-danger">*</span></th>
                                     <th>From <span class="text-danger">*</span></th>
                                     <th>To <span class="text-danger">*</span></th>
-                                    <th>Flight Number</th>
                                     <th>Remarks</th>
                                     <th style="width: 50px;">Action</th>
                                 </tr>
@@ -141,6 +113,49 @@
                         @foreach($crews as $index => $crew)
                                     <tr class="crew-row" data-index="{{ $index }}">
                                         <td class="text-center fw-semibold">{{ $index + 1 }}</td>
+                                        <td>
+                                            <select class="form-select form-select-sm" name="crews[{{ $index }}][driver_id]">
+                                                <option value="">Assign Later</option>
+                                                @foreach($drivers as $driver)
+                                                    <option value="{{ $driver->id }}" 
+                                                        {{ (is_array($crew) ? ($crew['driver_id'] ?? '') : ($crew->driver_id ?? $trip->driver_id)) == $driver->id ? 'selected' : '' }}>
+                                                        {{ $driver->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select class="form-select form-select-sm @error('crews.'.$index.'.vessel_id') is-invalid @enderror" 
+                                                    name="crews[{{ $index }}][vessel_id]" required>
+                                                <option value="">Select</option>
+                                                @foreach($vessels as $vessel)
+                                                    <option value="{{ $vessel->id }}" 
+                                                        {{ (is_array($crew) ? ($crew['vessel_id'] ?? '') : $crew->vessel_id) == $vessel->id ? 'selected' : '' }}>
+                                                        {{ $vessel->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            @error('crews.'.$index.'.vessel_id')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
+                                        </td>
+                                        <td>
+                                            <input type="time" class="form-control form-control-sm @error('crews.'.$index.'.pick_up_time') is-invalid @enderror" 
+                                                   name="crews[{{ $index }}][pick_up_time]" 
+                                                   value="{{ is_array($crew) ? ($crew['pick_up_time'] ?? '') : $crew->pick_up_time }}" required>
+                                            @error('crews.'.$index.'.pick_up_time')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm @error('crews.'.$index.'.flight_number') is-invalid @enderror" 
+                                                   name="crews[{{ $index }}][flight_number]" 
+                                                   value="{{ is_array($crew) ? ($crew['flight_number'] ?? '') : ($crew->flight_number ?? '') }}" 
+                                                   placeholder="Flight number">
+                                            @error('crews.'.$index.'.flight_number')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
+                                        </td>
                                         <td>
                                             <input type="text" class="form-control form-control-sm @error('crews.'.$index.'.name') is-invalid @enderror" 
                                                    name="crews[{{ $index }}][name]" 
@@ -169,29 +184,6 @@
                                             @enderror
                                         </td>
                                         <td>
-                                            <select class="form-select form-select-sm @error('crews.'.$index.'.vessel_id') is-invalid @enderror" 
-                                                    name="crews[{{ $index }}][vessel_id]" required>
-                                                <option value="">Select</option>
-                                                @foreach($vessels as $vessel)
-                                                    <option value="{{ $vessel->id }}" 
-                                                        {{ (is_array($crew) ? ($crew['vessel_id'] ?? '') : $crew->vessel_id) == $vessel->id ? 'selected' : '' }}>
-                                                        {{ $vessel->name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            @error('crews.'.$index.'.vessel_id')
-                                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                                            @enderror
-                                        </td>
-                                        <td>
-                                            <input type="time" class="form-control form-control-sm @error('crews.'.$index.'.pick_up_time') is-invalid @enderror" 
-                                                   name="crews[{{ $index }}][pick_up_time]" 
-                                                   value="{{ is_array($crew) ? ($crew['pick_up_time'] ?? '') : $crew->pick_up_time }}" required>
-                                            @error('crews.'.$index.'.pick_up_time')
-                                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                                            @enderror
-                                        </td>
-                                        <td>
                                             <input type="text" class="form-control form-control-sm @error('crews.'.$index.'.from_location') is-invalid @enderror" 
                                                    name="crews[{{ $index }}][from_location]" 
                                                    value="{{ is_array($crew) ? ($crew['from_location'] ?? '') : $crew->from_location }}" 
@@ -206,15 +198,6 @@
                                                    value="{{ is_array($crew) ? ($crew['to_location'] ?? '') : $crew->to_location }}" 
                                                    placeholder="To" required>
                                             @error('crews.'.$index.'.to_location')
-                                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                                            @enderror
-                                        </td>
-                                        <td>
-                                            <input type="text" class="form-control form-control-sm @error('crews.'.$index.'.flight_number') is-invalid @enderror" 
-                                                   name="crews[{{ $index }}][flight_number]" 
-                                                   value="{{ is_array($crew) ? ($crew['flight_number'] ?? '') : ($crew->flight_number ?? '') }}" 
-                                                   placeholder="Flight number">
-                                            @error('crews.'.$index.'.flight_number')
                                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                                             @enderror
                                         </td>
@@ -301,6 +284,12 @@
     document.addEventListener('DOMContentLoaded', function() {
         const addCrewBtn = document.getElementById('add-crew-row-btn');
         const crewsContainer = document.getElementById('crews-container');
+        const driverOptions = `
+            <option value="">Assign Later</option>
+            @foreach($drivers as $driver)
+                <option value="{{ $driver->id }}">{{ $driver->name }}</option>
+            @endforeach
+        `;
         const vesselOptions = `
             <option value="">Select</option>
             @foreach($vessels as $vessel)
@@ -344,13 +333,9 @@
             row.innerHTML = `
                 <td class="text-center fw-semibold">${index + 1}</td>
                 <td>
-                    <input type="text" class="form-control form-control-sm" name="crews[${index}][name]" placeholder="Enter name" required>
-                </td>
-                <td>
-                    <input type="text" class="form-control form-control-sm" name="crews[${index}][phone]" placeholder="Contact number">
-                </td>
-                <td>
-                    <input type="text" class="form-control form-control-sm" name="crews[${index}][phone_2]" placeholder="Contact number">
+                    <select class="form-select form-select-sm" name="crews[${index}][driver_id]">
+                        ${driverOptions}
+                    </select>
                 </td>
                 <td>
                     <select class="form-select form-select-sm" name="crews[${index}][vessel_id]" required>
@@ -361,13 +346,22 @@
                     <input type="time" class="form-control form-control-sm" name="crews[${index}][pick_up_time]" required>
                 </td>
                 <td>
+                    <input type="text" class="form-control form-control-sm" name="crews[${index}][flight_number]" placeholder="Flight number">
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm" name="crews[${index}][name]" placeholder="Enter name" required>
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm" name="crews[${index}][phone]" placeholder="Contact number">
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm" name="crews[${index}][phone_2]" placeholder="Contact number">
+                </td>
+                <td>
                     <input type="text" class="form-control form-control-sm" name="crews[${index}][from_location]" placeholder="From" required>
                 </td>
                 <td>
                     <input type="text" class="form-control form-control-sm" name="crews[${index}][to_location]" placeholder="To" required>
-                </td>
-                <td>
-                    <input type="text" class="form-control form-control-sm" name="crews[${index}][flight_number]" placeholder="Flight number">
                 </td>
                 <td>
                     <input type="text" class="form-control form-control-sm" name="crews[${index}][remarks]" placeholder="Remarks">
