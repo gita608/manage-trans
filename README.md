@@ -1,83 +1,91 @@
-# ManageTrans - Transportation Management System
+# ManageTrans — Transportation & Fleet Management
 
-ManageTrans is a web-based application designed to streamline and manage transportation operations. It provides a centralized platform for managing drivers, vessels, trips, and staff, ensuring efficient and organized operations.
+ManageTrans is a Laravel-based transportation management platform with:
+
+* A **web admin panel** for dispatchers and staff (sessions + RBAC)
+* A **mobile API** for drivers (Laravel Sanctum)
+* **AWS Textract** for crew manifest OCR import
+* **Firebase Cloud Messaging** for driver push notifications
 
 ## Key Features
 
-*   **Dashboard:** Provides a comprehensive overview of all transportation activities.
-*   **Driver Management:** Add, edit, and view driver information.
-*   **Vessel Management:** Manage vessel details, including their capacity and specifications.
-*   **Trip Management:** Plan and track trips, including assigning drivers and vessels.
-*   **Staff Management:** Manage staff access and roles within the application.
-*   **User Authentication:** Secure login and registration for authorized personnel.
-*   **Activity Logging:** Tracks all major activities within the system for accountability.
+* **Dashboard** — Operational overview for staff
+* **Trips** — Parent trip + multiple crew legs; assign drivers/partners; cancel; status workflow (`unassigned` → `assigned` → `in_progress` → `completed` / `cancelled`)
+* **OCR bulk import** — Upload manifests, review extraction, create trips in bulk
+* **Drivers** — Internal/outsourcing types, documents, live map/GPS, mileage tracking
+* **Daily activities** — Driver km/notes; 10,000 km service reminders
+* **Vessels & partners** — Maritime vessels and client agencies
+* **Expenses & issues** — Configurable types; driver submissions from the app
+* **Reports** — Trip summary, expenses, driver performance
+* **Staff & permissions** — Admin/Staff roles with granular permission overrides
+* **Notifications** — In-app for staff and drivers; FCM for drivers
+* **Activity logs** — Audit trail across domain models
+* **Settings** — App name, branding, timezone, auth toggles
+* **Public pages** — Privacy policy, contact
 
-## Technologies Used
+## Tech Stack
 
-*   **Backend:** Laravel 12, PHP 8.2
-*   **Frontend:** JavaScript, Bootstrap CSS
-*   **Database:** SQLite (by default)
+| Layer | Stack |
+| :--- | :--- |
+| Backend | Laravel 12, PHP 8.2+ |
+| Auth | Sessions (staff), Sanctum (drivers) |
+| DB | SQLite (default) / MySQL / PostgreSQL |
+| Frontend | Blade, Bootstrap (Velzon), Vite |
+| Services | AWS Textract, Firebase FCM |
 
-## Installation and Setup
+## Documentation
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/your-username/manage-trans.git
-    cd manage-trans
-    ```
+* [PROJECT.md](./PROJECT.md) — Architecture, ER overview, routes, API reference, permissions
+* [AGENTS.md](./AGENTS.md) — Conventions for AI agents and contributors
 
-2.  **Install dependencies:**
-    ```bash
-    composer install
-    npm install
-    ```
+## Installation
 
-3.  **Set up the environment:**
-    ```bash
-    cp .env.example .env
-    php artisan key:generate
-    ```
+```bash
+git clone <repository-url> manage-trans
+cd manage-trans
 
-4.  **Configure your database:**
-    *   Update the `DB_*` variables in your `.env` file.
-    *   For SQLite, simply create an empty file: `touch database/database.sqlite`
+composer install
+npm install
 
-5.  **Run database migrations:**
-    ```bash
-    php artisan migrate
-    ```
+cp .env.example .env
+php artisan key:generate
 
-6.  **Build frontend assets:**
-    ```bash
-    npm run build
-    ```
+# SQLite (default)
+touch database/database.sqlite
+# Or set DB_* in .env for MySQL/PostgreSQL
 
-## Running the Application
+php artisan migrate
+php artisan db:seed
+php artisan db:seed --class=PermissionSeeder   # required for RBAC menus/routes
+# php artisan db:seed --class=PartnerSeeder    # optional
 
-To run the application in a development environment, you can use the following command:
+npm run build
+```
+
+### Optional integrations
+
+| Variable | Purpose |
+| :--- | :--- |
+| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` / `AWS_DEFAULT_REGION` | Textract OCR |
+| `FIREBASE_CREDENTIALS_PATH` | Path to Firebase service account JSON (default: `storage/app/firebase-service-account.json`) |
+| `FIREBASE_PROJECT_ID` | Firebase project id |
+
+Default seeder creates a test web user (`test@example.com` via factory) plus settings and expense types. Run `PermissionSeeder` before relying on permission-gated pages.
+
+## Running locally
 
 ```bash
 composer run dev
 ```
 
-This will start the following services:
-*   PHP's built-in web server
-*   A queue worker
-*   The Pail log viewer
-*   The Vite asset bundler
+Starts the PHP server, queue worker, Pail log viewer, and Vite.
 
 ## Testing
-
-To run the application's test suite, use the following command:
 
 ```bash
 composer test
 ```
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit a pull request or open an issue.
-
 ## License
 
-This project is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+MIT — see [LICENSE](https://opensource.org/licenses/MIT) / project license file if present.

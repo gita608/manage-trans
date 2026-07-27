@@ -1,10 +1,13 @@
 # Cursor Rules for ManageTrans
 
-Please read `AGENTS.md` and `PROJECT.md` in the workspace root for comprehensive system architecture, database relationships, and API specifications.
+Read `AGENTS.md` and `PROJECT.md` in the workspace root for architecture, database contracts, permissions, and API specs.
 
 Key Guidelines:
 1. Framework: Laravel 12 (PHP 8.2+).
-2. Database: SQLite / MySQL. Note that `trips.status` is on the `trips` table, and `trips` has many `trip_crews`.
-3. Web routes (`routes/web.php`) require `permission:XYZ` middleware.
-4. Mobile API routes (`routes/api.php`) use Sanctum authentication (`auth:sanctum`) and return standardized `{ "success": boolean, "data": ... }` JSON.
-5. Always eager load relationships (`with(['driver', 'crews.vessel'])`) to avoid N+1 queries.
+2. Database: SQLite / MySQL. Trip status is only on `trips.status`. A trip has many `trip_crews` (vessel/pickup/locations live on crews, not on the trip row).
+3. Web routes (`routes/web.php`): `auth` + `permission:XYZ` middleware.
+4. Mobile API (`routes/api.php`): `auth:sanctum`; JSON `{ "success": boolean, "data": ..., "message": ... }`.
+5. Eager-load lists: `with(['driver', 'crews.vessel', 'partner'])` (add expenses/issues when needed).
+6. Seed RBAC with `php artisan db:seed --class=PermissionSeeder` (not in default `DatabaseSeeder`).
+7. Textract temps on `local` disk must be deleted after parse; public media on `public` disk.
+8. Manual audit logs after API writes: `$model->saveQuietly()` first to avoid duplicate `LogsActivity` entries.

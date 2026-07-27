@@ -1,34 +1,39 @@
 # ManageTrans — Project Architecture & AI Agent Guide
 
-ManageTrans is a web-based **Transportation & Fleet Management System** built with **Laravel 12 (PHP 8.2+)**. It features a comprehensive **Web Admin Panel** for dispatchers/managers and a **RESTful Mobile API** for field drivers using Laravel Sanctum, AWS Textract OCR, and Firebase Cloud Messaging (FCM).
+ManageTrans is a **Transportation & Fleet Management System** built with **Laravel 12 (PHP 8.2+)**. It provides a **Web Admin Panel** for dispatchers/managers and a **RESTful Mobile API** for field drivers (Laravel Sanctum), with AWS Textract OCR and Firebase Cloud Messaging (FCM).
+
+*Last verified against the codebase: July 27, 2026*
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 | Layer | Technology |
 | :--- | :--- |
-| **Backend Framework** | Laravel 12 (PHP 8.2+) |
-| **Authentication** | Session-based (Web Staff), Laravel Sanctum Tokens (Driver Mobile App) |
-| **Database** | SQLite (Default Dev) / MySQL / PostgreSQL |
-| **Cloud & Services** | AWS Textract (Manifest OCR extraction), Firebase Cloud Messaging (Push Notifications) |
-| **Frontend** | Blade Templates, Vanilla JS, Bootstrap CSS, Vite |
-| **Logging & Audit** | Custom `LogsActivity` trait & `activity_logs` table |
+| **Backend** | Laravel 12 (PHP 8.2+) |
+| **Auth (Web)** | Session-based (`User` — Admin / Staff) |
+| **Auth (Mobile)** | Laravel Sanctum Bearer tokens (`Driver`) |
+| **Database** | SQLite (default local) / MySQL / PostgreSQL |
+| **Cloud** | AWS Textract (manifest OCR), Firebase FCM (`kreait/firebase-php`) |
+| **Frontend** | Blade + Bootstrap (Velzon theme in `public/assets/`), Vite + Tailwind 4 (minimal) |
+| **Audit** | `LogsActivity` trait → `activity_logs` table |
+| **Helpers** | `app/helpers.php` — `getSetting()`, `updateSetting()`, `getAppTimezone()`, `formatDate()` |
 
 ---
 
-## 📁 Directory & File Structure
+## Directory Structure
 
 ```
 manage-trans/
 ├── app/
+│   ├── Exports/                         # Placeholder (empty)
 │   ├── Http/
 │   │   ├── Controllers/
-│   │   │   ├── Api/                     # Driver Mobile API Controllers
+│   │   │   ├── Api/                     # Driver mobile API
 │   │   │   │   ├── DriverAuthController.php
 │   │   │   │   ├── HomeController.php
 │   │   │   │   ├── NotificationController.php
-│   │   │   │   └── TripController.php   # API endpoints for schedule, status, expenses, issues
+│   │   │   │   └── TripController.php
 │   │   │   ├── ActivityLogController.php
 │   │   │   ├── AuthController.php
 │   │   │   ├── DailyActivityController.php
@@ -42,160 +47,255 @@ manage-trans/
 │   │   │   ├── ReportController.php
 │   │   │   ├── SettingsController.php
 │   │   │   ├── StaffController.php
-│   │   │   ├── TripController.php       # Admin web trip management & AWS Textract workflow
+│   │   │   ├── TripController.php       # Web trips + Textract OCR
 │   │   │   ├── TripExpenseTypeController.php
 │   │   │   ├── TripIssueTypeController.php
 │   │   │   └── VesselController.php
-│   ├── Models/
-│   │   ├── ActivityLog.php              # System audit trail
-│   │   ├── DailyActivity.php            # Driver daily log & vehicle mileage tracker
-│   │   ├── Driver.php                   # Driver profiles & auth credentials
-│   │   ├── DriverDocument.php           # Driver IDs, licenses, documents
-│   │   ├── DriverLocation.php           # Driver GPS coordinates
-│   │   ├── Notification.php             # System & FCM push notifications
-│   │   ├── Partner.php                  # Client/agency partners
-│   │   ├── Permission.php               # Granular RBAC permissions
-│   │   ├── RolePermission.php           # Role-based permission mapping
-│   │   ├── Trip.php                     # Core Trip entity
-│   │   ├── TripCrew.php                 # Individual crew transport jobs (1 Trip : N Crews)
-│   │   ├── TripExpense.php              # Trip monetary expense submissions
-│   │   ├── TripExpenseType.php          # Expense categories (Fuel, Toll, Parking, etc.)
-│   │   ├── TripIssue.php                # Operational issue reports
-│   │   ├── TripIssueType.php            # Issue categories (Breakdown, Traffic, etc.)
-│   │   ├── User.php                     # Admin/Staff web users
-│   │   ├── UserPermission.php           # Direct user permission overrides
-│   │   └── Vessel.php                   # Maritime vessel entities
+│   │   └── Middleware/
+│   │       └── CheckPermission.php      # Alias: permission
+│   ├── Models/                          # 18 Eloquent models (see below)
 │   ├── Services/
-│   │   ├── FirebaseNotificationService.php  # Push notification service via FCM
-│   │   └── TextractService.php              # AWS Textract document OCR table parsing
-│   └── Traits/
-│       └── LogsActivity.php             # Auto-auditing model events
+│   │   ├── FirebaseNotificationService.php
+│   │   └── TextractService.php
+│   ├── Traits/
+│   │   ├── HasPermissions.php           # User RBAC resolution + cache
+│   │   └── LogsActivity.php
+│   └── helpers.php
 ├── database/
-│   └── migrations/                      # Database schema migrations
-├── resources/
-│   └── views/
-│       ├── daily-activities/
-│       ├── drivers/
-│       ├── notifications/
-│       ├── partners/
-│       ├── reports/
-│       ├── staff/
-│       ├── trips/                       # Trip index, create, edit, show, review-extraction
-│       └── vessels/
+│   ├── migrations/
+│   └── seeders/
+│       ├── DatabaseSeeder.php           # Settings + TripExpenseTypes + test user
+│       ├── PermissionSeeder.php         # Run manually (not in DatabaseSeeder)
+│       ├── PartnerSeeder.php
+│       ├── SettingsSeeder.php
+│       └── TripExpenseTypeSeeder.php
+├── resources/views/                     # Blade modules (Velzon layout)
 ├── routes/
-│   ├── api.php                          # Driver mobile API routes (Sanctum protected)
-│   └── web.php                          # Admin web portal routes (RBAC permission middleware)
-├── AGENTS.md                            # AI Agent Workspace Rules & System Map
-└── PROJECT.md                           # Comprehensive Architecture & Documentation
+│   ├── api.php                          # Driver API (Sanctum)
+│   └── web.php                          # Admin panel (auth + permissions)
+├── AGENTS.md
+├── PROJECT.md
+└── README.md
 ```
 
 ---
 
-## 🗄️ Database Entity-Relationship (ER) Overview
+## Database Entity-Relationship Overview
 
 ```mermaid
 erDiagram
     User ||--o{ ActivityLog : "performs"
+    User ||--o{ Notification : "receives"
+    User ||--o{ UserPermission : "overrides"
+    Permission ||--o{ RolePermission : "maps to role"
+    Permission ||--o{ UserPermission : "maps to user"
     Driver ||--o{ Trip : "assigned to"
     Driver ||--o{ DailyActivity : "records"
     Driver ||--o{ DriverDocument : "owns"
     Driver ||--o{ DriverLocation : "reports"
+    Driver ||--o{ Notification : "receives"
+    Driver ||--o{ TripExpense : "submits"
+    Driver ||--o{ TripIssue : "reports"
     Partner ||--o{ Trip : "client for"
-    Trip ||--|{ TripCrew : "contains (1:N)"
+    Trip ||--|{ TripCrew : "contains 1:N"
     Trip ||--o{ TripExpense : "incurs"
     Trip ||--o{ TripIssue : "reports"
-    TripCrew }|--|| Vessel : "transports to/from"
+    TripCrew }o--o| Vessel : "links to"
     TripExpense }|--|| TripExpenseType : "categorized by"
     TripIssue }|--|| TripIssueType : "categorized by"
 ```
 
+### Core schema notes
+
+| Table | Role |
+| :--- | :--- |
+| `trips` | Dispatch header: `driver_id` (nullable), `partner_id` (nullable), `trip_date`, `title`, **`status`** |
+| `trip_crews` | Passenger/leg details (1 Trip : N Crews): vessel, pickup time, locations, flight, remarks |
+| `drivers` | Mobile auth accounts; `type` (1=Internal, 2=Outsourcing); `total_kilometers`; FCM `notification_token` |
+| `users` | Web staff; `role` (1=Admin, 2=Staff) |
+| `settings` | Key/value app config (no Eloquent model — use helpers) |
+| `driver_locations` | One row per driver (`driver_id` unique) |
+
+**Critical:** Trip status lives on `trips.status` only. Do **not** read/write status on `trip_crews`. Status constants are defined on `TripCrew` for backward compatibility (`unassigned`, `assigned`, `in_progress`, `completed`, `cancelled`).
+
 ---
 
-## ⚙️ Key Core Modules
+## Models (`app/Models/`)
+
+| Model | Key relationships / notes |
+| :--- | :--- |
+| `Trip` | `driver()`, `partner()`, `crews()`, `tripIssues()`, `tripExpenses()`; `generateTripTitle()` |
+| `TripCrew` | `trip()`, `vessel()`; status constants only (no status column in fillable) |
+| `Driver` | Sanctum `HasApiTokens`; `trips()`, `documents()`, `locations()`, `latestLocation()`, `dailyActivities()`, `notifications()` |
+| `Vessel` | `name`, `contact_number`; linked via `trip_crews.vessel_id` (not directly on trips) |
+| `Partner` | `title`, `is_default`; referenced by `trips.partner_id` |
+| `TripExpense` / `TripExpenseType` | Types support `input_types` JSON: `amount`, `number`, `hours`, `text`, `image` |
+| `TripIssue` / `TripIssueType` | Driver-submitted operational issues |
+| `DailyActivity` | `kilometers_driven`, `image`, `note`, `activity_date` |
+| `DriverDocument` | Uploaded license/ID files |
+| `DriverLocation` | Latest GPS per driver |
+| `Notification` | Staff (`user_id`) and/or driver (`driver_id`); types include `info`, `success`, `warning`, `danger`, `service_reminder` |
+| `User` | `HasPermissions`; Admin bypasses all checks |
+| `Permission` / `RolePermission` / `UserPermission` | RBAC matrix + per-user grant/deny overrides |
+| `ActivityLog` | Polymorphic audit trail |
+
+---
+
+## Key Modules
 
 ### 1. Trip Module
-* **Parent-Child Architecture**: A `Trip` represents a single scheduled driver dispatch for a given date and partner. Each `Trip` contains multiple `TripCrew` records (individual crew member pickup/drop locations, pickup times, flight numbers, and vessel links).
-* **Trip Status Workflow**:
-  * `unassigned` $\rightarrow$ `assigned` $\rightarrow$ `in_progress` $\rightarrow$ `completed` $\rightarrow$ `cancelled`.
-  * **Cancellation Handling**: Dispatchers can cancel trips (`POST /trips/{id}/cancel`). Cancelled trips are visually highlighted with red borders/badges on `/trips`, tracked in statistics cards, and excluded from operational reports by default.
-* **Title Auto-Generation**: Automatic title formatting (`"Trip 1"`, `"Trip 2"`, etc.) generated per driver per date via `Trip::generateTripTitle()`.
-* **AWS Textract Manifest OCR**:
-  * Dispatchers upload PDF/Image manifest files.
-  * `TextractService` parses table headers and rows.
-  * Extracted data is presented on `trips/review-extraction.blade.php` to review, map drivers/vessels, and execute `storeBulk` creation.
+* **Parent-child:** One `Trip` (date, driver, partner, title, status) contains many `TripCrew` rows (vessel, pickup, from/to, flight, remarks, `sub_remark`).
+* **Status workflow:** `unassigned` → `assigned` → `in_progress` → `completed` / `cancelled`.
+* **Cancel:** `POST /trips/{id}/cancel` (web). Cancelled trips are highlighted and excluded from operational reports by default.
+* **Title auto-generation:** `Trip::generateTripTitle($driverId, $tripDate)` → `"Trip 1"`, `"Trip 2"`, …
+* **AWS Textract OCR:** Upload PDF/image → `TextractService` → review (`trips/review-extraction`) → `storeBulk`. Can create drivers/vessels inline. Temp files on `local` disk `temp/` must be deleted after parse.
+* **FCM:** Assigning a driver sends a push via `FirebaseNotificationService`.
 
-### 2. Configurable Trip Expense Types & Dynamic Reporting
-* **Multi-Option Input Configuration**: `TripExpenseType` supports configurable input types (`amount`, `hours`, `text`, `image`). Hour-based expense entries (e.g. `Waiting Charge`) store decimal values in `trip_expenses.hours`.
-* **Dynamic Summary Report (`/reports/trip-summary`)**:
-  * Dynamically generates table columns for all active `TripExpenseType` categories (`Charge (...)`).
-  * Computes total `Amount`, `Actual(-20%) Charged to OMS` (`Amount * 0.80`), and concatenated `COMMENTS`.
-  * Web view cleanly displays up to `Sub Remark`, while Excel & PDF exports dynamically export all dynamic charge columns, `Amount`, `Actual(-20%)`, and `COMMENTS` header at the end.
+### 2. Trip Expenses & Reporting
+* Configurable types with dynamic `input_types`. Hour-based entries store decimals in `trip_expenses.hours`.
+* Reports: `/reports/trip-summary`, `/reports/trip-expenses`, `/reports/driver-performance` (`permission:view_reports`).
+* Trip summary dynamically builds columns per active expense type; exports include Amount, Actual(-20%) charged to OMS (`Amount * 0.80`), and COMMENTS.
 
-### 3. Driver & Vehicle Mileage Tracking
-* Drivers log daily mileage via `DailyActivity`.
-* The system automatically tracks total accumulated kilometers (`total_kilometers`).
-* Every 10,000 km milestone triggers a vehicle service notification sent directly to the driver via FCM.
+### 3. Drivers & Mileage
+* Types: Internal (`1`) / Outsourcing (`2`).
+* Documents, live map (`/drivers/map`), GPS via `POST /api/location/update`.
+* Daily activities (API + web index `/daily-activities`): accumulate `total_kilometers`; every **10,000 km** triggers in-app + FCM `service_reminder`.
 
-### 4. Role-Based Access Control (RBAC)
-* Handled via `permission:...` middleware in `routes/web.php`.
-* Permissions include `view_trips`, `create_trips`, `edit_trips`, `delete_trips`, `view_drivers`, `view_reports`, `manage_permissions`, etc.
+### 4. Partners
+* CRUD at `/partners`. Seeded examples include ZMI (default), OMS, TUV, etc. Optional on trips and OCR bulk import.
 
-### 5. Push Notifications & Application-Wide Audit Logging
-* Firebase FCM integration (`FirebaseNotificationService`) sends real-time push alerts to mobile devices on trip assignment or mileage milestones.
-* System-wide activity logging (`LogsActivity`) attached to all application models (`Trip`, `TripCrew`, `TripExpense`, `TripIssue`, `Driver`, `DailyActivity`, `User`, `Partner`, `Vessel`, `TripExpenseType`, `TripIssueType`, `Notification`), recording actions with safe array string formatting and user/driver attribution.
+### 5. RBAC
+* Middleware: `permission:{name}` → `CheckPermission`.
+* Resolution (`HasPermissions`): Admin always allowed → user override (`user_permissions.granted`) → role default (`role_permissions`) → cached ~30 min.
+* Seed with: `php artisan db:seed --class=PermissionSeeder` (not called by default `DatabaseSeeder`).
+
+**Permission slugs (30):**
+
+| Category | Permissions |
+| :--- | :--- |
+| dashboard | `view_dashboard` |
+| trips | `view_trips`, `create_trips`, `edit_trips`, `delete_trips` |
+| drivers | `view_drivers`, `create_drivers`, `edit_drivers`, `delete_drivers` |
+| vessels | `view_vessels`, `create_vessels`, `edit_vessels`, `delete_vessels` |
+| staff | `view_staff`, `create_staff`, `edit_staff`, `delete_staff` |
+| partners | `view_partners`, `create_partners`, `edit_partners`, `delete_partners` |
+| settings | `view_settings`, `edit_settings` |
+| permissions | `manage_permissions` |
+| logs | `view_activity_logs` |
+| notifications | `view_notifications`, `create_notifications` |
+| reports | `view_reports` |
+
+**Default Staff role:** `view_dashboard`, `view_trips`, `create_trips`, `edit_trips`, `view_drivers`, `view_vessels`, `view_notifications`, `view_reports`.
+
+### 6. Notifications & Audit
+* Staff in-app notifications (`user_id`); driver in-app + FCM (`driver_id`).
+* Admin can broadcast to drivers from web notifications UI.
+* `LogsActivity` on domain models; for manual `ActivityLog` writes after driver API updates, use `$model->saveQuietly()` first to avoid duplicate logs.
+
+### 7. Settings & Public Pages
+* Settings keys: `app_name`, `app_logo`, `favicon`, `app_timezone`, `enable_signup`, `enable_forgot_password`.
+* Public: `/privacy-policy`, `/contact-us`.
 
 ---
 
-## 🌐 API Reference (Driver Mobile App)
+## Web Routes (`routes/web.php`)
 
-All API endpoints are under `/api/` and require `Authorization: Bearer <sanctum_token>` except authentication endpoints.
-
-| Method | Endpoint | Description |
+| Area | Middleware | Notable paths |
 | :--- | :--- | :--- |
-| `POST` | `/api/login` | Driver login (returns Sanctum token) |
-| `GET` | `/api/schedule` | Today's driver trips grouped by `pending`, `ongoing`, and `completed` |
-| `GET` | `/api/trips/{id}` | Detailed trip information (crews, locations, issues, expenses, status flags) |
-| `PUT` | `/api/trips/{id}/status` | Update trip status (`assigned`, `in_progress`, `completed`, `cancelled`) |
-| `PUT` | `/api/trips/{id}/crew/{crew_id}` | Update crew contact or location details |
-| `GET` | `/api/trip-issue-types` | Fetch list of valid issue types |
-| `POST` | `/api/trips/{id}/issues` | Submit trip issue report |
-| `GET` | `/api/trip-expense-types` | Fetch list of valid expense types with input rules (`amount`, `hours`, `text`, `image`) |
-| `POST` | `/api/trips/{id}/expenses` | Submit trip expense with amount, hours, notes, and receipt image |
-| `GET` | `/api/daily-activity` | View today's daily activities and total kilometers |
-| `POST` | `/api/daily-activity` | Log daily activity / driven kilometers |
-| `POST` | `/api/location/update` | Update driver current GPS location |
-| `POST` | `/api/notification-token/update` | Register/Update FCM device push token |
+| Public | none | `/`, `/403`, `/privacy-policy`, `/contact-us` |
+| Guest | `guest` | `/login`, `/register`, `/password/reset` |
+| Auth | `auth` | `/logout`, `/profile` |
+| Dashboard | `permission:view_dashboard` | `/dashboard` |
+| Drivers | driver CRUD perms | REST + `/drivers/map`, locations JSON |
+| Vessels / Partners / Staff | respective CRUD perms | REST resources |
+| Trips | trip CRUD perms | REST + extract/bulk-store/generate-title/cancel/assign-driver |
+| Issue & expense types | trip perms | `/trip-issue-types`, `/trip-expense-types` |
+| Settings | `view_settings` / `edit_settings` | `GET/PUT /settings` |
+| Notifications | view/create | Index, admin list, unread, mark read, send |
+| Permissions | `manage_permissions` | `/permissions` |
+| Activity logs | `view_activity_logs` | `/activity-logs` |
+| Reports | `view_reports` | `/reports/*` |
+| Daily activities | `view_drivers` | `GET /daily-activities` |
 
 ---
 
-## 🚀 Development & Commands
+## API Reference (Driver Mobile App)
+
+Base path: `/api/`. Auth: `Authorization: Bearer <sanctum_token>` except public routes.
+
+**Standard JSON:** `{ "success": true|false, "data": ..., "message": ... }` (some list endpoints also return named keys like `trips` / `total`).
+
+| Method | Endpoint | Auth | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/login` | Public | Driver login → token + driver payload |
+| `GET` | `/api/app-version` | Public | App version info |
+| `POST` | `/api/logout` | Sanctum | Revoke token |
+| `GET` / `POST` | `/api/profile` | Sanctum | Get / update profile |
+| `GET` | `/api/home` | Sanctum | Home dashboard stats |
+| `GET` | `/api/trips` | Sanctum | Driver trip list |
+| `GET` | `/api/schedule` | Sanctum | Today's trips (pending / ongoing / completed) |
+| `GET` | `/api/trips/{id}` | Sanctum | Trip detail (crews, issues, expenses, status) |
+| `PUT` | `/api/trips/{id}/status` | Sanctum | Status: `assigned`, `in_progress`, `completed`, `cancelled` |
+| `PUT` | `/api/trips/{id}/crew/{crew_id}` | Sanctum | Update crew contact/location fields |
+| `GET` | `/api/trip-issue-types` | Sanctum | Issue type list |
+| `POST` | `/api/trips/{id}/issues` | Sanctum | Submit issue |
+| `GET` | `/api/trip-expense-types` | Sanctum | Expense types + `input_types` rules |
+| `POST` | `/api/trips/{id}/expenses` | Sanctum | Submit expense (amount/hours/notes/receipt) |
+| `GET` / `POST` | `/api/daily-activity` | Sanctum | List / log daily activity |
+| `POST` | `/api/location/update` | Sanctum | GPS update |
+| `POST` | `/api/notification-token/update` | Sanctum | Register FCM token |
+| `GET` | `/api/notifications` | Sanctum | List notifications |
+| `GET` | `/api/notifications/unread-count` | Sanctum | Unread count |
+| `POST` | `/api/notifications/{id}/mark-as-read` | Sanctum | Mark one read |
+| `POST` | `/api/notifications/mark-all-as-read` | Sanctum | Mark all read |
+
+---
+
+## Integrations & Env
+
+| Service | Config | Notes |
+| :--- | :--- | :--- |
+| AWS Textract | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION` | `config/services.php` → `textract` |
+| Firebase FCM | `FIREBASE_CREDENTIALS_PATH` (default `storage/app/firebase-service-account.json`), `FIREBASE_PROJECT_ID` | Data-only push payloads |
+
+Public uploads (expenses, daily activities, photos) → `public` disk → `asset('storage/...')`.
+
+---
+
+## Frontend
+
+* Layout: `resources/views/layouts/app.blade.php` (Velzon).
+* Partials: header, sidebar (permission-gated menu), footer, datatable.
+* Modules: `trips/` (incl. `review-extraction`), `drivers/` (+ map), `vessels/`, `partners/`, `staff/`, `reports/`, `notifications/`, `permissions/`, `daily-activities/`, `activity-logs/`, `settings/`, `public/`, `errors/`.
+* Primary UI assets live under `public/assets/`; Vite entrypoints are minimal.
+
+---
+
+## Development Commands
 
 ```bash
-# Install PHP & JS dependencies
-composer install
-npm install
-
-# Run database migrations
+composer install && npm install
+cp .env.example .env && php artisan key:generate
+touch database/database.sqlite   # if using SQLite
 php artisan migrate
-
-# Start local server + queue worker + Vite bundler
-composer run dev
-
-# Run test suite
+php artisan db:seed                                    # settings, expense types, test user
+php artisan db:seed --class=PermissionSeeder           # required for RBAC
+php artisan db:seed --class=PartnerSeeder              # optional partners
+npm run build
+composer run dev                                       # serve + queue + pail + Vite
 composer test
 ```
 
 ---
 
-## 🤖 Guidelines for AI Agents (Cursor, Antigravity, Copilot, etc.)
+## Guidelines for AI Agents
 
-1. **Preserve Database Contracts**:
-   * Note that `status` resides on the `trips` table (previously on `trip_crews`). Always query `$trip->status`.
-   * A `Trip` can have multiple `TripCrew` children (`$trip->crews`).
-2. **Audit Logging Integrity**:
-   * When performing bulk or background updates from drivers, use `saveQuietly()` if adding explicit manual `ActivityLog` entries to avoid duplicate log entries.
-3. **Relationships & Eager Loading**:
-   * Always eager load relationships (`with(['driver', 'crews.vessel'])`) when fetching lists to avoid $N+1$ query issues.
-4. **Validation & Permissions**:
-   * Always enforce permission middleware in `routes/web.php` when adding new web endpoints.
-   * Validate driver parameters in `routes/api.php`.
+1. **Status contract:** Always use `$trip->status` / `trips.status`. Never rely on `trip_crews.status`.
+2. **Eager load:** `Trip::with(['driver', 'crews.vessel', 'partner'])` (and expenses/issues when needed) to avoid N+1.
+3. **Permissions:** New web routes must use `auth` + `permission:...`.
+4. **API responses:** Keep `{ success, data|message }` shape; protect with `auth:sanctum`.
+5. **Audit:** Prefer `LogsActivity`; use `saveQuietly()` when writing manual activity logs.
+6. **Migrations:** Always reversible (`up` / `down`).
+7. **Vessel link:** Via `TripCrew::vessel()`, not a direct `trips.vessel_id`.
+
+For agent-focused coding rules, see [AGENTS.md](./AGENTS.md).

@@ -1,70 +1,104 @@
 # AGENTS.md — AI Agent Workspace Instructions & Standards
 
-Welcome AI Agent (Antigravity, Cursor, Copilot, Claude, GPT, etc.)!
-This file defines mandatory workspace conventions, architecture rules, and implementation standards for modifying or extending the **ManageTrans** application.
+Welcome AI Agent (Cursor, Copilot, Claude, GPT, etc.)!
+This file defines mandatory workspace conventions for modifying or extending **ManageTrans**.
+
+For full architecture, ER diagrams, permissions list, and API tables, see [PROJECT.md](./PROJECT.md).
 
 ---
 
-## 📌 1. Project Overview & Stack Summary
+## 1. Project Overview & Stack
+
 * **Framework**: Laravel 12 (PHP 8.2+)
 * **Database**: SQLite (default local), MySQL/PostgreSQL (prod)
-* **Frontend**: Blade Templates, Bootstrap CSS, Vanilla JavaScript, Vite
-* **Authentication**: Session-based for Web Staff, Laravel Sanctum Bearer Tokens for Mobile App Drivers
-* **Integrations**: AWS Textract (OCR document parsing), Firebase Cloud Messaging (FCM Push Notifications)
+* **Frontend**: Blade + Bootstrap (Velzon in `public/assets/`), Vite + Tailwind 4 (minimal)
+* **Auth**: Session (`User` Admin/Staff) for web; Sanctum Bearer tokens (`Driver`) for mobile API
+* **Integrations**: AWS Textract (OCR), Firebase Cloud Messaging (`kreait/firebase-php`)
+* **Helpers**: `getSetting()`, `updateSetting()`, `getAppTimezone()`, `formatDate()` in `app/helpers.php`
 
 ---
 
-## 🧱 2. System Architecture & Model Conventions
+## 2. Core Architecture
 
-### 2.1 Core Entities & Relationships
-* **Trip (`App\Models\Trip`)**:
-  * Represents a dispatch assignment. Linked to `Driver` (nullable), `Partner` (nullable), and has many `TripCrew` records.
-  * Status is stored directly in `trips.status` (`unassigned`, `assigned`, `in_progress`, `completed`, `cancelled`).
-  * Has auto-generated title logic: `Trip::generateTripTitle($driverId, $tripDate)`.
-* **TripCrew (`App\Models\TripCrew`)**:
-  * Child model of `Trip` (1 Trip : N Crews). Contains vessel assignment (`vessel_id`), pickup time, pickup/drop location addresses, flight numbers, and remarks.
-* **Driver (`App\Models\Driver`)**:
-  * Mobile user account. Tracks `total_kilometers`, FCM `notification_token`, license documents, and live location (`DriverLocation`).
-* **DailyActivity (`App\Models\DailyActivity`)**:
-  * Tracks driver's daily mileage and notes. Automatically computes 10,000 km milestones for vehicle servicing.
+### 2.1 Trip parent–child model
+* **`Trip`**: Dispatch header — `driver_id` (nullable), `partner_id` (nullable), `trip_date`, `title`, **`status`**.
+* **`TripCrew`**: 1 Trip : N crews — `vessel_id`, pickup time, from/to locations, flight number, remarks, `sub_remark`, crew contact fields.
+* **Status** is **only** on `trips.status`: `unassigned`, `assigned`, `in_progress`, `completed`, `cancelled`.
+  * Constants live on `TripCrew` for compatibility; do not treat `trip_crews` as having an application status field.
+* Title helper: `Trip::generateTripTitle($driverId, $tripDate)`.
 
----
+### 2.2 Other core entities
+* **`Driver`**: Mobile user; Internal/Outsourcing types; `total_kilometers`; FCM `notification_token`; documents, locations, daily activities.
+* **`DailyActivity`**: Mileage/notes/images; every **10,000 km** → service reminder (in-app + FCM).
+* **`Partner`**: Optional client on trips; `is_default` flag.
+* **`Vessel`**: Linked through `trip_crews.vessel_id`, not directly on `trips`.
+* **`TripExpense` / `TripExpenseType`**: Dynamic `input_types` (`amount`, `number`, `hours`, `text`, `image`).
+* **`TripIssue` / `TripIssueType`**: Driver-reported issues.
+* **`User`**: Web staff; role `1` Admin (all perms), `2` Staff (role matrix + overrides).
+* **`settings` table**: No Eloquent model — use helpers only.
 
-## ⚠️ 3. Mandatory AI Coding Rules & Safeguards
-
-### 3.1 Database & Schema Safety
-* **Status Column**: Trip status belongs to `trips.status` (`unassigned`, `assigned`, `in_progress`, `completed`, `cancelled`). Do not add or read status from `trip_crews.status`.
-* **Eager Loading**: Always eager-load related models (`Trip::with(['driver', 'crews.vessel'])`) in list controllers to avoid $N+1$ performance degradation.
-* **Migrations**: Always write reversible migrations (`up` and `down` methods).
-
-### 3.2 Audit Trail & Logging
-* Application entities use `App\Traits\LogsActivity` to record user/driver actions (`created`, `updated`, `deleted`).
-* If manually logging an `ActivityLog` (e.g. driver API action), call `$model->saveQuietly()` first to prevent duplicate standard log creation.
-
-### 3.3 Web Routes vs. Mobile API Routes
-* **Web Routes (`routes/web.php`)**:
-  * Must be protected by `auth` middleware and appropriate permission middleware (`permission:view_trips`, `permission:edit_trips`, etc.).
-* **API Routes (`routes/api.php`)**:
-  * Driver endpoints must be protected by `auth:sanctum`.
-  * Return standardized JSON responses: `{ "success": true/false, "data": ..., "message": ... }`.
-
-### 3.4 Textract & File Handling
-* Temporary OCR images must be saved locally via `Storage::disk('local')` and explicitly deleted after Textract parsing.
-* Public assets (expenses, daily activities) must be uploaded to `public` disk and accessed via `asset('storage/...')`.
+### 2.3 Eager loading (mandatory for lists)
+```php
+Trip::with(['driver', 'crews.vessel', 'partner']);
+```
+Load `tripExpenses.expenseType` / `tripIssues.issueType` when those are rendered.
 
 ---
 
-## 💻 4. Helpful Terminal Commands
+## 3. Mandatory Coding Rules
+
+### 3.1 Database & schema
+* Never add or rely on status on `trip_crews` for app logic.
+* Migrations must be reversible (`up` and `down`).
+* Prefer nullable FKs where the UI allows unassigned trips (`driver_id`).
+
+### 3.2 Audit trail
+* Domain models use `App\Traits\LogsActivity`.
+* Manual `ActivityLog` after driver API updates: `$model->saveQuietly()` first, then log, to avoid duplicate trait logs.
+
+### 3.3 Web vs API routes
+* **Web (`routes/web.php`)**: `auth` + `permission:slug` (e.g. `permission:view_trips`).
+* **API (`routes/api.php`)**: `auth:sanctum` for driver endpoints.
+* API JSON shape: `{ "success": true|false, "data": ..., "message": ... }`.
+
+### 3.4 Permissions
+* Middleware alias: `permission` → `CheckPermission`.
+* Resolution: Admin → user override (`UserPermission`) → role default (`RolePermission`) → deny.
+* Seed permissions manually: `php artisan db:seed --class=PermissionSeeder` (not in default `DatabaseSeeder`).
+* Full permission list is in PROJECT.md.
+
+### 3.5 Files & OCR
+* Textract temp images: `Storage::disk('local')` under `temp/`; **delete after parse**.
+* Public media (expenses, daily activities, photos): `public` disk → `asset('storage/...')`.
+
+### 3.6 Notifications
+* Use `FirebaseNotificationService` for driver push; also persist `Notification` rows when appropriate.
+* Trigger points include trip assignment and 10,000 km milestones.
+
+### 3.7 Scope discipline
+* Match existing patterns (Velzon Blade, controller style, validation).
+* Do not invent unrelated refactors or docs the user did not ask for.
+* Do not commit unless the user explicitly requests a commit.
+
+---
+
+## 4. Useful Commands
 
 ```bash
-# Run migrations
 php artisan migrate
-
-# Run tests
+php artisan db:seed --class=PermissionSeeder
 composer test
-
-# Local development server with queue & Vite
-composer run dev
+composer run dev          # serve + queue + pail + Vite
 ```
 
-For full details on project modules and API specifications, refer to [PROJECT.md](file:///Users/mohammedrabil/Desktop/manage-trans/PROJECT.md).
+---
+
+## 5. Quick “do not break” checklist
+
+- [ ] Status read/written on `trips.status` only
+- [ ] Lists use eager loading (`driver`, `crews.vessel`, …)
+- [ ] New web routes have `permission:...`
+- [ ] New API routes use Sanctum + standard JSON envelope
+- [ ] Activity logs not duplicated (`saveQuietly` when needed)
+- [ ] Textract temp files cleaned up
+- [ ] Migrations reversible
