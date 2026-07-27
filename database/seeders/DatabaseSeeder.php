@@ -16,7 +16,10 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Seed settings first
-        $this->call(SettingsSeeder::class);
+        $this->call([
+            SettingsSeeder::class,
+            TripExpenseTypeSeeder::class,
+        ]);
 
         // User::factory(10)->create();
 

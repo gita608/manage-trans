@@ -129,13 +129,13 @@
                                 <th>Destination To</th>
                                 <th>Remarks</th>
                                 <th class="text-danger">Sub Remark</th>
-                                <th style="display:none;">Charge (Waiting Charge)</th>
-                                <th style="display:none;">Charge (Port pass)</th>
-                                <th style="display:none;">Charge (DARB and SALIK)</th>
-                                <th style="display:none;">Charge (Parking)</th>
-                                <th style="display:none;">Amount</th>
-                                <th style="display:none;">Actual(-20%) Charged to OMS</th>
-                                <th style="display:none;">COMMENTS</th>
+                                <th>Charge (Waiting Charge)</th>
+                                <th>Charge (Port pass)</th>
+                                <th>Charge (DARB and SALIK)</th>
+                                <th>Charge (Parking)</th>
+                                <th>Amount</th>
+                                <th>Actual(-20%) Charged to OMS</th>
+                                <th>COMMENTS</th>
                                 <th style="display:none;">Created At</th>
                             </tr>
                         </thead>
@@ -143,6 +143,53 @@
                             @foreach($crews as $crew)
                             @php
                                 $trip = $crew->trip;
+                                $expenses = $trip ? $trip->tripExpenses : collect([]);
+
+                                // 1. Waiting Charge
+                                $waitingExpense = $expenses->first(function($exp) {
+                                    $title = strtolower($exp->expenseType->title ?? '');
+                                    return str_contains($title, 'waiting');
+                                });
+                                $waitingVal = '-';
+                                if ($waitingExpense) {
+                                    if (!empty($waitingExpense->hours) && $waitingExpense->hours > 0) {
+                                        $waitingVal = number_format($waitingExpense->hours, 2) . ' hrs';
+                                    } elseif (!empty($waitingExpense->amount) && $waitingExpense->amount > 0) {
+                                        $waitingVal = number_format($waitingExpense->amount, 2);
+                                    }
+                                }
+
+                                // 2. Port pass
+                                $portPassSum = $expenses->filter(function($exp) {
+                                    $title = strtolower($exp->expenseType->title ?? '');
+                                    return str_contains($title, 'port');
+                                })->sum('amount');
+                                $portPassVal = $portPassSum > 0 ? number_format($portPassSum, 2) : '-';
+
+                                // 3. DARB and SALIK
+                                $darbSalikSum = $expenses->filter(function($exp) {
+                                    $title = strtolower($exp->expenseType->title ?? '');
+                                    return str_contains($title, 'darb') || str_contains($title, 'salik');
+                                })->sum('amount');
+                                $darbSalikVal = $darbSalikSum > 0 ? number_format($darbSalikSum, 2) : '-';
+
+                                // 4. Parking
+                                $parkingSum = $expenses->filter(function($exp) {
+                                    $title = strtolower($exp->expenseType->title ?? '');
+                                    return str_contains($title, 'parking');
+                                })->sum('amount');
+                                $parkingVal = $parkingSum > 0 ? number_format($parkingSum, 2) : '-';
+
+                                // 5. Total Amount
+                                $totalAmount = $expenses->sum('amount');
+                                $totalAmountVal = $totalAmount > 0 ? number_format($totalAmount, 2) : '0.00';
+
+                                // 6. Actual(-20%) Charged to OMS
+                                $actualOmsVal = $totalAmount > 0 ? number_format($totalAmount * 0.80, 2) : '0.00';
+
+                                // 7. Comments
+                                $commentsList = $expenses->pluck('description')->filter()->unique();
+                                $commentsVal = $commentsList->isNotEmpty() ? $commentsList->implode(' | ') : '-';
                             @endphp
                             <tr>
                                 <td data-order="{{ $trip->trip_date->timestamp }}">{{ $trip->trip_date->format('M d, Y') }}</td>
@@ -171,13 +218,21 @@
                                         <span class="text-muted">-</span>
                                     @endif
                                 </td>
-                                <td style="display:none;">-</td>
-                                <td style="display:none;">-</td>
-                                <td style="display:none;">-</td>
-                                <td style="display:none;">-</td>
-                                <td style="display:none;">-</td>
-                                <td style="display:none;">-</td>
-                                <td style="display:none;">-</td>
+                                <td>{{ $waitingVal }}</td>
+                                <td>{{ $portPassVal }}</td>
+                                <td>{{ $darbSalikVal }}</td>
+                                <td>{{ $parkingVal }}</td>
+                                <td class="fw-bold">{{ $totalAmountVal }}</td>
+                                <td class="fw-bold text-success">{{ $actualOmsVal }}</td>
+                                <td>
+                                    @if($commentsVal !== '-')
+                                        <span class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ $commentsVal }}">
+                                            {{ $commentsVal }}
+                                        </span>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
                                 <td style="display:none;" data-order="{{ $crew->created_at->timestamp }}">{{ $crew->created_at->format('Y-m-d H:i:s') }}</td>
                             </tr>
                             @endforeach
