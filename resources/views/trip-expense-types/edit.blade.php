@@ -52,6 +52,45 @@
                         @enderror
                     </div>
 
+                    <div class="mb-3">
+                        <label class="form-label d-block">Allowed / Required Input Types <span class="text-danger">*</span></label>
+                        <small class="text-muted d-block mb-2">Select the input fields that should be shown and required when submitting this expense type:</small>
+
+                        @php
+                            $selectedTypes = old('input_types', $tripExpenseType->input_types ?? ['number', 'image']);
+                            if (!is_array($selectedTypes)) {
+                                $selectedTypes = ['number', 'image'];
+                            }
+                        @endphp
+
+                        <div class="d-flex gap-4 flex-wrap">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="input_types[]" value="number" id="input_type_number" {{ in_array('number', $selectedTypes) ? 'checked' : '' }}>
+                                <label class="form-check-label fw-medium" for="input_type_number">
+                                    <i class="ri-hashtag text-success me-1"></i> Number (Amount)
+                                </label>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="input_types[]" value="text" id="input_type_text" {{ in_array('text', $selectedTypes) ? 'checked' : '' }}>
+                                <label class="form-check-label fw-medium" for="input_type_text">
+                                    <i class="ri-text text-info me-1"></i> Text (Description / Note)
+                                </label>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="input_types[]" value="image" id="input_type_image" {{ in_array('image', $selectedTypes) ? 'checked' : '' }}>
+                                <label class="form-check-label fw-medium" for="input_type_image">
+                                    <i class="ri-image-line text-warning me-1"></i> Image (Receipt Upload)
+                                </label>
+                            </div>
+                        </div>
+
+                        @error('input_types')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                        @enderror
+                    </div>
+
                     <div class="mt-4">
                         <button class="btn btn-success" type="submit">Update Expense Type</button>
                         <a href="{{ route('trip-expense-types.index') }}" class="btn btn-secondary">Cancel</a>

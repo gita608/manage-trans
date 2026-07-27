@@ -12,7 +12,43 @@ class TripExpenseType extends Model
 
     protected $fillable = [
         'title',
+        'input_types',
     ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'input_types' => 'array',
+    ];
+
+    /**
+     * Get configured input types with default fallback.
+     *
+     * @return array
+     */
+    public function getInputTypesAttribute($value): array
+    {
+        if (empty($value)) {
+            return ['number', 'image'];
+        }
+        
+        $decoded = is_string($value) ? json_decode($value, true) : $value;
+        return is_array($decoded) && !empty($decoded) ? $decoded : ['number', 'image'];
+    }
+
+    /**
+     * Check if a specific input type is enabled.
+     *
+     * @param string $type
+     * @return bool
+     */
+    public function hasInputType(string $type): bool
+    {
+        return in_array($type, $this->input_types ?? ['number', 'image']);
+    }
 
     /**
      * Get the trip expenses for this expense type.

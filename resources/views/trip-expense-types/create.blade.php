@@ -51,6 +51,38 @@
                         @enderror
                     </div>
 
+                    <div class="mb-3">
+                        <label class="form-label d-block">Allowed / Required Input Types <span class="text-danger">*</span></label>
+                        <small class="text-muted d-block mb-2">Select the input fields that should be shown and required when submitting this expense type:</small>
+
+                        <div class="d-flex gap-4 flex-wrap">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="input_types[]" value="number" id="input_type_number" {{ is_array(old('input_types', ['number', 'image'])) && in_array('number', old('input_types', ['number', 'image'])) ? 'checked' : '' }}>
+                                <label class="form-check-label fw-medium" for="input_type_number">
+                                    <i class="ri-hashtag text-success me-1"></i> Number (Amount)
+                                </label>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="input_types[]" value="text" id="input_type_text" {{ is_array(old('input_types')) && in_array('text', old('input_types')) ? 'checked' : '' }}>
+                                <label class="form-check-label fw-medium" for="input_type_text">
+                                    <i class="ri-text text-info me-1"></i> Text (Description / Note)
+                                </label>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="input_types[]" value="image" id="input_type_image" {{ is_array(old('input_types', ['number', 'image'])) && in_array('image', old('input_types', ['number', 'image'])) ? 'checked' : '' }}>
+                                <label class="form-check-label fw-medium" for="input_type_image">
+                                    <i class="ri-image-line text-warning me-1"></i> Image (Receipt Upload)
+                                </label>
+                            </div>
+                        </div>
+
+                        @error('input_types')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                        @enderror
+                    </div>
+
                     <div class="mt-4">
                         <button class="btn btn-success" type="submit">Create Expense Type</button>
                         <a href="{{ route('trip-expense-types.index') }}" class="btn btn-secondary">Cancel</a>

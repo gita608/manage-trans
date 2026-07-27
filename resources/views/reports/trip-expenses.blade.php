@@ -116,6 +116,7 @@
                                 <th>Trip Date</th>
                                 <th>Expense Type</th>
                                 <th>Amount</th>
+                                <th>Note / Description</th>
                                 <th>Submitted By</th>
                                 <th>Partner</th>
                                 <th>Vessel</th>
@@ -136,6 +137,15 @@
                                     </span>
                                 </td>
                                 <td class="fw-bold">{{ number_format($expense->amount, 2) }}</td>
+                                <td>
+                                    @if($expense->description)
+                                        <span class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ $expense->description }}">
+                                            {{ $expense->description }}
+                                        </span>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
                                 <td>{{ $expense->driver->name ?? 'Unknown' }}</td>
                                 <td>{{ $expense->trip && $expense->trip->partner ? $expense->trip->partner->title : '-' }}</td>
                                 <td>{{ $firstCrew && $firstCrew->vessel ? $firstCrew->vessel->name : 'Unknown' }}</td>
@@ -156,7 +166,7 @@
                             <tr>
                                 <td colspan="2" class="fw-bold text-end">Total</td>
                                 <td class="fw-bold">{{ number_format($totalExpenses, 2) }}</td>
-                                <td colspan="3"></td>
+                                <td colspan="5"></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -226,7 +236,7 @@
                     className: 'btn btn-success btn-sm',
                     title: 'Trip Expenses Report',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5],
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7],
                         modifier: {
                             page: 'all',
                             search: 'none'
@@ -272,7 +282,7 @@
                     orientation: 'landscape',
                     pageSize: 'A4',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5],
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7],
                         modifier: {
                             page: 'all',
                             search: 'none'

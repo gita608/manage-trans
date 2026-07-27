@@ -68,6 +68,7 @@
                             <tr>
                                 <th scope="col">#</th>
                                 <th scope="col">Title</th>
+                                <th scope="col">Configured Input Types</th>
                                 <th scope="col">Created At</th>
                                 <th scope="col" class="no-export">Actions</th>
                             </tr>
@@ -76,7 +77,20 @@
                             @forelse ($expenseTypes as $expenseType)
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
-                                    <td>{{ $expenseType->title }}</td>
+                                    <td><strong>{{ $expenseType->title }}</strong></td>
+                                    <td>
+                                        <div class="d-flex gap-1 flex-wrap">
+                                            @if($expenseType->hasInputType('number'))
+                                                <span class="badge bg-success-subtle text-success"><i class="ri-hashtag me-1"></i>Number (Amount)</span>
+                                            @endif
+                                            @if($expenseType->hasInputType('text'))
+                                                <span class="badge bg-info-subtle text-info"><i class="ri-text me-1"></i>Text (Note)</span>
+                                            @endif
+                                            @if($expenseType->hasInputType('image'))
+                                                <span class="badge bg-warning-subtle text-warning"><i class="ri-image-line me-1"></i>Image (Receipt)</span>
+                                            @endif
+                                        </div>
+                                    </td>
                                     <td>
                                         <div>{{ $expenseType->created_at->format('M d, Y') }}</div>
                                         <small class="text-muted">{{ $expenseType->created_at->format('h:i A') }}</small>
@@ -98,7 +112,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="text-center py-4">
+                                    <td colspan="5" class="text-center py-4">
                                         <p class="text-muted mb-0">No trip expense types found. <a href="{{ route('trip-expense-types.create') }}">Create your first expense type</a></p>
                                     </td>
                                 </tr>

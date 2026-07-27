@@ -12,6 +12,7 @@ class TripExpense extends Model
         'driver_id',
         'expense_type_id',
         'amount',
+        'description',
         'receipt',
     ];
 

@@ -236,8 +236,10 @@ class TripController extends Controller
                 'expense_type' => [
                     'id' => $expense->expenseType->id ?? null,
                     'title' => $expense->expenseType->title ?? 'Unknown',
+                    'input_types' => $expense->expenseType->input_types ?? ['number', 'image'],
                 ],
                 'amount' => (float) $expense->amount,
+                'description' => $expense->description,
                 'receipt' => $expense->receipt ? asset('storage/' . $expense->receipt) : null,
                 'created_at' => $createdAt ? [
                     'date' => $createdAt->format('Y-m-d'),
@@ -382,18 +384,49 @@ class TripController extends Controller
     {
         $driver = $request->user();
         
-        // $id is TripCrew ID (Job ID)
+        // $id is Trip ID or TripCrew ID
         $trip = Trip::where('driver_id', $driver->id)->find($id);   
 
         if (!$trip) {
             return response()->json(['success' => false, 'message' => 'Trip not found.'], 404);
         }
 
-        $validator = Validator::make($request->all(), [
+        // Validate expense type first
+        $typeValidator = Validator::make($request->all(), [
             'expense_type_id' => ['required', 'exists:trip_expense_types,id'],
-            'amount' => ['required', 'numeric', 'min:0'],
-            'receipt' => ['nullable', 'image', 'max:5120'],
         ]);
+
+        if ($typeValidator->fails()) {
+            return response()->json(['success' => false, 'message' => $typeValidator->errors()->first()], 422);
+        }
+
+        $expenseType = \App\Models\TripExpenseType::find($request->expense_type_id);
+        $inputTypes = $expenseType->input_types ?? ['number', 'image'];
+
+        // Build dynamic validation rules based on configured input_types
+        $rules = [
+            'expense_type_id' => ['required', 'exists:trip_expense_types,id'],
+        ];
+
+        if (in_array('number', $inputTypes)) {
+            $rules['amount'] = ['required', 'numeric', 'min:0'];
+        } else {
+            $rules['amount'] = ['nullable', 'numeric', 'min:0'];
+        }
+
+        if (in_array('text', $inputTypes)) {
+            $rules['description'] = ['required', 'string', 'max:1000'];
+        } else {
+            $rules['description'] = ['nullable', 'string', 'max:1000'];
+        }
+
+        if (in_array('image', $inputTypes)) {
+            $rules['receipt'] = ['required', 'image', 'max:5120'];
+        } else {
+            $rules['receipt'] = ['nullable', 'image', 'max:5120'];
+        }
+
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
@@ -408,7 +441,8 @@ class TripController extends Controller
             'trip_id' => $trip->id,
             'driver_id' => $driver->id,
             'expense_type_id' => $request->expense_type_id,
-            'amount' => $request->amount,
+            'amount' => $request->amount ?? 0,
+            'description' => $request->description,
             'receipt' => $receiptPath,
         ]);
 
