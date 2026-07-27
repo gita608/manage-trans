@@ -19,7 +19,7 @@ This file defines mandatory workspace conventions, architecture rules, and imple
 ### 2.1 Core Entities & Relationships
 * **Trip (`App\Models\Trip`)**:
   * Represents a dispatch assignment. Linked to `Driver` (nullable), `Partner` (nullable), and has many `TripCrew` records.
-  * Status is stored directly in `trips.status` (`unassigned`, `assigned`, `in_progress`, `completed`).
+  * Status is stored directly in `trips.status` (`unassigned`, `assigned`, `in_progress`, `completed`, `cancelled`).
   * Has auto-generated title logic: `Trip::generateTripTitle($driverId, $tripDate)`.
 * **TripCrew (`App\Models\TripCrew`)**:
   * Child model of `Trip` (1 Trip : N Crews). Contains vessel assignment (`vessel_id`), pickup time, pickup/drop location addresses, flight numbers, and remarks.
@@ -33,12 +33,12 @@ This file defines mandatory workspace conventions, architecture rules, and imple
 ## ⚠️ 3. Mandatory AI Coding Rules & Safeguards
 
 ### 3.1 Database & Schema Safety
-* **Status Column**: Trip status belongs to `trips.status`. Do not add or read status from `trip_crews.status`.
+* **Status Column**: Trip status belongs to `trips.status` (`unassigned`, `assigned`, `in_progress`, `completed`, `cancelled`). Do not add or read status from `trip_crews.status`.
 * **Eager Loading**: Always eager-load related models (`Trip::with(['driver', 'crews.vessel'])`) in list controllers to avoid $N+1$ performance degradation.
 * **Migrations**: Always write reversible migrations (`up` and `down` methods).
 
 ### 3.2 Audit Trail & Logging
-* The `Trip` model uses `App\Traits\LogsActivity`.
+* Application entities use `App\Traits\LogsActivity` to record user/driver actions (`created`, `updated`, `deleted`).
 * If manually logging an `ActivityLog` (e.g. driver API action), call `$model->saveQuietly()` first to prevent duplicate standard log creation.
 
 ### 3.3 Web Routes vs. Mobile API Routes

@@ -116,25 +116,33 @@ erDiagram
 ### 1. Trip Module
 * **Parent-Child Architecture**: A `Trip` represents a single scheduled driver dispatch for a given date and partner. Each `Trip` contains multiple `TripCrew` records (individual crew member pickup/drop locations, pickup times, flight numbers, and vessel links).
 * **Trip Status Workflow**:
-  * `unassigned` $\rightarrow$ `assigned` $\rightarrow$ `in_progress` $\rightarrow$ `completed`.
+  * `unassigned` $\rightarrow$ `assigned` $\rightarrow$ `in_progress` $\rightarrow$ `completed` $\rightarrow$ `cancelled`.
+  * **Cancellation Handling**: Dispatchers can cancel trips (`POST /trips/{id}/cancel`). Cancelled trips are visually highlighted with red borders/badges on `/trips`, tracked in statistics cards, and excluded from operational reports by default.
 * **Title Auto-Generation**: Automatic title formatting (`"Trip 1"`, `"Trip 2"`, etc.) generated per driver per date via `Trip::generateTripTitle()`.
 * **AWS Textract Manifest OCR**:
   * Dispatchers upload PDF/Image manifest files.
   * `TextractService` parses table headers and rows.
   * Extracted data is presented on `trips/review-extraction.blade.php` to review, map drivers/vessels, and execute `storeBulk` creation.
 
-### 2. Driver & Vehicle Mileage Tracking
+### 2. Configurable Trip Expense Types & Dynamic Reporting
+* **Multi-Option Input Configuration**: `TripExpenseType` supports configurable input types (`amount`, `hours`, `text`, `image`). Hour-based expense entries (e.g. `Waiting Charge`) store decimal values in `trip_expenses.hours`.
+* **Dynamic Summary Report (`/reports/trip-summary`)**:
+  * Dynamically generates table columns for all active `TripExpenseType` categories (`Charge (...)`).
+  * Computes total `Amount`, `Actual(-20%) Charged to OMS` (`Amount * 0.80`), and concatenated `COMMENTS`.
+  * Web view cleanly displays up to `Sub Remark`, while Excel & PDF exports dynamically export all dynamic charge columns, `Amount`, `Actual(-20%)`, and `COMMENTS` header at the end.
+
+### 3. Driver & Vehicle Mileage Tracking
 * Drivers log daily mileage via `DailyActivity`.
 * The system automatically tracks total accumulated kilometers (`total_kilometers`).
 * Every 10,000 km milestone triggers a vehicle service notification sent directly to the driver via FCM.
 
-### 3. Role-Based Access Control (RBAC)
+### 4. Role-Based Access Control (RBAC)
 * Handled via `permission:...` middleware in `routes/web.php`.
 * Permissions include `view_trips`, `create_trips`, `edit_trips`, `delete_trips`, `view_drivers`, `view_reports`, `manage_permissions`, etc.
 
-### 4. Push Notifications & Audit Logs
+### 5. Push Notifications & Application-Wide Audit Logging
 * Firebase FCM integration (`FirebaseNotificationService`) sends real-time push alerts to mobile devices on trip assignment or mileage milestones.
-* Model activity logging (`LogsActivity`) tracks model actions (`created`, `updated`, `deleted`) with associated user or driver ID.
+* System-wide activity logging (`LogsActivity`) attached to all application models (`Trip`, `TripCrew`, `TripExpense`, `TripIssue`, `Driver`, `DailyActivity`, `User`, `Partner`, `Vessel`, `TripExpenseType`, `TripIssueType`, `Notification`), recording actions with safe array string formatting and user/driver attribution.
 
 ---
 
@@ -146,13 +154,13 @@ All API endpoints are under `/api/` and require `Authorization: Bearer <sanctum_
 | :--- | :--- | :--- |
 | `POST` | `/api/login` | Driver login (returns Sanctum token) |
 | `GET` | `/api/schedule` | Today's driver trips grouped by `pending`, `ongoing`, and `completed` |
-| `GET` | `/api/trips/{id}` | Detailed trip information (crews, locations, issues, expenses) |
-| `PUT` | `/api/trips/{id}/status` | Update trip status (`assigned`, `in_progress`, `completed`) |
+| `GET` | `/api/trips/{id}` | Detailed trip information (crews, locations, issues, expenses, status flags) |
+| `PUT` | `/api/trips/{id}/status` | Update trip status (`assigned`, `in_progress`, `completed`, `cancelled`) |
 | `PUT` | `/api/trips/{id}/crew/{crew_id}` | Update crew contact or location details |
 | `GET` | `/api/trip-issue-types` | Fetch list of valid issue types |
 | `POST` | `/api/trips/{id}/issues` | Submit trip issue report |
-| `GET` | `/api/trip-expense-types` | Fetch list of valid expense types |
-| `POST` | `/api/trips/{id}/expenses` | Submit trip expense with receipt image |
+| `GET` | `/api/trip-expense-types` | Fetch list of valid expense types with input rules (`amount`, `hours`, `text`, `image`) |
+| `POST` | `/api/trips/{id}/expenses` | Submit trip expense with amount, hours, notes, and receipt image |
 | `GET` | `/api/daily-activity` | View today's daily activities and total kilometers |
 | `POST` | `/api/daily-activity` | Log daily activity / driven kilometers |
 | `POST` | `/api/location/update` | Update driver current GPS location |
