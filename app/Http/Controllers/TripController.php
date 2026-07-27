@@ -169,6 +169,15 @@ class TripController extends Controller
             'crews.*.phone' => ['nullable', 'string', 'max:255'],
             'crews.*.phone_2' => ['nullable', 'string', 'max:255'],
             'crews.*.address' => ['nullable', 'string'],
+        ], [
+            'trip_date.required' => 'The trip date is required.',
+            'crews.required' => 'At least one crew member row is required.',
+            'crews.*.vessel_id.required' => 'A vessel selection is required for every crew member row.',
+            'crews.*.vessel_id.exists' => 'The selected vessel is invalid.',
+            'crews.*.pick_up_time.required' => 'Pick-up time is required for every crew member row.',
+            'crews.*.from_location.required' => 'From location is required for every crew member row.',
+            'crews.*.to_location.required' => 'To location is required for every crew member row.',
+            'crews.*.name.required' => 'Crew member name is required for every row.',
         ]);
 
         $partnerId = $request->input('partner_id');
@@ -281,6 +290,15 @@ class TripController extends Controller
             'crews.*.phone' => ['nullable', 'string', 'max:255'],
             'crews.*.phone_2' => ['nullable', 'string', 'max:255'],
             'crews.*.address' => ['nullable', 'string'],
+        ], [
+            'trip_date.required' => 'The trip date is required.',
+            'crews.required' => 'At least one crew member row is required.',
+            'crews.*.vessel_id.required' => 'A vessel selection is required for every crew member row.',
+            'crews.*.vessel_id.exists' => 'The selected vessel is invalid.',
+            'crews.*.pick_up_time.required' => 'Pick-up time is required for every crew member row.',
+            'crews.*.from_location.required' => 'From location is required for every crew member row.',
+            'crews.*.to_location.required' => 'To location is required for every crew member row.',
+            'crews.*.name.required' => 'Crew member name is required for every row.',
         ]);
 
         $tripDate = $validated['trip_date'];
@@ -521,6 +539,12 @@ class TripController extends Controller
             'trips.*.to_location' => ['required', 'string'],
             'trips.*.remarks' => ['nullable', 'string'],
             'trips.*.sub_remark' => ['nullable', 'string'],
+        ], [
+            'trips.required' => 'No trip rows were provided.',
+            'trips.*.pick_up_time.required' => 'Pick-up time is required for all selected trips.',
+            'trips.*.crew_name.required' => 'Crew name is required for all selected trips.',
+            'trips.*.from_location.required' => 'From location is required for all selected trips.',
+            'trips.*.to_location.required' => 'To location is required for all selected trips.',
         ]);
 
         $createdCount = 0;

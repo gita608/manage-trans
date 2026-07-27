@@ -36,6 +36,18 @@
             </div>
             
             <div class="card-body p-0">
+                @if ($errors->any())
+                    <div class="alert alert-danger alert-dismissible fade show m-4" role="alert">
+                        <h6 class="alert-heading fw-bold mb-1"><i class="ri-error-warning-line me-1"></i> Please fix the following errors:</h6>
+                        <ul class="mb-0 ps-3">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+
                 <form action="{{ route('trips.store-bulk') }}" method="POST" id="review-form">
                     @csrf
                     
