@@ -307,6 +307,7 @@
                                 <option value="assigned">Assigned</option>
                                 <option value="in_progress">In Progress</option>
                                 <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
                             </select>
                         </div>
                         <div class="col-sm-6 col-md-2">
@@ -392,6 +393,14 @@
                                 <a href="{{ route('trips.edit', $trip->id) }}" class="btn-action btn-action-edit" data-bs-toggle="tooltip" title="Edit Trip">
                                     <i class="ri-pencil-line"></i>
                                 </a>
+                                @if(!$trip->isCancelled())
+                                <form action="{{ route('trips.cancel', $trip->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to cancel this trip?');">
+                                    @csrf
+                                    <button type="submit" class="btn-action btn-action-cancel text-warning" data-bs-toggle="tooltip" title="Cancel Trip">
+                                        <i class="ri-close-circle-line"></i>
+                                    </button>
+                                </form>
+                                @endif
                                 <form action="{{ route('trips.destroy', $trip->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this trip?');">
                                     @csrf
                                     @method('DELETE')

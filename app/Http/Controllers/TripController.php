@@ -448,6 +448,28 @@ class TripController extends Controller
     }
 
     /**
+     * Cancel the specified trip.
+     */
+    public function cancel(Request $request, Trip $trip)
+    {
+        $oldStatus = $trip->status;
+        $trip->status = TripCrew::STATUS_CANCELLED;
+        $trip->save();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Trip cancelled successfully.',
+                'status' => $trip->status,
+                'status_badge' => $trip->getStatusBadgeClass(),
+                'status_text' => ucfirst($trip->status),
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Trip cancelled successfully!');
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(Trip $trip)

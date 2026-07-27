@@ -42,6 +42,7 @@ class TripCrew extends Model
     const STATUS_ASSIGNED = 'assigned';
     const STATUS_IN_PROGRESS = 'in_progress';
     const STATUS_COMPLETED = 'completed';
+    const STATUS_CANCELLED = 'cancelled';
 
     public static function getStatuses(): array
     {
@@ -50,6 +51,7 @@ class TripCrew extends Model
             self::STATUS_ASSIGNED => 'Assigned',
             self::STATUS_IN_PROGRESS => 'In Progress',
             self::STATUS_COMPLETED => 'Completed',
+            self::STATUS_CANCELLED => 'Cancelled',
         ];
     }
 }

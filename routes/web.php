@@ -123,6 +123,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['permission:edit_trips'])->group(function () {
         Route::get('/trips/{trip}/edit', [TripController::class, 'edit'])->name('trips.edit');
         Route::put('/trips/{trip}', [TripController::class, 'update'])->name('trips.update');
+        Route::post('/trips/{trip}/cancel', [TripController::class, 'cancel'])->name('trips.cancel');
         Route::patch('/trips/{trip}/assign-driver', [TripController::class, 'assignDriver'])->name('trips.assign-driver');
     });
     

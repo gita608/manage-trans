@@ -32,6 +32,14 @@
                         <a href="{{ route('trips.edit', $trip) }}" class="btn btn-primary">
                             <i class="ri-pencil-line align-middle me-1"></i> Edit
                         </a>
+                        @if(!$trip->isCancelled())
+                        <form action="{{ route('trips.cancel', $trip) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to cancel this trip?');">
+                            @csrf
+                            <button type="submit" class="btn btn-warning text-white">
+                                <i class="ri-close-circle-line align-middle me-1"></i> Cancel
+                            </button>
+                        </form>
+                        @endif
                         <form action="{{ route('trips.destroy', $trip) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this trip?');">
                             @csrf
                             @method('DELETE')

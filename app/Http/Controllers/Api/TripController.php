@@ -264,6 +264,7 @@ class TripController extends Controller
                     'label' => ucfirst(str_replace('_', ' ', $trip->status)),
                     'is_ongoing' => $trip->status === 'in_progress',
                     'is_completed' => $trip->status === 'completed',
+                    'is_cancelled' => $trip->status === 'cancelled',
                 ],
                 'crews' => $crews,
                 'issues' => [
@@ -302,7 +303,7 @@ class TripController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'status' => ['required', 'in:assigned,in_progress,completed'],
+            'status' => ['required', 'in:assigned,in_progress,completed,cancelled'],
         ]);
 
         if ($validator->fails()) {

@@ -57,6 +57,10 @@ class ReportController extends Controller
             $query->whereHas('trip', function($q) use ($request) {
                 $q->where('status', $request->status);
             });
+        } else {
+            $query->whereHas('trip', function($q) {
+                $q->where('status', '!=', \App\Models\TripCrew::STATUS_CANCELLED);
+            });
         }
 
         // Driver type filter (on trip's driver)
@@ -166,6 +170,7 @@ class ReportController extends Controller
         $driverStats = [];
         foreach ($drivers as $driver) {
             $tripsQuery = Trip::where('driver_id', $driver->id)
+                ->where('status', '!=', \App\Models\TripCrew::STATUS_CANCELLED)
                 ->whereBetween('trip_date', [$dateFrom, $dateTo]);
             
             // Partner filter
@@ -200,11 +205,13 @@ class ReportController extends Controller
         
         $internalTripsQuery = Trip::whereHas('driver', function($q) {
             $q->where('type', Driver::TYPE_INTERNAL);
-        })->whereBetween('trip_date', [$dateFrom, $dateTo]);
+        })->where('status', '!=', \App\Models\TripCrew::STATUS_CANCELLED)
+        ->whereBetween('trip_date', [$dateFrom, $dateTo]);
         
         $outsourcingTripsQuery = Trip::whereHas('driver', function($q) {
             $q->where('type', Driver::TYPE_OUTSOURCING);
-        })->whereBetween('trip_date', [$dateFrom, $dateTo]);
+        })->where('status', '!=', \App\Models\TripCrew::STATUS_CANCELLED)
+        ->whereBetween('trip_date', [$dateFrom, $dateTo]);
         
         // Partner filter
         if ($request->has('partner_id') && $request->partner_id) {
@@ -235,6 +242,11 @@ class ReportController extends Controller
     public function tripExpenses(Request $request)
     {
         $query = \App\Models\TripExpense::with(['trip.partner', 'trip.crews.vessel', 'driver', 'expenseType']);
+
+        // Exclude expenses for cancelled trips by default
+        $query->whereHas('trip', function($q) {
+            $q->where('status', '!=', \App\Models\TripCrew::STATUS_CANCELLED);
+        });
 
         // Date range filter (based on trip date)
         if ($request->has('date_from') && $request->date_from) {

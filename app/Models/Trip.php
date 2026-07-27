@@ -52,6 +52,8 @@ class Trip extends Model
                 return 'bg-warning';
             case TripCrew::STATUS_UNASSIGNED:
                 return 'bg-secondary';
+            case TripCrew::STATUS_CANCELLED:
+                return 'bg-danger';
             default:
                 return 'bg-secondary';
         }
@@ -65,6 +67,16 @@ class Trip extends Model
     public function isCompleted(): bool
     {
         return $this->status === TripCrew::STATUS_COMPLETED;
+    }
+
+    /**
+     * Check if the trip is cancelled
+     *
+     * @return bool
+     */
+    public function isCancelled(): bool
+    {
+        return $this->status === TripCrew::STATUS_CANCELLED;
     }
 
     // Removed getCompletedCrewsCount() and getInProgressCrewsCount() - crews no longer have status
