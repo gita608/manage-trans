@@ -119,9 +119,14 @@ class TripController extends Controller
             return $trip->status === TripCrew::STATUS_IN_PROGRESS;
         })->count();
         
-        // Count completed trips (trips where all crews are completed)
+        // Count completed trips
         $tripsCompleted = $trips->filter(function ($trip) {
             return $trip->isCompleted();
+        })->count();
+
+        // Count cancelled trips
+        $tripsCancelled = $trips->filter(function ($trip) {
+            return $trip->isCancelled();
         })->count();
         
         $stats = [
@@ -129,6 +134,7 @@ class TripController extends Controller
             'total_jobs' => $tripIds->isEmpty() ? 0 : TripCrew::whereIn('trip_id', $tripIds)->count(),
             'trips_in_progress' => $tripsInProgress,
             'trips_completed' => $tripsCompleted,
+            'trips_cancelled' => $tripsCancelled,
         ];
 
         return view('trips.index', compact('trips', 'drivers', 'vessels', 'stats'));

@@ -36,12 +36,12 @@
 
 <!-- Statistics Overview Cards -->
 <div class="row g-3 mb-4">
-    <div class="col-xl-3 col-md-6">
+    <div class="col-xl-2 col-md-4">
         <div class="card card-animate border-0 shadow-sm">
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1">
-                        <p class="text-uppercase fw-medium text-muted mb-2">Today's Trips</p>
+                        <p class="text-uppercase fw-medium text-muted mb-2">Total Trips</p>
                         <h4 class="mb-0">{{ $stats['total_trips'] }}</h4>
                     </div>
                     <div class="flex-shrink-0">
@@ -56,7 +56,7 @@
         </div>
     </div>
 
-    <div class="col-xl-3 col-md-6">
+    <div class="col-xl-2 col-md-4">
         <div class="card card-animate border-0 shadow-sm">
             <div class="card-body">
                 <div class="d-flex align-items-center">
@@ -76,7 +76,7 @@
         </div>
     </div>
 
-    <div class="col-xl-3 col-md-6">
+    <div class="col-xl-3 col-md-4">
         <div class="card card-animate border-0 shadow-sm">
             <div class="card-body">
                 <div class="d-flex align-items-center">
@@ -101,13 +101,33 @@
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1">
-                        <p class="text-uppercase fw-medium text-muted mb-2">Completed Trips</p>
+                        <p class="text-uppercase fw-medium text-muted mb-2">Completed</p>
                         <h4 class="mb-0">{{ $stats['trips_completed'] }}</h4>
                     </div>
                     <div class="flex-shrink-0">
                         <div class="avatar-sm">
                             <span class="avatar-title bg-success-subtle text-success rounded fs-3">
                                 <i class="ri-checkbox-circle-line"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-2 col-md-6">
+        <div class="card card-animate border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <p class="text-uppercase fw-medium text-muted mb-2">Cancelled</p>
+                        <h4 class="mb-0 text-danger">{{ $stats['trips_cancelled'] ?? 0 }}</h4>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-danger-subtle text-danger rounded fs-3">
+                                <i class="ri-close-circle-line"></i>
                             </span>
                         </div>
                     </div>
@@ -707,6 +727,21 @@
     .status-pill.status-secondary { background: #f1f5f9; color: #475569; }
     .status-pill.status-info { background: #cffafe; color: #0891b2; }
     .status-pill.status-success { background: #d1fae5; color: #047857; }
+    .status-pill.status-danger, .status-pill.status-bg-danger {
+        background: #fee2e2 !important;
+        color: #dc2626 !important;
+        border: 1px solid #fca5a5 !important;
+        font-weight: 700;
+    }
+
+    .trip-card.trip-status-bg-danger {
+        border-left: 5px solid #ef4444 !important;
+        background: #fffdfd !important;
+    }
+    .trip-card.trip-status-bg-danger .trip-card-header {
+        background: #fef2f2 !important;
+        border-bottom: 1px solid #fee2e2 !important;
+    }
     
     .trip-card-meta {
         display: flex;
