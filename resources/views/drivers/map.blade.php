@@ -330,6 +330,21 @@
         color: #64748b;
         font-weight: 500;
     }
+    .driver-last-seen {
+        margin-top: 4px;
+        font-size: 11px;
+        color: #94a3b8;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .driver-last-seen i {
+        font-size: 12px;
+        flex-shrink: 0;
+    }
 
     .availability-badge {
         display: inline-flex;
@@ -896,6 +911,8 @@
             const isBusy = driver.is_busy;
             const initials = driver.name.substring(0, 2).toUpperCase();
             
+            const lastSeen = driver.updated_at_human || '—';
+
             html += `
                 <div class="driver-item" onclick="focusDriver(${driver.id})">
                     <div class="driver-avatar ${isBusy ? 'avatar-busy' : 'avatar-free'}">
@@ -910,6 +927,9 @@
                             <span class="availability-badge ${isBusy ? 'busy' : 'free'}">
                                 ${isBusy ? 'Busy' : 'Free'}
                             </span>
+                        </div>
+                        <div class="driver-last-seen" title="${driver.updated_at || ''}">
+                            <i class="ri-time-line"></i> Last seen ${lastSeen}
                         </div>
                     </div>
                     <i class="ri-arrow-right-s-line text-muted fs-16"></i>

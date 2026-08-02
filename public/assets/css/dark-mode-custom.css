@@ -802,11 +802,175 @@
 
 [data-bs-theme="dark"] .map-wrapper {
     border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
 [data-bs-theme="dark"] .map-sidebar {
-    background: #1a1d21;
-    border-color: rgba(255, 255, 255, 0.08);
+    background: #1a1d21 !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-bs-theme="dark"] .sidebar-body {
+    background: #212529 !important;
+    border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-bs-theme="dark"] .search-input {
+    background: #262a2f !important;
+    border-color: #404448 !important;
+    color: #e9ecef !important;
+}
+
+[data-bs-theme="dark"] .search-input:focus {
+    background: #2a2e33 !important;
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2) !important;
+}
+
+[data-bs-theme="dark"] .search-input::placeholder {
+    color: #6c757d !important;
+}
+
+[data-bs-theme="dark"] .search-box i {
+    color: #6c757d !important;
+}
+
+[data-bs-theme="dark"] .status-legend {
+    background: rgba(6, 182, 212, 0.1) !important;
+    border-color: rgba(6, 182, 212, 0.3) !important;
+}
+
+[data-bs-theme="dark"] .legend-title {
+    color: #67e8f9 !important;
+}
+
+[data-bs-theme="dark"] .legend-item {
+    color: #cbd5e1 !important;
+}
+
+[data-bs-theme="dark"] .driver-list-header {
+    background: #1a1d21 !important;
+    color: #94a3b8 !important;
+    border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+[data-bs-theme="dark"] .driver-list {
+    background: #1a1d21 !important;
+}
+
+[data-bs-theme="dark"] .driver-list::-webkit-scrollbar-thumb {
+    background: #404448 !important;
+}
+
+[data-bs-theme="dark"] .driver-item {
+    background: #212529 !important;
+    border-color: transparent !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-bs-theme="dark"] .driver-item:hover,
+[data-bs-theme="dark"] .driver-item.active {
+    background: #2a2f34 !important;
+    border-color: rgba(99, 102, 241, 0.4) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+}
+
+[data-bs-theme="dark"] .driver-name {
+    color: #f1f5f9 !important;
+}
+
+[data-bs-theme="dark"] .driver-type-tag {
+    color: #94a3b8 !important;
+}
+
+[data-bs-theme="dark"] .driver-last-seen {
+    color: #6c757d !important;
+}
+
+[data-bs-theme="dark"] .status-dot {
+    border-color: #1a1d21 !important;
+}
+
+[data-bs-theme="dark"] .availability-badge.free {
+    background: rgba(16, 185, 129, 0.2) !important;
+    color: #6ee7b7 !important;
+}
+
+[data-bs-theme="dark"] .availability-badge.busy {
+    background: rgba(239, 68, 68, 0.2) !important;
+    color: #fca5a5 !important;
+}
+
+[data-bs-theme="dark"] .driver-empty {
+    color: #6c757d !important;
+}
+
+[data-bs-theme="dark"] .map-controls {
+    background: rgba(33, 37, 41, 0.95) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+    color: #e9ecef !important;
+}
+
+[data-bs-theme="dark"] .map-controls .form-select,
+[data-bs-theme="dark"] .map-controls .form-control,
+[data-bs-theme="dark"] .map-controls select {
+    background-color: #262a2f !important;
+    border-color: #404448 !important;
+    color: #e9ecef !important;
+}
+
+[data-bs-theme="dark"] .controls-divider {
+    background: #404448 !important;
+}
+
+[data-bs-theme="dark"] .leaflet-popup-content-wrapper {
+    background: #212529 !important;
+    border-color: #404448 !important;
+    color: #e9ecef !important;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45) !important;
+}
+
+[data-bs-theme="dark"] .leaflet-popup-tip {
+    background: #212529 !important;
+}
+
+[data-bs-theme="dark"] .popup-header {
+    border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-bs-theme="dark"] .popup-header.header-busy {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, #212529 100%) !important;
+}
+
+[data-bs-theme="dark"] .popup-header.header-free {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, #212529 100%) !important;
+}
+
+[data-bs-theme="dark"] .popup-title {
+    color: #f1f5f9 !important;
+}
+
+[data-bs-theme="dark"] .popup-label {
+    color: #94a3b8 !important;
+}
+
+[data-bs-theme="dark"] .popup-value {
+    color: #e2e8f0 !important;
+}
+
+[data-bs-theme="dark"] .popup-row i {
+    color: #6c757d !important;
+}
+
+[data-bs-theme="dark"] .popup-actions {
+    background: #1a1d21 !important;
+    border-top-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-bs-theme="dark"] .map-container,
+[data-bs-theme="dark"] #map {
+    background: #1a1d21 !important;
 }
 
 /* Pinned crew-table action column must match the row it sits on */
