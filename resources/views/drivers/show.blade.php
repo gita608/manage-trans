@@ -94,18 +94,6 @@
                                     <td>{{ $driver->age ? $driver->age . ' years' : 'N/A' }}</td>
                                 </tr>
                                 <tr>
-                                    <th>Vehicle Name:</th>
-                                    <td>{{ $driver->vehicle_name ?? 'N/A' }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Vehicle Brand:</th>
-                                    <td>{{ $driver->vehicle_brand ?? 'N/A' }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Vehicle Information:</th>
-                                    <td>{{ $driver->vehicle_info ?? 'N/A' }}</td>
-                                </tr>
-                                <tr>
                                     <th>Created At:</th>
                                     <td>{{ $driver->created_at->format('M d, Y h:i A') }}</td>
                                 </tr>

@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\VesselController;
+use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\TripController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\SettingsController;
@@ -105,6 +106,29 @@ Route::middleware(['auth'])->group(function () {
     
     Route::middleware(['permission:delete_vessels'])->group(function () {
         Route::delete('/vessels/{vessel}', [VesselController::class, 'destroy'])->name('vessels.destroy');
+    });
+
+    // Vehicle Routes (order matters - specific routes before parameterized routes)
+    Route::middleware(['permission:view_vehicles'])->group(function () {
+        Route::get('/vehicles', [VehicleController::class, 'index'])->name('vehicles.index');
+    });
+
+    Route::middleware(['permission:create_vehicles'])->group(function () {
+        Route::get('/vehicles/create', [VehicleController::class, 'create'])->name('vehicles.create');
+        Route::post('/vehicles', [VehicleController::class, 'store'])->name('vehicles.store');
+    });
+
+    Route::middleware(['permission:view_vehicles'])->group(function () {
+        Route::get('/vehicles/{vehicle}', [VehicleController::class, 'show'])->name('vehicles.show');
+    });
+
+    Route::middleware(['permission:edit_vehicles'])->group(function () {
+        Route::get('/vehicles/{vehicle}/edit', [VehicleController::class, 'edit'])->name('vehicles.edit');
+        Route::put('/vehicles/{vehicle}', [VehicleController::class, 'update'])->name('vehicles.update');
+    });
+
+    Route::middleware(['permission:delete_vehicles'])->group(function () {
+        Route::delete('/vehicles/{vehicle}', [VehicleController::class, 'destroy'])->name('vehicles.destroy');
     });
     
     // Trip Routes (order matters - specific routes before parameterized routes)

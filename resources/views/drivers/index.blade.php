@@ -57,7 +57,6 @@
                                 <th scope="col">License Number</th>
                                 <th scope="col">Contact</th>
                                 <th scope="col">Age</th>
-                                <th scope="col">Vehicle Info</th>
                                 <th scope="col">Created At</th>
                                 <th scope="col" class="no-export">Actions</th>
                             </tr>
@@ -96,11 +95,6 @@
                                     <td>{{ $driver->contact ?? '-' }}</td>
                                     <td>{{ $driver->age ?? '-' }}</td>
                                     <td>
-                                        <span class="text-truncate d-inline-block mt-note-truncate" title="{{ $driver->vehicle_info }}">
-                                            {{ $driver->vehicle_info ?? '-' }}
-                                        </span>
-                                    </td>
-                                    <td>
                                         <div>{{ $driver->created_at->format('M d, Y') }}</div>
                                         <small class="text-muted">{{ $driver->created_at->format('h:i A') }}</small>
                                     </td>
@@ -124,7 +118,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="10" class="text-center py-4">
+                                    <td colspan="9" class="text-center py-4">
                                         <p class="text-muted mb-0">No drivers found. <a href="{{ route('drivers.create') }}">Create your first driver</a></p>
                                     </td>
                                 </tr>

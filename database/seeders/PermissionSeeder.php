@@ -36,6 +36,12 @@ class PermissionSeeder extends Seeder
             ['name' => 'create_vessels', 'display_name' => 'Create Vessels', 'category' => 'vessels', 'description' => 'Create new vessels'],
             ['name' => 'edit_vessels', 'display_name' => 'Edit Vessels', 'category' => 'vessels', 'description' => 'Edit existing vessels'],
             ['name' => 'delete_vessels', 'display_name' => 'Delete Vessels', 'category' => 'vessels', 'description' => 'Delete vessels'],
+
+            // Vehicles
+            ['name' => 'view_vehicles', 'display_name' => 'View Vehicles', 'category' => 'vehicles', 'description' => 'View vehicles list'],
+            ['name' => 'create_vehicles', 'display_name' => 'Create Vehicles', 'category' => 'vehicles', 'description' => 'Create new vehicles'],
+            ['name' => 'edit_vehicles', 'display_name' => 'Edit Vehicles', 'category' => 'vehicles', 'description' => 'Edit existing vehicles'],
+            ['name' => 'delete_vehicles', 'display_name' => 'Delete Vehicles', 'category' => 'vehicles', 'description' => 'Delete vehicles'],
             
             // Staff
             ['name' => 'view_staff', 'display_name' => 'View Staff', 'category' => 'staff', 'description' => 'View staff list'],
@@ -92,6 +98,7 @@ class PermissionSeeder extends Seeder
             'edit_trips',
             'view_drivers',
             'view_vessels',
+            'view_vehicles',
             'view_notifications',
             'view_reports',
         ];

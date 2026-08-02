@@ -84,6 +84,15 @@
                 </li>
                 @endif
 
+                @if(auth()->check() && auth()->user() && auth()->user()->hasPermission('view_vehicles'))
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('vehicles.*') ? 'active' : '' }}"
+                        href="{{ route('vehicles.index') }}">
+                        <i class="ri-car-line"></i> <span>Vehicles</span>
+                    </a>
+                </li>
+                @endif
+
                 @if(auth()->check() && auth()->user() && auth()->user()->hasPermission('view_trips'))
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('trip-issue-types.*') ? 'active' : '' }}"
