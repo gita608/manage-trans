@@ -828,6 +828,12 @@
 
             // Create popup content
             const initials = driver.name.substring(0, 2).toUpperCase();
+            const vehicleRow = driver.vehicle && driver.vehicle.label ? `
+                    <div class="popup-row">
+                        <i class="ri-truck-line"></i>
+                        <span class="popup-label">Vehicle:</span>
+                        <span class="popup-value">${driver.vehicle.label}</span>
+                    </div>` : '';
             const popupContent = `
                 <div class="popup-header ${isBusy ? 'header-busy' : 'header-free'}">
                     <div class="popup-driver-info">
@@ -853,6 +859,7 @@
                         <span class="popup-label">Type:</span>
                         <span class="popup-value">${driver.type_label}</span>
                     </div>
+                    ${vehicleRow}
                     <div class="popup-row">
                         <i class="ri-phone-line"></i>
                         <span class="popup-label">Contact:</span>
@@ -931,6 +938,10 @@
                         <div class="driver-last-seen" title="${driver.updated_at || ''}">
                             <i class="ri-time-line"></i> Last seen ${lastSeen}
                         </div>
+                        ${driver.vehicle && driver.vehicle.label ? `
+                        <div class="driver-last-seen" title="Checked-in vehicle">
+                            <i class="ri-truck-line"></i> ${driver.vehicle.label}
+                        </div>` : ''}
                     </div>
                     <i class="ri-arrow-right-s-line text-muted fs-16"></i>
                 </div>

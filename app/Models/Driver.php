@@ -147,9 +147,12 @@ class Driver extends Authenticatable
      */
     public function activeCheckIn()
     {
-        return $this->hasOne(DriverCheckIn::class)
-            ->where('status', DriverCheckIn::STATUS_CHECKED_IN)
-            ->latestOfMany('check_in_at');
+        return $this->hasOne(DriverCheckIn::class)->ofMany(
+            ['check_in_at' => 'max'],
+            function ($query) {
+                $query->where('status', DriverCheckIn::STATUS_CHECKED_IN);
+            }
+        );
     }
 
     /**

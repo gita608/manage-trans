@@ -200,15 +200,33 @@ class DriverController extends Controller
     {
         $today = today()->format('Y-m-d');
 
-        $drivers = Driver::with(['latestLocation', 'trips' => function ($q) use ($today) {
-            $q->whereDate('trip_date', $today)
-              ->whereIn('status', [\App\Models\TripCrew::STATUS_ASSIGNED, \App\Models\TripCrew::STATUS_IN_PROGRESS]);
-        }])
+        // Close any expired check-ins so map data stays accurate
+        \App\Models\DriverCheckIn::autoCheckoutExpired();
+
+        $drivers = Driver::with([
+            'latestLocation',
+            'activeCheckIn.vehicle',
+            'trips' => function ($q) use ($today) {
+                $q->whereDate('trip_date', $today)
+                  ->whereIn('status', [\App\Models\TripCrew::STATUS_ASSIGNED, \App\Models\TripCrew::STATUS_IN_PROGRESS]);
+            },
+        ])
             ->whereHas('latestLocation')
             ->get()
-            ->map(function($driver) {
+            ->map(function ($driver) {
                 $location = $driver->latestLocation;
-                $isBusy = $driver->trips->isNotEmpty(); // Has at least one active trip today
+                $isBusy = $driver->trips->isNotEmpty();
+                $checkIn = $driver->activeCheckIn;
+                $vehicle = $checkIn?->vehicle;
+
+                $vehicleLabel = null;
+                if ($vehicle) {
+                    $parts = array_filter([$vehicle->brand, $vehicle->name]);
+                    $vehicleLabel = implode(' ', $parts) ?: $vehicle->name;
+                    if ($vehicle->number) {
+                        $vehicleLabel .= ' (' . $vehicle->number . ')';
+                    }
+                }
 
                 return [
                     'id'               => $driver->id,
@@ -221,6 +239,14 @@ class DriverController extends Controller
                     'updated_at'       => $location->updated_at->format('Y-m-d H:i:s'),
                     'updated_at_human' => $location->updated_at->diffForHumans(),
                     'is_busy'          => $isBusy,
+                    'is_checked_in'    => (bool) $checkIn,
+                    'vehicle'          => $vehicle ? [
+                        'id' => $vehicle->id,
+                        'name' => $vehicle->name,
+                        'brand' => $vehicle->brand,
+                        'number' => $vehicle->number,
+                        'label' => $vehicleLabel,
+                    ] : null,
                 ];
             });
 
