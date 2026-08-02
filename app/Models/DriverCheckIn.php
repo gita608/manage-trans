@@ -16,7 +16,17 @@ class DriverCheckIn extends Model
     public const STATUS_CHECKED_IN = 'checked_in';
     public const STATUS_CHECKED_OUT = 'checked_out';
 
-    public const AUTO_CHECKOUT_HOURS = 12;
+    public const DEFAULT_AUTO_CHECKOUT_HOURS = 12;
+
+    /**
+     * Configured auto check-out duration in hours (from settings).
+     */
+    public static function autoCheckoutHours(): int
+    {
+        $hours = (int) getSetting('check_in_auto_checkout_hours', self::DEFAULT_AUTO_CHECKOUT_HOURS);
+
+        return max(1, $hours);
+    }
 
     /**
      * @var array<int, string>
@@ -62,7 +72,7 @@ class DriverCheckIn extends Model
 
     public function autoCheckoutDueAt(): Carbon
     {
-        return $this->check_in_at->copy()->addHours(self::AUTO_CHECKOUT_HOURS);
+        return $this->check_in_at->copy()->addHours(self::autoCheckoutHours());
     }
 
     public function isExpired(?Carbon $now = null): bool
@@ -86,7 +96,7 @@ class DriverCheckIn extends Model
     }
 
     /**
-     * Close this check-in via 12-hour auto expiry.
+     * Close this check-in via configured auto expiry.
      */
     public function closeForAutoExpiry(): void
     {
@@ -111,7 +121,7 @@ class DriverCheckIn extends Model
     public static function autoCheckoutExpired(?Carbon $now = null): int
     {
         $now = $now ?? Carbon::now(getAppTimezone());
-        $cutoff = $now->copy()->subHours(self::AUTO_CHECKOUT_HOURS);
+        $cutoff = $now->copy()->subHours(self::autoCheckoutHours());
 
         $expired = static::query()
             ->active()

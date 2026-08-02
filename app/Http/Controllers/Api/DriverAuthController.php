@@ -290,6 +290,7 @@ class DriverAuthController extends Controller
                 'force_android_version' => getSetting('force_android_version', '1.0.0'),
                 'force_ios_version' => getSetting('force_ios_version', '1.0.0'),
                 'location_sync_intervel' => (int) getSetting('location_sync_intervel', 30),
+                'check_in_auto_checkout_hours' => (int) getSetting('check_in_auto_checkout_hours', 12),
             ],
         ], 200);
     }

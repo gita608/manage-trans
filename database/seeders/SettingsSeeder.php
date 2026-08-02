@@ -67,6 +67,12 @@ class SettingsSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            [
+                'key' => 'check_in_auto_checkout_hours',
+                'value' => '12',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ];
 
         foreach ($settings as $setting) {

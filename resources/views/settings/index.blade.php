@@ -238,7 +238,7 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="mb-0">
+                            <div class="mb-4">
                                 <label for="location_sync_intervel" class="form-label fw-semibold">Location Sync Interval (seconds)</label>
                                 <input type="number" class="form-control @error('location_sync_intervel') is-invalid @enderror"
                                        name="location_sync_intervel" id="location_sync_intervel"
@@ -249,6 +249,20 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                                 <small class="text-muted">How often the driver app should sync GPS location</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-4 mb-md-0">
+                                <label for="check_in_auto_checkout_hours" class="form-label fw-semibold">Check-In Auto Check-Out (hours)</label>
+                                <input type="number" class="form-control @error('check_in_auto_checkout_hours') is-invalid @enderror"
+                                       name="check_in_auto_checkout_hours" id="check_in_auto_checkout_hours"
+                                       value="{{ old('check_in_auto_checkout_hours', $settings['check_in_auto_checkout_hours']->value) }}"
+                                       min="1" max="168" step="1"
+                                       placeholder="e.g. 12">
+                                @error('check_in_auto_checkout_hours')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <small class="text-muted">Hours after check-in before the system auto checks the driver out (1–168)</small>
                             </div>
                         </div>
                     </div>

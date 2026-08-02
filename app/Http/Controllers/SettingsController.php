@@ -60,6 +60,10 @@ class SettingsController extends Controller
                 'key' => 'location_sync_intervel',
                 'value' => getSetting('location_sync_intervel', '30')
             ],
+            'check_in_auto_checkout_hours' => (object) [
+                'key' => 'check_in_auto_checkout_hours',
+                'value' => getSetting('check_in_auto_checkout_hours', '12')
+            ],
         ];
 
         // Get all available timezones
@@ -102,6 +106,7 @@ class SettingsController extends Controller
             'force_android_version' => 'nullable|string|max:50',
             'force_ios_version' => 'nullable|string|max:50',
             'location_sync_intervel' => 'nullable|integer|min:1|max:86400',
+            'check_in_auto_checkout_hours' => 'nullable|integer|min:1|max:168',
         ]);
 
         // Capture old values before updating
@@ -116,6 +121,7 @@ class SettingsController extends Controller
         $oldForceAndroidVersion = getSetting('force_android_version', '1.0.0');
         $oldForceIosVersion = getSetting('force_ios_version', '1.0.0');
         $oldLocationSyncIntervel = getSetting('location_sync_intervel', '30');
+        $oldCheckInAutoCheckoutHours = getSetting('check_in_auto_checkout_hours', '12');
 
         // Update enable_signup setting
         $enableSignup = $request->has('enable_signup') ? 'true' : 'false';
@@ -171,6 +177,9 @@ class SettingsController extends Controller
             'location_sync_intervel' => $request->filled('location_sync_intervel')
                 ? (string) $request->integer('location_sync_intervel')
                 : null,
+            'check_in_auto_checkout_hours' => $request->filled('check_in_auto_checkout_hours')
+                ? (string) $request->integer('check_in_auto_checkout_hours')
+                : null,
         ];
 
         foreach ($mobileSettings as $key => $value) {
@@ -221,6 +230,7 @@ class SettingsController extends Controller
             'force_android_version' => $oldForceAndroidVersion,
             'force_ios_version' => $oldForceIosVersion,
             'location_sync_intervel' => $oldLocationSyncIntervel,
+            'check_in_auto_checkout_hours' => $oldCheckInAutoCheckoutHours,
         ];
 
         foreach ($mobileSettings as $key => $value) {
