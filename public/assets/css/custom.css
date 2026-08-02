@@ -466,12 +466,12 @@
 .table-crews tbody td:last-child {
     position: sticky;
     right: 0;
-    background: #fff;
+    background: var(--vz-secondary-bg, #fff);
     box-shadow: -5px 0 6px -5px rgba(0, 0, 0, 0.25);
 }
 
 .table-crews thead th:last-child {
-    background: #f8f9fa;
+    background: var(--vz-light, #f8f9fa);
 }
 
 .table-scroll-hint {

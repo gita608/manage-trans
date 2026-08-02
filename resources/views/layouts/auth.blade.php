@@ -15,9 +15,9 @@
     <link href="{{ asset('assets/css/icons.min.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('assets/css/app.min.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ assetVersioned('assets/css/custom.css') }}" rel="stylesheet" type="text/css" />
-    <link href="{{ assetVersioned('assets/css/dark-mode-custom.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ assetVersioned('assets/css/auth.css') }}" rel="stylesheet" type="text/css" />
     @stack('styles')
+    <link href="{{ assetVersioned('assets/css/dark-mode-custom.css') }}" rel="stylesheet" type="text/css" />
 </head>
 <body>
     <div class="grid-background"></div>

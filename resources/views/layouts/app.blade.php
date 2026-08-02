@@ -24,10 +24,11 @@
     <link href="{{ asset('assets/css/app.min.css') }}" rel="stylesheet" type="text/css" />
     <!-- custom Css-->
     <link href="{{ assetVersioned('assets/css/custom.css') }}" rel="stylesheet" type="text/css" />
-    <!-- Dark Mode Custom Styles -->
-    <link href="{{ assetVersioned('assets/css/dark-mode-custom.css') }}" rel="stylesheet" type="text/css" />
     
     @stack('styles')
+
+    <!-- Dark Mode Custom Styles — after page stacks so Select2/DataTables CDN cannot override -->
+    <link href="{{ assetVersioned('assets/css/dark-mode-custom.css') }}" rel="stylesheet" type="text/css" />
 
 </head>
 

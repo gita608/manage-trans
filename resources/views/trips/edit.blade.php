@@ -264,7 +264,7 @@
         margin-bottom: 0;
     }
     #crews-table thead th {
-        background-color: #f8f9fa;
+        background-color: var(--vz-light, #f8f9fa);
         font-weight: 600;
         white-space: nowrap;
         vertical-align: middle;
@@ -273,14 +273,17 @@
         transition: background-color 0.2s;
     }
     #crews-table tbody tr:hover {
-        background-color: #f8f9fa;
+        background-color: var(--vz-light, #f8f9fa);
     }
     #crews-table tbody td {
         vertical-align: middle;
+        background-color: var(--vz-secondary-bg, #fff);
     }
     #crews-table .form-control-sm,
     #crews-table .form-select-sm {
-        border: 1px solid #dee2e6;
+        border: 1px solid var(--vz-input-border-custom, #dee2e6);
+        background-color: var(--vz-input-bg-custom, #fff);
+        color: var(--vz-body-color, inherit);
     }
     #crews-table .form-control-sm:focus,
     #crews-table .form-select-sm:focus {

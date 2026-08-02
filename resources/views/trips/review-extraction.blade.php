@@ -228,14 +228,14 @@
         width: 6px;
     }
     textarea::-webkit-scrollbar-track {
-        background: #f1f1f1; 
+        background: var(--vz-light, #f1f1f1);
     }
     textarea::-webkit-scrollbar-thumb {
-        background: #d1d5db; 
+        background: var(--vz-border-color, #d1d5db);
         border-radius: 3px;
     }
     textarea::-webkit-scrollbar-thumb:hover {
-        background: #9ca3af; 
+        background: #9ca3af;
     }
     /* Select2 styling for small selects */
     .vessel-select2 {
@@ -246,15 +246,16 @@
     }
     .vessel-select2 + .select2-container .select2-selection--single {
         height: calc(1.5em + 0.5rem + 2px);
-        border: 1px solid #dee2e6;
+        border: 1px solid var(--vz-input-border-custom, #dee2e6);
         border-radius: 0.25rem;
-        background-color: #fff;
+        background-color: var(--vz-input-bg-custom, #fff);
     }
     .vessel-select2 + .select2-container .select2-selection--single .select2-selection__rendered {
         line-height: calc(1.5em + 0.5rem);
         padding-left: 0.5rem;
         padding-right: 20px;
         font-size: 0.8125rem;
+        color: var(--vz-body-color, inherit);
     }
     .vessel-select2 + .select2-container .select2-selection--single .select2-selection__arrow {
         height: calc(1.5em + 0.5rem);

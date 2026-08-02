@@ -201,7 +201,7 @@
         margin-bottom: 0;
     }
     #crews-table thead th {
-        background-color: #f8f9fa;
+        background-color: var(--vz-light, #f8f9fa);
         font-weight: 600;
         white-space: nowrap;
         vertical-align: middle;
@@ -210,14 +210,17 @@
         transition: background-color 0.2s;
     }
     #crews-table tbody tr:hover {
-        background-color: #f8f9fa;
+        background-color: var(--vz-light, #f8f9fa);
     }
     #crews-table tbody td {
         vertical-align: middle;
+        background-color: var(--vz-secondary-bg, #fff);
     }
     #crews-table .form-control-sm,
     #crews-table .form-select-sm {
-        border: 1px solid #dee2e6;
+        border: 1px solid var(--vz-input-border-custom, #dee2e6);
+        background-color: var(--vz-input-bg-custom, #fff);
+        color: var(--vz-body-color, inherit);
     }
     #crews-table .form-control-sm:focus,
     #crews-table .form-select-sm:focus {
@@ -230,14 +233,16 @@
     }
     .vessel-select2 + .select2-container .select2-selection--single {
         height: calc(1.5em + 0.5rem + 2px);
-        border: 1px solid #dee2e6;
+        border: 1px solid var(--vz-input-border-custom, #dee2e6);
         border-radius: 0.25rem;
+        background-color: var(--vz-input-bg-custom, #fff);
     }
     .vessel-select2 + .select2-container .select2-selection--single .select2-selection__rendered {
         line-height: calc(1.5em + 0.5rem);
         padding-left: 0.5rem;
         padding-right: 20px;
         font-size: 0.875rem;
+        color: var(--vz-body-color, inherit);
     }
     .vessel-select2 + .select2-container .select2-selection--single .select2-selection__arrow {
         height: calc(1.5em + 0.5rem);
@@ -251,7 +256,7 @@
         font-weight: 500 !important;
         font-size: 0.8125rem !important;
         border-top: 1px solid #0d6efd;
-        border-bottom: 1px solid #dee2e6;
+        border-bottom: 1px solid var(--vz-border-color, #dee2e6);
         padding: 6px 12px;
     }
     .select2-results__option[data-select2-id*="__create_new__"]:hover,
