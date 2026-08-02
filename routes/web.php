@@ -17,6 +17,7 @@ use App\Http\Controllers\TripIssueTypeController;
 use App\Http\Controllers\TripExpenseTypeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\DailyActivityController;
+use App\Http\Controllers\DriverCheckInController;
 use App\Http\Controllers\PublicPagesController;
 use App\Http\Controllers\PartnerController;
 use App\Http\Controllers\PwaController;
@@ -265,6 +266,7 @@ Route::middleware(['auth'])->group(function () {
     // Daily Activity Routes
     Route::middleware(['permission:view_drivers'])->group(function () {
         Route::get('/daily-activities', [DailyActivityController::class, 'index'])->name('daily-activities.index');
+        Route::get('/check-ins', [DriverCheckInController::class, 'index'])->name('check-ins.index');
     });
 
     // Partner Routes

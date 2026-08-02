@@ -1,10 +1,12 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\CheckInController;
 use App\Http\Controllers\Api\DriverAuthController;
 use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\TripController;
+use App\Http\Controllers\Api\VehicleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,6 +45,11 @@ use App\Http\Controllers\Api\TripController;
         // Daily Activity Routes
         Route::get('/daily-activity', [TripController::class, 'dailyActivity'])->name('api.driver.daily-activity');
         Route::post('/daily-activity', [TripController::class, 'storeDailyActivity'])->name('api.driver.daily-activity.store');
+
+        // Vehicles & Check-in Routes
+        Route::get('/vehicles', [VehicleController::class, 'index'])->name('api.driver.vehicles');
+        Route::post('/check-in', [CheckInController::class, 'store'])->name('api.driver.check-in');
+        Route::get('/check-in/current', [CheckInController::class, 'current'])->name('api.driver.check-in.current');
         
         // Trip Details Routes
         Route::get('/trips/{id}', [TripController::class, 'show'])->name('api.driver.trip.show');

@@ -135,6 +135,24 @@ class Driver extends Authenticatable
     }
 
     /**
+     * Get all check-ins for the driver.
+     */
+    public function checkIns(): HasMany
+    {
+        return $this->hasMany(DriverCheckIn::class);
+    }
+
+    /**
+     * Get the driver's currently active check-in.
+     */
+    public function activeCheckIn()
+    {
+        return $this->hasOne(DriverCheckIn::class)
+            ->where('status', DriverCheckIn::STATUS_CHECKED_IN)
+            ->latestOfMany('check_in_at');
+    }
+
+    /**
      * Get activity configuration for this model.
      *
      * @return array

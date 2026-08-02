@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Vehicle extends Model
 {
@@ -21,6 +22,14 @@ class Vehicle extends Model
         'number',
         'info',
     ];
+
+    /**
+     * Get check-ins for this vehicle.
+     */
+    public function checkIns(): HasMany
+    {
+        return $this->hasMany(DriverCheckIn::class);
+    }
 
     /**
      * Get activity configuration for this model.

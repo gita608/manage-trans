@@ -73,6 +73,12 @@
                         <i class="ri-calendar-check-line"></i> <span>Daily Activities</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('check-ins.*') ? 'active' : '' }}"
+                        href="{{ route('check-ins.index') }}">
+                        <i class="ri-login-circle-line"></i> <span>Check-Ins</span>
+                    </a>
+                </li>
                 @endif
 
                 @if(auth()->check() && auth()->user() && auth()->user()->hasPermission('view_vessels'))
