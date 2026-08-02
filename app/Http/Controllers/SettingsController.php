@@ -39,7 +39,27 @@ class SettingsController extends Controller
             'enable_forgot_password' => (object) [
                 'key' => 'enable_forgot_password',
                 'value' => getSetting('enable_forgot_password', 'true')
-            ]
+            ],
+            'android_version' => (object) [
+                'key' => 'android_version',
+                'value' => getSetting('android_version', '1.0.0')
+            ],
+            'ios_version' => (object) [
+                'key' => 'ios_version',
+                'value' => getSetting('ios_version', '1.0.0')
+            ],
+            'force_android_version' => (object) [
+                'key' => 'force_android_version',
+                'value' => getSetting('force_android_version', '1.0.0')
+            ],
+            'force_ios_version' => (object) [
+                'key' => 'force_ios_version',
+                'value' => getSetting('force_ios_version', '1.0.0')
+            ],
+            'location_sync_intervel' => (object) [
+                'key' => 'location_sync_intervel',
+                'value' => getSetting('location_sync_intervel', '30')
+            ],
         ];
 
         // Get all available timezones
@@ -76,7 +96,12 @@ class SettingsController extends Controller
             'app_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'favicon' => 'nullable|image|mimes:ico,png|max:1024',
             'app_timezone' => 'nullable|string|max:255',
-            'enable_forgot_password' => 'nullable|boolean'
+            'enable_forgot_password' => 'nullable|boolean',
+            'android_version' => 'nullable|string|max:50',
+            'ios_version' => 'nullable|string|max:50',
+            'force_android_version' => 'nullable|string|max:50',
+            'force_ios_version' => 'nullable|string|max:50',
+            'location_sync_intervel' => 'nullable|integer|min:1|max:86400',
         ]);
 
         // Capture old values before updating
@@ -86,6 +111,11 @@ class SettingsController extends Controller
         $oldTimezone = getSetting('app_timezone', config('app.timezone', 'Asia/Dubai'));
         $oldEnableSignup = getSetting('enable_signup', 'true');
         $oldEnableForgotPassword = getSetting('enable_forgot_password', 'true');
+        $oldAndroidVersion = getSetting('android_version', '1.0.0');
+        $oldIosVersion = getSetting('ios_version', '1.0.0');
+        $oldForceAndroidVersion = getSetting('force_android_version', '1.0.0');
+        $oldForceIosVersion = getSetting('force_ios_version', '1.0.0');
+        $oldLocationSyncIntervel = getSetting('location_sync_intervel', '30');
 
         // Update enable_signup setting
         $enableSignup = $request->has('enable_signup') ? 'true' : 'false';
@@ -133,6 +163,22 @@ class SettingsController extends Controller
         $enableForgotPassword = $request->has('enable_forgot_password') ? 'true' : 'false';
         updateSetting('enable_forgot_password', $enableForgotPassword);
 
+        $mobileSettings = [
+            'android_version' => $request->input('android_version'),
+            'ios_version' => $request->input('ios_version'),
+            'force_android_version' => $request->input('force_android_version'),
+            'force_ios_version' => $request->input('force_ios_version'),
+            'location_sync_intervel' => $request->filled('location_sync_intervel')
+                ? (string) $request->integer('location_sync_intervel')
+                : null,
+        ];
+
+        foreach ($mobileSettings as $key => $value) {
+            if ($value !== null && $value !== '') {
+                updateSetting($key, $value);
+            }
+        }
+
         // Log settings update
         $changes = [];
         $oldValues = [];
@@ -167,6 +213,22 @@ class SettingsController extends Controller
             $oldValues['enable_forgot_password'] = $oldEnableForgotPassword;
             $newValues['enable_forgot_password'] = $enableForgotPassword;
             $changes[] = 'enable_forgot_password';
+        }
+
+        $mobileOldValues = [
+            'android_version' => $oldAndroidVersion,
+            'ios_version' => $oldIosVersion,
+            'force_android_version' => $oldForceAndroidVersion,
+            'force_ios_version' => $oldForceIosVersion,
+            'location_sync_intervel' => $oldLocationSyncIntervel,
+        ];
+
+        foreach ($mobileSettings as $key => $value) {
+            if ($value !== null && $value !== '' && (string) $value !== (string) $mobileOldValues[$key]) {
+                $oldValues[$key] = $mobileOldValues[$key];
+                $newValues[$key] = $value;
+                $changes[] = $key;
+            }
         }
 
         if (!empty($changes)) {

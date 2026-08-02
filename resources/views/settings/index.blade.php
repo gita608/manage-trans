@@ -174,6 +174,89 @@
         </div>
     </div>
 
+    <!-- Mobile App Settings -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border shadow-sm">
+                <div class="card-header border-bottom">
+                    <h5 class="card-title mb-0">
+                        <i class="ri-smartphone-line me-2 align-middle"></i>Mobile App Settings
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <label for="android_version" class="form-label fw-semibold">Android Version</label>
+                                <input type="text" class="form-control @error('android_version') is-invalid @enderror"
+                                       name="android_version" id="android_version"
+                                       value="{{ old('android_version', $settings['android_version']->value) }}"
+                                       placeholder="e.g. 1.0.0">
+                                @error('android_version')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <small class="text-muted">Latest Android app version available</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <label for="ios_version" class="form-label fw-semibold">iOS Version</label>
+                                <input type="text" class="form-control @error('ios_version') is-invalid @enderror"
+                                       name="ios_version" id="ios_version"
+                                       value="{{ old('ios_version', $settings['ios_version']->value) }}"
+                                       placeholder="e.g. 1.0.0">
+                                @error('ios_version')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <small class="text-muted">Latest iOS app version available</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <label for="force_android_version" class="form-label fw-semibold">Force Android Version</label>
+                                <input type="text" class="form-control @error('force_android_version') is-invalid @enderror"
+                                       name="force_android_version" id="force_android_version"
+                                       value="{{ old('force_android_version', $settings['force_android_version']->value) }}"
+                                       placeholder="e.g. 1.0.0">
+                                @error('force_android_version')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <small class="text-muted">Minimum Android version required (force update)</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <label for="force_ios_version" class="form-label fw-semibold">Force iOS Version</label>
+                                <input type="text" class="form-control @error('force_ios_version') is-invalid @enderror"
+                                       name="force_ios_version" id="force_ios_version"
+                                       value="{{ old('force_ios_version', $settings['force_ios_version']->value) }}"
+                                       placeholder="e.g. 1.0.0">
+                                @error('force_ios_version')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <small class="text-muted">Minimum iOS version required (force update)</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-0">
+                                <label for="location_sync_intervel" class="form-label fw-semibold">Location Sync Interval (seconds)</label>
+                                <input type="number" class="form-control @error('location_sync_intervel') is-invalid @enderror"
+                                       name="location_sync_intervel" id="location_sync_intervel"
+                                       value="{{ old('location_sync_intervel', $settings['location_sync_intervel']->value) }}"
+                                       min="1" max="86400" step="1"
+                                       placeholder="e.g. 30">
+                                @error('location_sync_intervel')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <small class="text-muted">How often the driver app should sync GPS location</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Save Button -->
     <div class="row">
         <div class="col-12">

@@ -285,10 +285,11 @@ class DriverAuthController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'android_version' => '1.0.0',
-                'ios_version' => '1.0.0',
-                'force_android_version' => '1.0.0',
-                'force_ios_version' => '1.0.0',
+                'android_version' => getSetting('android_version', '1.0.0'),
+                'ios_version' => getSetting('ios_version', '1.0.0'),
+                'force_android_version' => getSetting('force_android_version', '1.0.0'),
+                'force_ios_version' => getSetting('force_ios_version', '1.0.0'),
+                'location_sync_intervel' => (int) getSetting('location_sync_intervel', 30),
             ],
         ], 200);
     }

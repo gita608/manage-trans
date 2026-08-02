@@ -37,6 +37,36 @@ class SettingsSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            [
+                'key' => 'android_version',
+                'value' => '1.0.0',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'key' => 'ios_version',
+                'value' => '1.0.0',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'key' => 'force_android_version',
+                'value' => '1.0.0',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'key' => 'force_ios_version',
+                'value' => '1.0.0',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'key' => 'location_sync_intervel',
+                'value' => '30',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ];
 
         foreach ($settings as $setting) {
