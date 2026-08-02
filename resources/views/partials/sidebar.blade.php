@@ -32,7 +32,9 @@
         <div class="container-fluid">
             <div id="two-column-menu"></div>
             <ul class="navbar-nav" id="navbar-nav">
+                @if(auth()->check() && auth()->user() && auth()->user()->hasAnyPermission(['view_dashboard']))
                 <li class="menu-title"><span>Menu</span></li>
+                @endif
 
                 @if(auth()->check() && auth()->user() && auth()->user()->hasPermission('view_dashboard'))
                 <li class="nav-item">
@@ -43,7 +45,9 @@
                 </li>
                 @endif
 
+                @if(auth()->check() && auth()->user() && auth()->user()->hasAnyPermission(['view_trips', 'view_drivers', 'view_vessels', 'view_vehicles']))
                 <li class="menu-title"><span>Operations</span></li>
+                @endif
 
                 @if(auth()->check() && auth()->user() && auth()->user()->hasPermission('view_trips'))
                 <li class="nav-item">
@@ -114,7 +118,9 @@
                 </li>
                 @endif
 
+                @if(auth()->check() && auth()->user() && auth()->user()->hasAnyPermission(['view_partners', 'view_staff', 'view_reports', 'view_notifications']))
                 <li class="menu-title"><span>Management</span></li>
+                @endif
 
                 @if(auth()->check() && auth()->user() && auth()->user()->hasPermission('view_partners'))
                 <li class="nav-item">
@@ -152,7 +158,9 @@
                 </li>
                 @endif
 
+                @if(auth()->check() && auth()->user() && auth()->user()->hasAnyPermission(['view_activity_logs', 'manage_permissions', 'view_settings']))
                 <li class="menu-title"><span>System</span></li>
+                @endif
 
                 @if(auth()->check() && auth()->user() && auth()->user()->hasPermission('view_activity_logs'))
                 <li class="nav-item">
