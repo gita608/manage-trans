@@ -47,17 +47,6 @@
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="trip_date" class="form-label fw-semibold">Date <span class="text-danger">*</span></label>
-                                <input type="date" class="form-control @error('trip_date') is-invalid @enderror" 
-                                       id="trip_date" name="trip_date" 
-                                       value="{{ old('trip_date', $trip->trip_date->format('Y-m-d')) }}" required>
-                                @error('trip_date')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
                                 <label for="partner_id" class="form-label fw-semibold">Partner</label>
                                 <select class="form-select @error('partner_id') is-invalid @enderror" id="partner_id" name="partner_id">
                                     <option value="">Select Partner</option>
@@ -84,7 +73,7 @@
                         <div class="flex-grow-1">
                             <h6 class="alert-heading fw-bold mb-1"><i class="ri-route-line me-1"></i> Driver Assignment & Automatic Trip Splitting</h6>
                             <small class="text-muted d-block">
-                                You can select a driver per crew row. If crew rows have different drivers assigned for the same date, the system automatically splits them into separate trips for each driver. Leaving a row as <strong>"Assign Later"</strong> creates an unassigned trip dispatch.
+                                Rows with the same <strong>Driver</strong> and <strong>Date</strong> are grouped into one Trip. Different drivers or dates automatically create separate Trips. Leaving a row as <strong>"Assign Later"</strong> creates an unassigned trip dispatch.
                             </small>
                         </div>
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -106,7 +95,8 @@
                             <thead class="table-light">
                                 <tr>
                                     <th style="width: 50px;">#</th>
-                                    <th style="min-width: 160px;">Driver Name <i class="ri-information-line text-info ms-1" data-bs-toggle="tooltip" title="Selecting different drivers will split rows into separate trips for each driver."></i></th>
+                                    <th style="min-width: 140px; width: 140px;">Date <span class="text-danger">*</span></th>
+                                    <th style="min-width: 160px;">Driver Name <i class="ri-information-line text-info ms-1" data-bs-toggle="tooltip" title="Rows with the same Driver and Date are grouped into one Trip."></i></th>
                                     <th>Vessel Name <span class="text-danger">*</span></th>
                                     <th>Pick-up Time <span class="text-danger">*</span></th>
                                     <th>Flight Number</th>
@@ -122,14 +112,24 @@
                             </thead>
                             <tbody id="crews-container">
                         @php
+                            $tripDateDefault = $trip->trip_date->format('Y-m-d');
                             $crews = old('crews', $trip->crews->toArray());
                             if (empty($crews)) {
-                                        $crews = [['name' => '', 'driver_id' => '', 'vessel_id' => '', 'pick_up_time' => '', 'from_location' => '', 'to_location' => '', 'remarks' => '', 'sub_remark' => '', 'phone' => '', 'phone_2' => '', 'address' => '']];
+                                        $crews = [['name' => '', 'driver_id' => '', 'trip_date' => $tripDateDefault, 'vessel_id' => '', 'pick_up_time' => '', 'from_location' => '', 'to_location' => '', 'remarks' => '', 'sub_remark' => '', 'phone' => '', 'phone_2' => '', 'address' => '']];
                             }
                         @endphp
                         @foreach($crews as $index => $crew)
                                     <tr class="crew-row" data-index="{{ $index }}">
                                         <td class="text-center fw-semibold">{{ $index + 1 }}</td>
+                                        <td>
+                                            <input type="date" class="form-control form-control-sm @error('crews.'.$index.'.trip_date') is-invalid @enderror"
+                                                   name="crews[{{ $index }}][trip_date]"
+                                                   value="{{ is_array($crew) ? ($crew['trip_date'] ?? $tripDateDefault) : ($crew->trip_date ?? $tripDateDefault) }}"
+                                                   required>
+                                            @error('crews.'.$index.'.trip_date')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
+                                        </td>
                                         <td>
                                             <select class="form-select form-select-sm" name="crews[{{ $index }}][driver_id]">
                                                 <option value="">Assign Later</option>
@@ -313,6 +313,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         const addCrewBtn = document.getElementById('add-crew-row-btn');
         const crewsContainer = document.getElementById('crews-container');
+        const defaultTripDate = '{{ $trip->trip_date->format('Y-m-d') }}';
         const driverOptions = `
             <option value="">Assign Later</option>
             @foreach($drivers as $driver)
@@ -361,6 +362,9 @@
             row.setAttribute('data-index', index);
             row.innerHTML = `
                 <td class="text-center fw-semibold">${index + 1}</td>
+                <td>
+                    <input type="date" class="form-control form-control-sm" name="crews[${index}][trip_date]" value="${defaultTripDate}" required>
+                </td>
                 <td>
                     <select class="form-select form-select-sm" name="crews[${index}][driver_id]">
                         ${driverOptions}
@@ -437,44 +441,6 @@
 
         // Initialize
         updateRemoveButtons();
-
-        // Auto-update trip title when driver or date changes
-        const driverSelect = document.getElementById('driver_id');
-        const dateInput = document.getElementById('trip_date');
-        const titleInput = document.getElementById('title');
-
-        function updateTripTitle() {
-            const driverId = driverSelect.value;
-            const tripDate = dateInput.value;
-            
-            if (tripDate) {
-                let url = `{{ route('trips.generate-title') }}?trip_date=${tripDate}`;
-                if (driverId) {
-                    url += `&driver_id=${driverId}`;
-                }
-                fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.title) {
-                        titleInput.value = data.title;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error generating title:', error);
-                });
-            }
-        }
-
-        if (driverSelect && dateInput) {
-            driverSelect.addEventListener('change', updateTripTitle);
-            dateInput.addEventListener('change', updateTripTitle);
-        }
     });
 </script>
 @endpush

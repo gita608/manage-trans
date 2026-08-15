@@ -54,13 +54,6 @@
                     <div class="p-4 bg-light-subtle border-bottom">
                         <div class="row g-3 mb-3">
                             <div class="col-md-4">
-                                <label for="common_trip_date" class="form-label fw-semibold">
-                                    <i class="ri-calendar-line me-1"></i>Trip Date (Applies to All Trips)
-                                </label>
-                                <input type="date" class="form-control" id="common_trip_date" name="trip_date" value="{{ $parsedData[0]['trip_date'] ?? date('Y-m-d') }}" required>
-                                <small class="text-muted">This date will be applied to all trips below</small>
-                            </div>
-                            <div class="col-md-4">
                                 <label for="partner_id" class="form-label fw-semibold">
                                     <i class="ri-group-line me-1"></i>Partner (Applies to All Trips)
                                 </label>
@@ -84,7 +77,7 @@
                             </div>
                             <div class="flex-grow-1">
                                 <h6 class="alert-heading fw-bold mb-1"><i class="ri-route-line me-1"></i> Driver Assignment & Automatic Trip Splitting</h6>
-                                <p class="mb-0 text-muted">Rows assigned to the same <strong>Driver</strong> and <strong>Date</strong> will be automatically grouped into a single Trip dispatch. Assigning different drivers will split rows into separate trips. Rows set as <em>"Assign Later"</em> will remain unassigned.</p>
+                                <p class="mb-0 text-muted">Rows with the same <strong>Driver</strong> and <strong>Date</strong> are grouped into one Trip. Different drivers or dates automatically create separate Trips. Rows set as <em>"Assign Later"</em> remain unassigned (separately per date).</p>
                             </div>
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
@@ -102,7 +95,8 @@
                                             <input class="form-check-input" type="checkbox" id="checkAll" checked>
                                         </div>
                                     </th>
-                                    <th scope="col" style="width: 200px;">Driver <i class="ri-information-line text-info ms-1" data-bs-toggle="tooltip" title="Selecting different drivers will group rows into separate trips per driver."></i></th>
+                                    <th scope="col" style="min-width: 140px; width: 140px;">Date</th>
+                                    <th scope="col" style="width: 200px;">Driver <i class="ri-information-line text-info ms-1" data-bs-toggle="tooltip" title="Rows with the same Driver and Date are grouped into one Trip."></i></th>
                                     <th scope="col" style="width: 200px;">Vessel</th>
                                     <th scope="col" style="width: 110px;">Pick-up</th>
                                     <th scope="col" style="width: 100px;">Flight No</th>
@@ -120,8 +114,10 @@
                                         <td class="ps-4">
                                             <div class="form-check form-check-primary">
                                                 <input class="form-check-input row-check" type="checkbox" name="trips[{{ $index }}][selected]" value="1" checked>
-                                                <input type="hidden" name="trips[{{ $index }}][trip_date]" class="row-trip-date" value="{{ $row['trip_date'] }}">
                                             </div>
+                                        </td>
+                                        <td>
+                                            <input type="date" name="trips[{{ $index }}][trip_date]" class="form-control form-control-sm border-light bg-light-subtle" value="{{ $row['trip_date'] }}" required>
                                         </td>
                                         <td>
                                             <div class="input-group input-group-sm input-group-flat">
@@ -434,19 +430,6 @@
                 }
             });
         });
-
-        // Sync common trip date to all row dates
-        const commonTripDate = document.getElementById('common_trip_date');
-        if (commonTripDate) {
-            commonTripDate.addEventListener('change', function() {
-                const newDate = this.value;
-                if (newDate) {
-                    document.querySelectorAll('input[name$="[trip_date]"]').forEach(input => {
-                        input.value = newDate;
-                    });
-                }
-            });
-        }
 
         const cancelReviewBtn = document.getElementById('cancel-review-btn');
         if (cancelReviewBtn) {

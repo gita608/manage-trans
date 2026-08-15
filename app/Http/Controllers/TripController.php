@@ -11,6 +11,7 @@ use App\Models\Notification;
 use App\Services\TextractService;
 use App\Services\FirebaseNotificationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -160,10 +161,10 @@ class TripController extends Controller
         $validated = $request->validate([
             'driver_id' => ['nullable', 'exists:drivers,id'],
             'partner_id' => ['nullable', 'exists:partners,id'],
-            'trip_date' => ['required', 'date'],
             'title' => ['nullable', 'string', 'max:255'],
             'crews' => ['required', 'array', 'min:1'],
             'crews.*.driver_id' => ['nullable', 'exists:drivers,id'],
+            'crews.*.trip_date' => ['required', 'date'],
             'crews.*.vessel_id' => ['required', 'exists:vessels,id'],
             'crews.*.pick_up_time' => ['required'],
             'crews.*.from_location' => ['required', 'string', 'max:255'],
@@ -176,8 +177,9 @@ class TripController extends Controller
             'crews.*.phone_2' => ['nullable', 'string', 'max:255'],
             'crews.*.address' => ['nullable', 'string'],
         ], [
-            'trip_date.required' => 'The trip date is required.',
             'crews.required' => 'At least one crew member row is required.',
+            'crews.*.trip_date.required' => 'A trip date is required for every crew row.',
+            'crews.*.trip_date.date' => 'Each crew row must have a valid trip date.',
             'crews.*.vessel_id.required' => 'A vessel selection is required for every crew member row.',
             'crews.*.vessel_id.exists' => 'The selected vessel is invalid.',
             'crews.*.pick_up_time.required' => 'Pick-up time is required for every crew member row.',
@@ -194,49 +196,33 @@ class TripController extends Controller
             $partnerId = (int) $partnerId;
         }
 
-        $tripDate = $validated['trip_date'];
         $rootDriverId = $validated['driver_id'] ?? null;
+        $groupedTrips = $this->groupCrewsByDriverAndDate($request->crews, $rootDriverId);
 
-        // Group crews by driver_id so rows with the same driver create consolidated trips
-        $groupedTrips = [];
-        foreach ($request->crews as $crewData) {
-            $driverId = !empty($crewData['driver_id']) ? $crewData['driver_id'] : $rootDriverId;
-            $key = $driverId ? (string)$driverId : 'unassigned';
+        DB::transaction(function () use ($groupedTrips, $partnerId) {
+            foreach ($groupedTrips as $group) {
+                $driverId = $group['driver_id'];
+                $tripDate = $group['trip_date'];
+                $tripTitle = Trip::generateTripTitle($driverId, $tripDate);
+                $status = $driverId ? TripCrew::STATUS_ASSIGNED : TripCrew::STATUS_UNASSIGNED;
 
-            if (!isset($groupedTrips[$key])) {
-                $groupedTrips[$key] = [
-                    'driver_id' => $driverId ?: null,
-                    'crews' => []
-                ];
+                $trip = Trip::create([
+                    'driver_id' => $driverId,
+                    'partner_id' => $partnerId,
+                    'trip_date' => $tripDate,
+                    'title' => $tripTitle,
+                    'status' => $status,
+                ]);
+
+                foreach ($group['crews'] as $crewData) {
+                    $trip->crews()->create($crewData);
+                }
+
+                if ($driverId) {
+                    $this->sendTripNotification($trip);
+                }
             }
-
-            unset($crewData['driver_id']);
-            $groupedTrips[$key]['crews'][] = $crewData;
-        }
-
-        $createdCount = 0;
-        foreach ($groupedTrips as $group) {
-            $driverId = $group['driver_id'];
-            $tripTitle = Trip::generateTripTitle($driverId, $tripDate);
-            $status = $driverId ? TripCrew::STATUS_ASSIGNED : TripCrew::STATUS_UNASSIGNED;
-
-            $trip = Trip::create([
-                'driver_id' => $driverId,
-                'partner_id' => $partnerId,
-                'trip_date' => $tripDate,
-                'title' => $tripTitle,
-                'status' => $status,
-            ]);
-
-            foreach ($group['crews'] as $crewData) {
-                $trip->crews()->create($crewData);
-            }
-
-            if ($driverId) {
-                $this->sendTripNotification($trip);
-            }
-            $createdCount++;
-        }
+        });
 
         return redirect()->route('trips.index')->with('success', 'Trip(s) created successfully!');
     }
@@ -281,10 +267,10 @@ class TripController extends Controller
         $validated = $request->validate([
             'driver_id' => ['nullable', 'exists:drivers,id'],
             'partner_id' => ['nullable', 'exists:partners,id'],
-            'trip_date' => ['required', 'date'],
             'title' => ['nullable', 'string', 'max:255'],
             'crews' => ['required', 'array', 'min:1'],
             'crews.*.driver_id' => ['nullable', 'exists:drivers,id'],
+            'crews.*.trip_date' => ['required', 'date'],
             'crews.*.vessel_id' => ['required', 'exists:vessels,id'],
             'crews.*.pick_up_time' => ['required'],
             'crews.*.from_location' => ['required', 'string', 'max:255'],
@@ -297,8 +283,9 @@ class TripController extends Controller
             'crews.*.phone_2' => ['nullable', 'string', 'max:255'],
             'crews.*.address' => ['nullable', 'string'],
         ], [
-            'trip_date.required' => 'The trip date is required.',
             'crews.required' => 'At least one crew member row is required.',
+            'crews.*.trip_date.required' => 'A trip date is required for every crew row.',
+            'crews.*.trip_date.date' => 'Each crew row must have a valid trip date.',
             'crews.*.vessel_id.required' => 'A vessel selection is required for every crew member row.',
             'crews.*.vessel_id.exists' => 'The selected vessel is invalid.',
             'crews.*.pick_up_time.required' => 'Pick-up time is required for every crew member row.',
@@ -307,94 +294,78 @@ class TripController extends Controller
             'crews.*.name.required' => 'Crew member name is required for every row.',
         ]);
 
-        $tripDate = $validated['trip_date'];
         $partnerId = $validated['partner_id'] ?? null;
         $rootDriverId = $validated['driver_id'] ?? null;
+        $groupedTrips = $this->groupCrewsByDriverAndDate($request->crews, $rootDriverId);
 
-        // Group submitted crews by driver_id
-        $groupedTrips = [];
-        foreach ($request->crews as $crewData) {
-            $driverId = !empty($crewData['driver_id']) ? $crewData['driver_id'] : $rootDriverId;
-            $key = $driverId ? (string)$driverId : 'unassigned';
+        DB::transaction(function () use ($groupedTrips, $partnerId, $trip) {
+            $isFirst = true;
+            foreach ($groupedTrips as $group) {
+                $driverId = $group['driver_id'];
+                $groupTripDate = $group['trip_date'];
 
-            if (!isset($groupedTrips[$key])) {
-                $groupedTrips[$key] = [
-                    'driver_id' => $driverId ?: null,
-                    'crews' => []
-                ];
-            }
+                if ($isFirst) {
+                    $oldDriverId = $trip->driver_id;
+                    $driverChanged = $oldDriverId != $driverId;
+                    $driverNewlyAssigned = !$oldDriverId && $driverId;
 
-            unset($crewData['driver_id']);
-            $groupedTrips[$key]['crews'][] = $crewData;
-        }
+                    $tripDateFormatted = $trip->trip_date instanceof \Carbon\Carbon
+                        ? $trip->trip_date->format('Y-m-d')
+                        : Carbon::parse($trip->trip_date)->format('Y-m-d');
+                    $dateChanged = $tripDateFormatted !== Carbon::parse($groupTripDate)->format('Y-m-d');
 
-        $isFirst = true;
-        foreach ($groupedTrips as $group) {
-            $driverId = $group['driver_id'];
+                    $tripTitle = $trip->title;
+                    if ($driverChanged || $dateChanged) {
+                        $tripTitle = Trip::generateTripTitle($driverId, $groupTripDate, $trip->id);
+                    }
 
-            if ($isFirst) {
-                // Update the current trip with the primary driver group
-                $oldDriverId = $trip->driver_id;
-                $driverChanged = $oldDriverId != $driverId;
-                $driverNewlyAssigned = !$oldDriverId && $driverId;
+                    $updateData = [
+                        'driver_id' => $driverId,
+                        'partner_id' => $partnerId,
+                        'trip_date' => $groupTripDate,
+                        'title' => $tripTitle,
+                    ];
 
-                $tripDateFormatted = $trip->trip_date instanceof \Carbon\Carbon 
-                    ? $trip->trip_date->format('Y-m-d') 
-                    : Carbon::parse($trip->trip_date)->format('Y-m-d');
-                $dateChanged = $tripDateFormatted !== Carbon::parse($tripDate)->format('Y-m-d');
+                    if ($driverNewlyAssigned && $trip->status === TripCrew::STATUS_UNASSIGNED) {
+                        $updateData['status'] = TripCrew::STATUS_ASSIGNED;
+                    } elseif (!$driverId && $trip->status === TripCrew::STATUS_ASSIGNED) {
+                        $updateData['status'] = TripCrew::STATUS_UNASSIGNED;
+                    }
 
-                $tripTitle = $trip->title;
-                if ($driverChanged || $dateChanged) {
-                    $tripTitle = Trip::generateTripTitle($driverId, $tripDate, $trip->id);
-                }
+                    $trip->update($updateData);
+                    $trip->crews()->delete();
 
-                $updateData = [
-                    'driver_id' => $driverId,
-                    'partner_id' => $partnerId,
-                    'trip_date' => $tripDate,
-                    'title' => $tripTitle,
-                ];
+                    foreach ($group['crews'] as $crewData) {
+                        $trip->crews()->create($crewData);
+                    }
 
-                if ($driverNewlyAssigned && $trip->status === TripCrew::STATUS_UNASSIGNED) {
-                    $updateData['status'] = TripCrew::STATUS_ASSIGNED;
-                } elseif (!$driverId && $trip->status === TripCrew::STATUS_ASSIGNED) {
-                    $updateData['status'] = TripCrew::STATUS_UNASSIGNED;
-                }
+                    if ($driverNewlyAssigned) {
+                        $this->sendTripNotification($trip);
+                    }
 
-                $trip->update($updateData);
-                $trip->crews()->delete();
+                    $isFirst = false;
+                } else {
+                    $newTitle = Trip::generateTripTitle($driverId, $groupTripDate);
+                    $newStatus = $driverId ? TripCrew::STATUS_ASSIGNED : TripCrew::STATUS_UNASSIGNED;
 
-                foreach ($group['crews'] as $crewData) {
-                    $trip->crews()->create($crewData);
-                }
+                    $newTrip = Trip::create([
+                        'driver_id' => $driverId,
+                        'partner_id' => $partnerId,
+                        'trip_date' => $groupTripDate,
+                        'title' => $newTitle,
+                        'status' => $newStatus,
+                    ]);
 
-                if ($driverNewlyAssigned) {
-                    $this->sendTripNotification($trip);
-                }
+                    foreach ($group['crews'] as $crewData) {
+                        $newTrip->crews()->create($crewData);
+                    }
 
-                $isFirst = false;
-            } else {
-                // Create new trip for additional driver groups
-                $newTitle = Trip::generateTripTitle($driverId, $tripDate);
-                $newStatus = $driverId ? TripCrew::STATUS_ASSIGNED : TripCrew::STATUS_UNASSIGNED;
-
-                $newTrip = Trip::create([
-                    'driver_id' => $driverId,
-                    'partner_id' => $partnerId,
-                    'trip_date' => $tripDate,
-                    'title' => $newTitle,
-                    'status' => $newStatus,
-                ]);
-
-                foreach ($group['crews'] as $crewData) {
-                    $newTrip->crews()->create($crewData);
-                }
-
-                if ($driverId) {
-                    $this->sendTripNotification($newTrip);
+                    if ($driverId) {
+                        $this->sendTripNotification($newTrip);
+                    }
                 }
             }
-        }
+        });
 
         return redirect()->route('trips.index')->with('success', 'Trip updated successfully!');
     }
@@ -553,11 +524,10 @@ class TripController extends Controller
         $request->validate([
             'trips' => ['required', 'array'],
             'partner_id' => ['nullable', 'exists:partners,id'],
-            'trip_date' => ['nullable', 'date'],
             'trips.*.selected' => ['nullable'], // Checkbox
             'trips.*.driver_id' => ['nullable'], // Can be "new:Name" or ID
             'trips.*.vessel_id' => ['nullable'], // Can be "new:Name" or ID
-            'trips.*.trip_date' => ['nullable', 'date'],
+            'trips.*.trip_date' => ['required', 'date'],
             'trips.*.pick_up_time' => ['required'],
             'trips.*.flight_number' => ['nullable', 'string'],
             'trips.*.crew_name' => ['required', 'string'],
@@ -569,6 +539,8 @@ class TripController extends Controller
             'trips.*.sub_remark' => ['nullable', 'string'],
         ], [
             'trips.required' => 'No trip rows were provided.',
+            'trips.*.trip_date.required' => 'A trip date is required for every crew row.',
+            'trips.*.trip_date.date' => 'Each crew row must have a valid trip date.',
             'trips.*.pick_up_time.required' => 'Pick-up time is required for all selected trips.',
             'trips.*.crew_name.required' => 'Crew name is required for all selected trips.',
             'trips.*.from_location.required' => 'From location is required for all selected trips.',
@@ -576,10 +548,9 @@ class TripController extends Controller
         ]);
 
         $createdCount = 0;
-        
+
         // Group items by Driver + Date to create consolidated trips
         $groupedTrips = [];
-        $defaultTripDate = $request->input('trip_date') ?: today()->format('Y-m-d');
 
         foreach ($request->trips as $index => $tripData) {
             if (!isset($tripData['selected'])) {
@@ -604,8 +575,8 @@ class TripController extends Controller
                 continue;
             }
 
-            $date = !empty($tripData['trip_date']) ? $tripData['trip_date'] : $defaultTripDate;
-            $key = ($driverId ?: 'unassigned') . '_' . $date;
+            $date = $tripData['trip_date'];
+            $key = ($driverId ?: 'unassigned') . '|' . $date;
 
             if (!isset($groupedTrips[$key])) {
                 $groupedTrips[$key] = [
@@ -637,35 +608,65 @@ class TripController extends Controller
             $partnerId = (int) $partnerId;
         }
 
-        foreach ($groupedTrips as $group) {
-            $driverId = $group['driver_id'] ?: null;
-            $title = Trip::generateTripTitle($driverId, $group['trip_date']);
-            $status = $driverId ? TripCrew::STATUS_ASSIGNED : TripCrew::STATUS_UNASSIGNED;
+        DB::transaction(function () use ($groupedTrips, $partnerId, &$createdCount) {
+            foreach ($groupedTrips as $group) {
+                $driverId = $group['driver_id'] ?: null;
+                $title = Trip::generateTripTitle($driverId, $group['trip_date']);
+                $status = $driverId ? TripCrew::STATUS_ASSIGNED : TripCrew::STATUS_UNASSIGNED;
 
-            $trip = Trip::create([
-                'driver_id' => $driverId,
-                'partner_id' => $partnerId,
-                'trip_date' => $group['trip_date'],
-                'title' => $title,
-                'status' => $status,
-            ]);
+                $trip = Trip::create([
+                    'driver_id' => $driverId,
+                    'partner_id' => $partnerId,
+                    'trip_date' => $group['trip_date'],
+                    'title' => $title,
+                    'status' => $status,
+                ]);
 
-            foreach ($group['crews'] as $crewData) {
-                $trip->crews()->create($crewData);
+                foreach ($group['crews'] as $crewData) {
+                    $trip->crews()->create($crewData);
+                }
+
+                if ($driverId) {
+                    $this->sendTripNotification($trip);
+                }
+
+                $createdCount++;
             }
-
-            if ($driverId) {
-                $this->sendTripNotification($trip);
-            }
-
-            $createdCount++;
-        }
+        });
 
         if ($createdCount > 0) {
             return redirect()->route('trips.index')->with('success', "Successfully created {$createdCount} trip(s).");
         }
 
         return redirect()->route('trips.index')->with('warning', 'No trips were selected or created.');
+    }
+
+    /**
+     * Group submitted crew rows by driver_id + trip_date.
+     * Strips driver_id and trip_date from crew payloads before returning.
+     */
+    protected function groupCrewsByDriverAndDate(array $crews, $rootDriverId = null): array
+    {
+        $groupedTrips = [];
+
+        foreach ($crews as $crewData) {
+            $driverId = !empty($crewData['driver_id']) ? $crewData['driver_id'] : $rootDriverId;
+            $tripDate = $crewData['trip_date'];
+            $key = ($driverId ?: 'unassigned') . '|' . $tripDate;
+
+            if (!isset($groupedTrips[$key])) {
+                $groupedTrips[$key] = [
+                    'driver_id' => $driverId ?: null,
+                    'trip_date' => $tripDate,
+                    'crews' => [],
+                ];
+            }
+
+            unset($crewData['driver_id'], $crewData['trip_date']);
+            $groupedTrips[$key]['crews'][] = $crewData;
+        }
+
+        return $groupedTrips;
     }
 
     /**
