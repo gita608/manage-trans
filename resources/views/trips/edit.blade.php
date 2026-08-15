@@ -135,7 +135,7 @@
                                                 <option value="">Assign Later</option>
                                                 @foreach($drivers as $driver)
                                                     <option value="{{ $driver->id }}" 
-                                                        {{ (is_array($crew) ? ($crew['driver_id'] ?? '') : ($crew->driver_id ?? $trip->driver_id)) == $driver->id ? 'selected' : '' }}>
+                                                        {{ (is_array($crew) ? ($crew['driver_id'] ?? $trip->driver_id) : ($crew->driver_id ?? $trip->driver_id)) == $driver->id ? 'selected' : '' }}>
                                                         {{ $driver->name }}
                                                     </option>
                                                 @endforeach
