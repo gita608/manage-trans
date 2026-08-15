@@ -35,6 +35,10 @@ class DriverCheckInController extends Controller
                     $query->whereMonth('check_in_date', now()->subMonth()->month)
                         ->whereYear('check_in_date', now()->subMonth()->year);
                     break;
+                case 'all':
+                default:
+                    // Show all records
+                    break;
             }
         } elseif ($request->filled('date_from') || $request->filled('date_to')) {
             if ($request->filled('date_from')) {
@@ -43,8 +47,6 @@ class DriverCheckInController extends Controller
             if ($request->filled('date_to')) {
                 $query->whereDate('check_in_date', '<=', $request->date_to);
             }
-        } else {
-            $query->whereDate('check_in_date', today());
         }
 
         if ($request->filled('driver_id')) {
@@ -61,7 +63,7 @@ class DriverCheckInController extends Controller
 
         $checkIns = $query->get();
         $drivers = Driver::query()->orderBy('name')->get(['id', 'name']);
-        $vehicles = Vehicle::query()->orderBy('name')->get(['id', 'name', 'number']);
+        $vehicles = Vehicle::query()->orderBy('name')->get(['id', 'name', 'number', 'brand']);
 
         $totalCheckIns = DriverCheckIn::count();
         $activeCheckIns = DriverCheckIn::active()->count();
