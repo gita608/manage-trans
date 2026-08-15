@@ -311,6 +311,7 @@ class ReportController extends Controller
 
         // Statistics
         $totalExpenses = $expenses->sum('amount');
+        $totalHours = $expenses->sum('hours');
         
         // Expenses by Type (for chart)
         $expensesByType = $expenses->groupBy(function($expense) {
@@ -330,6 +331,7 @@ class ReportController extends Controller
         return view('reports.trip-expenses', compact(
             'expenses',
             'totalExpenses',
+            'totalHours',
             'expensesByType',
             'expensesByDate',
             'drivers',

@@ -55,4 +55,35 @@ class TripExpense extends Model
     {
         return $this->belongsTo(TripExpenseType::class, 'expense_type_id');
     }
+
+    /**
+     * Format amount for display. Hours-only types show "-" instead of 0.00.
+     */
+    public function displayAmount(): string
+    {
+        if ($this->expenseType && $this->expenseType->hasInputType('amount')) {
+            return number_format((float) $this->amount, 2);
+        }
+
+        return '-';
+    }
+
+    /**
+     * Format hours for display with "hrs" suffix.
+     * Non-null legacy hours remain visible even if the type no longer includes hours.
+     */
+    public function displayHours(): string
+    {
+        $usesHours = $this->expenseType && $this->expenseType->hasInputType('hours');
+
+        if (!$usesHours && $this->hours === null) {
+            return '-';
+        }
+
+        if ($this->hours === null) {
+            return '-';
+        }
+
+        return number_format((float) $this->hours, 2) . ' hrs';
+    }
 }

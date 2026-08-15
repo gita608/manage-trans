@@ -227,9 +227,11 @@ class TripController extends Controller
         // Format trip expenses
         $expenses = [];
         $totalExpenseAmount = 0;
+        $totalExpenseHours = 0;
         $tripExpenses = $trip->tripExpenses()->with(['expenseType', 'driver'])->get();
         foreach ($tripExpenses as $expense) {
-            $totalExpenseAmount += $expense->amount;
+            $totalExpenseAmount += (float) $expense->amount;
+            $totalExpenseHours += (float) ($expense->hours ?? 0);
             $createdAt = $expense->created_at ? Carbon::parse($expense->created_at) : null;
             $expenses[] = [
                 'id' => $expense->id,
@@ -275,6 +277,7 @@ class TripController extends Controller
                     'data' => $expenses,
                     'total' => count($expenses),
                     'total_amount' => (float) $totalExpenseAmount,
+                    'total_hours' => (float) $totalExpenseHours,
                 ],
             ],
         ], 200);

@@ -341,7 +341,7 @@
                     <div class="tab-pane fade" id="issuesExpenses" role="tabpanel">
                         <!-- Summary Cards -->
                         <div class="row mb-4">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="card border shadow-none mb-0">
                                     <div class="card-body">
                                         <div class="d-flex align-items-center">
@@ -358,7 +358,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="card border shadow-none mb-0">
                                     <div class="card-body">
                                         <div class="d-flex align-items-center">
@@ -370,6 +370,23 @@
                                             <div class="flex-grow-1">
                                                 <p class="text-muted mb-1">Total Expenses</p>
                                                 <h4 class="mb-0">{{ number_format($trip->tripExpenses->sum('amount'), 2) }} <small class="text-muted fs-6 fw-normal">({{ $trip->tripExpenses->count() }} items)</small></h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card border shadow-none mb-0">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm flex-shrink-0 me-3">
+                                                <span class="avatar-title bg-info-subtle text-info rounded-circle fs-3">
+                                                    <i class="ri-time-line"></i>
+                                                </span>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <p class="text-muted mb-1">Total Trip Hours</p>
+                                                <h4 class="mb-0">{{ number_format((float) $trip->tripExpenses->sum('hours'), 2) }} hrs</h4>
                                             </div>
                                         </div>
                                     </div>
@@ -439,6 +456,8 @@
                                                         <tr>
                                                             <th scope="col">Type</th>
                                                             <th scope="col">Amount</th>
+                                                            <th scope="col">Hours</th>
+                                                            <th scope="col">Description / Note</th>
                                                             <th scope="col">Receipt</th>
                                                             <th scope="col">Submitted By</th>
                                                             <th scope="col">Date</th>
@@ -450,14 +469,24 @@
                                                                 <td>
                                                                     <span class="badge bg-warning text-dark">{{ $expense->expenseType->title ?? 'Unknown' }}</span>
                                                                 </td>
-                                                                <td>{{ number_format($expense->amount, 2) }}</td>
+                                                                <td>{{ $expense->displayAmount() }}</td>
+                                                                <td>{{ $expense->displayHours() }}</td>
+                                                                <td>
+                                                                    @if($expense->description)
+                                                                        <span class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ $expense->description }}">
+                                                                            {{ $expense->description }}
+                                                                        </span>
+                                                                    @else
+                                                                        <span class="text-muted">-</span>
+                                                                    @endif
+                                                                </td>
                                                                 <td>
                                                                     @if($expense->receipt)
                                                                         <a href="{{ Storage::url($expense->receipt) }}" target="_blank" class="btn btn-sm btn-soft-primary">
                                                                             <i class="ri-file-text-line me-1"></i> View Receipt
                                                                         </a>
                                                                     @else
-                                                                        <span class="text-muted">No receipt</span>
+                                                                        <span class="text-muted">-</span>
                                                                     @endif
                                                                 </td>
                                                                 <td>{{ $expense->driver->name ?? 'Unknown' }}</td>
@@ -469,7 +498,8 @@
                                                         <tr>
                                                             <td class="fw-bold">Total</td>
                                                             <td class="fw-bold">{{ number_format($trip->tripExpenses->sum('amount'), 2) }}</td>
-                                                            <td colspan="3"></td>
+                                                            <td class="fw-bold">{{ number_format((float) $trip->tripExpenses->sum('hours'), 2) }} hrs</td>
+                                                            <td colspan="4"></td>
                                                         </tr>
                                                     </tfoot>
                                                 </table>

@@ -128,8 +128,8 @@
                                         {{ $expense->expenseType->title ?? 'Unknown' }}
                                     </span>
                                 </td>
-                                <td class="fw-bold">{{ number_format($expense->amount, 2) }}</td>
-                                <td>{{ $expense->hours !== null ? number_format($expense->hours, 2) . ' hrs' : '-' }}</td>
+                                <td class="fw-bold">{{ $expense->displayAmount() }}</td>
+                                <td>{{ $expense->displayHours() }}</td>
                                 <td>
                                     @if($expense->description)
                                         <span class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ $expense->description }}">
@@ -159,7 +159,8 @@
                             <tr>
                                 <td colspan="2" class="fw-bold text-end">Total</td>
                                 <td class="fw-bold">{{ number_format($totalExpenses, 2) }}</td>
-                                <td colspan="5"></td>
+                                <td class="fw-bold">{{ number_format((float) $totalHours, 2) }} hrs</td>
+                                <td colspan="6"></td>
                             </tr>
                         </tfoot>
                     </table>

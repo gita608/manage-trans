@@ -173,13 +173,26 @@
                                         $typeExpenses = $expensesByType->get($type->id);
                                         $cellVal = '-';
                                         if ($typeExpenses && $typeExpenses->isNotEmpty()) {
-                                            $firstExp = $typeExpenses->first();
-                                            if ($type->hasInputType('hours') && !empty($firstExp->hours) && $firstExp->hours > 0) {
-                                                $cellVal = number_format($firstExp->hours, 2) . ' hrs';
-                                            } else {
-                                                $sumAmt = $typeExpenses->sum('amount');
-                                                $cellVal = $sumAmt > 0 ? number_format($sumAmt, 2) : '-';
+                                            $parts = [];
+
+                                            if ($type->hasInputType('amount')) {
+                                                $sumAmount = $typeExpenses->sum('amount');
+                                                if ($sumAmount > 0) {
+                                                    $parts[] = number_format($sumAmount, 2);
+                                                }
                                             }
+
+                                            if ($type->hasInputType('hours')) {
+                                                $sumHours = $typeExpenses->sum('hours');
+                                                if ($sumHours > 0) {
+                                                    $parts[] = number_format($sumHours, 2) . ' hrs';
+                                                }
+                                            } elseif ($typeExpenses->sum('hours') > 0) {
+                                                // Legacy: hours present even if type config no longer includes hours
+                                                $parts[] = number_format($typeExpenses->sum('hours'), 2) . ' hrs';
+                                            }
+
+                                            $cellVal = !empty($parts) ? implode(' / ', $parts) : '-';
                                         }
                                     @endphp
                                     <td style="display:none;">{{ $cellVal }}</td>
