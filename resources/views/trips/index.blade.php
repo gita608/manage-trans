@@ -144,10 +144,22 @@
                         <label for="image" class="form-label fw-medium">
                             <i class="ri-image-line me-1 text-muted"></i>Upload Table Image
                         </label>
-                        <input type="file" class="form-control @error('image') is-invalid @enderror" id="image" name="image" accept="image/jpeg,image/jpg,image/png" required>
+                        <div id="extract-dropzone" class="extract-dropzone @error('image') is-invalid @enderror" role="button" tabindex="0" aria-label="Upload table image">
+                            <input type="file" class="extract-dropzone-input @error('image') is-invalid @enderror" id="image" name="image" accept="image/jpeg,image/jpg,image/png" required>
+                            <div class="extract-dropzone-content text-center">
+                                <div class="avatar-sm mx-auto mb-2">
+                                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle fs-4">
+                                        <i class="ri-upload-cloud-2-line"></i>
+                                    </span>
+                                </div>
+                                <p class="mb-1 fw-medium">Drag & drop image here</p>
+                                <p class="mb-2 text-muted small">or click to browse</p>
+                                <span id="extract-file-name" class="badge bg-light text-body border d-none"></span>
+                            </div>
+                        </div>
                         <div class="form-text">Formats: JPEG, JPG, PNG (Max: 10MB)</div>
                         @error('image')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                         
                         <!-- Image Preview -->
@@ -499,17 +511,97 @@
                         var imageInput = document.getElementById('image');
                         var imagePreview = document.getElementById('imagePreview');
                         var previewImg = document.getElementById('previewImg');
-                        
+                        var dropzone = document.getElementById('extract-dropzone');
+                        var fileNameBadge = document.getElementById('extract-file-name');
+                        var allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+                        var maxBytes = 10 * 1024 * 1024;
+
+                        function showSelectedFile(file) {
+                            if (!file) {
+                                imagePreview.classList.add('d-none');
+                                previewImg.src = '';
+                                if (fileNameBadge) {
+                                    fileNameBadge.textContent = '';
+                                    fileNameBadge.classList.add('d-none');
+                                }
+                                return;
+                            }
+
+                            if (fileNameBadge) {
+                                fileNameBadge.textContent = file.name;
+                                fileNameBadge.classList.remove('d-none');
+                            }
+
+                            var reader = new FileReader();
+                            reader.onload = function(e) {
+                                previewImg.src = e.target.result;
+                                imagePreview.classList.remove('d-none');
+                            };
+                            reader.readAsDataURL(file);
+                        }
+
+                        function assignFile(file) {
+                            if (!file) {
+                                return;
+                            }
+
+                            if (allowedTypes.indexOf(file.type) === -1) {
+                                alert('Please upload a JPEG, JPG, or PNG image.');
+                                return;
+                            }
+
+                            if (file.size > maxBytes) {
+                                alert('Image must be 10MB or smaller.');
+                                return;
+                            }
+
+                            var dataTransfer = new DataTransfer();
+                            dataTransfer.items.add(file);
+                            imageInput.files = dataTransfer.files;
+                            showSelectedFile(file);
+                        }
+
                         if (imageInput) {
                             imageInput.addEventListener('change', function(e) {
-                                var file = e.target.files[0];
-                                if (file) {
-                                    var reader = new FileReader();
-                                    reader.onload = function(e) {
-                                        previewImg.src = e.target.result;
-                                        imagePreview.classList.remove('d-none');
-                                    };
-                                    reader.readAsDataURL(file);
+                                showSelectedFile(e.target.files[0] || null);
+                            });
+                        }
+
+                        if (dropzone && imageInput) {
+                            dropzone.addEventListener('click', function(e) {
+                                if (e.target === imageInput) {
+                                    return;
+                                }
+                                imageInput.click();
+                            });
+
+                            dropzone.addEventListener('keydown', function(e) {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    imageInput.click();
+                                }
+                            });
+
+                            ['dragenter', 'dragover'].forEach(function(eventName) {
+                                dropzone.addEventListener(eventName, function(e) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    dropzone.classList.add('is-dragover');
+                                });
+                            });
+
+                            ['dragleave', 'dragend', 'drop'].forEach(function(eventName) {
+                                dropzone.addEventListener(eventName, function(e) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    dropzone.classList.remove('is-dragover');
+                                });
+                            });
+
+                            dropzone.addEventListener('drop', function(e) {
+                                var files = e.dataTransfer && e.dataTransfer.files;
+                                if (files && files.length) {
+                                    assignFile(files[0]);
                                 }
                             });
                         }
@@ -578,4 +670,51 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    .extract-dropzone {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 160px;
+        padding: 1.25rem;
+        border: 2px dashed var(--vz-border-color, #ced4da);
+        border-radius: 0.5rem;
+        background-color: var(--vz-light, #f8f9fa);
+        cursor: pointer;
+        transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .extract-dropzone:hover,
+    .extract-dropzone:focus {
+        border-color: var(--vz-primary, #405189);
+        background-color: var(--vz-primary-bg-subtle, #eef2ff);
+        outline: none;
+    }
+    .extract-dropzone.is-dragover {
+        border-color: var(--vz-primary, #405189);
+        background-color: var(--vz-primary-bg-subtle, #eef2ff);
+        box-shadow: 0 0 0 0.2rem rgba(64, 81, 137, 0.15);
+    }
+    .extract-dropzone.is-invalid {
+        border-color: var(--vz-danger, #f06548);
+    }
+    .extract-dropzone-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+        opacity: 0;
+    }
+    .extract-dropzone-content {
+        pointer-events: none;
+    }
+</style>
+@endpush
 
