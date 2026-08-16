@@ -326,8 +326,14 @@ class TripController extends Controller
                 'loggable_id' => $trip->id,
                 'action' => 'updated',
                 'driver_id' => $driver->id,
-                'user_id' => null, // Explicitly set to null since this is driver action
-                'description' => "Trip #{$trip->id} status changed from {$oldStatus} to {$trip->status} by driver {$driver->name}",
+                'user_id' => null,
+                'old_values' => [
+                    'status' => $oldStatus,
+                ],
+                'new_values' => [
+                    'status' => $trip->status,
+                ],
+                'description' => 'Trip status changed',
             ]);
         }
 

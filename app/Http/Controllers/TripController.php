@@ -10,6 +10,7 @@ use App\Models\Partner;
 use App\Models\Notification;
 use App\Services\TextractService;
 use App\Services\FirebaseNotificationService;
+use App\Services\TripLifecyclePresenter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -248,8 +249,10 @@ class TripController extends Controller
             'statusBadge' => $trip->getStatusBadge(),
             'statusText' => $trip->getStatusText(),
         ];
+
+        $lifecycle = app(TripLifecyclePresenter::class)->present($trip);
         
-        return view('trips.show', compact('trip', 'tripStatus'));
+        return view('trips.show', compact('trip', 'tripStatus', 'lifecycle'));
     }
 
     /**

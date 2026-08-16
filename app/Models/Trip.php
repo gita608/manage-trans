@@ -109,6 +109,8 @@ class Trip extends Model
                 return 'Assigned';
             case TripCrew::STATUS_UNASSIGNED:
                 return 'Unassigned';
+            case TripCrew::STATUS_CANCELLED:
+                return 'Cancelled';
             default:
                 return ucfirst($this->status ?? 'Unknown');
         }
@@ -198,45 +200,53 @@ class Trip extends Model
      */
     protected function getCustomActivityDescription(string $action, ?array $oldValues, ?array $newValues): string
     {
-        // Custom descriptions for Trip model
+        // Custom descriptions for Trip model (stored for audit; Trip Details uses TripLifecyclePresenter)
         if ($action === 'created') {
             $driverId = $this->driver_id ?? null;
 
             if ($driverId) {
                 $driver = Driver::find($driverId);
                 $driverName = $driver->name ?? 'Unknown';
-                return "Trip created for driver '{$driverName}'";
+                return "Schedule created for driver '{$driverName}'";
             }
 
-            return "Trip created without driver (unassigned)";
+            return 'Schedule created — awaiting driver assignment';
         }
         
         if ($action === 'updated') {
             $changes = [];
             if (isset($newValues['status'])) {
-                $oldStatus = $oldValues['status'] ?? 'unknown';
                 $newStatus = $newValues['status'];
-                $changes[] = "status changed from '{$oldStatus}' to '{$newStatus}'";
+                $changes[] = match ($newStatus) {
+                    TripCrew::STATUS_IN_PROGRESS => 'trip started',
+                    TripCrew::STATUS_COMPLETED => 'trip completed',
+                    TripCrew::STATUS_CANCELLED => 'trip cancelled',
+                    TripCrew::STATUS_ASSIGNED => 'driver assigned',
+                    default => 'status updated',
+                };
             }
             if (isset($newValues['driver_id'])) {
                 $oldDriver = Driver::find($oldValues['driver_id'] ?? null);
                 $newDriver = Driver::find($newValues['driver_id']);
-                $oldDriverName = $oldDriver->name ?? 'Unknown';
-                $newDriverName = $newDriver->name ?? 'Unknown';
-                $changes[] = "driver changed from '{$oldDriverName}' to '{$newDriverName}'";
+                $oldDriverName = $oldDriver->name ?? 'Unassigned';
+                $newDriverName = $newDriver->name ?? 'Unassigned';
+                if (empty($oldValues['driver_id']) && !empty($newValues['driver_id'])) {
+                    $changes[] = "driver assigned ({$newDriverName})";
+                } else {
+                    $changes[] = "driver changed ({$oldDriverName} → {$newDriverName})";
+                }
             }
             
             if (!empty($changes)) {
-                return "Trip updated: " . implode(', ', $changes);
+                return 'Schedule updated: ' . implode(', ', $changes);
             }
-            return "Trip updated";
+            return 'Schedule updated';
         }
         
         if ($action === 'deleted') {
-            return "Trip deleted";
+            return 'Trip deleted';
         }
         
-        // Fallback to default description
         return "Trip action: {$action}";
     }
 }

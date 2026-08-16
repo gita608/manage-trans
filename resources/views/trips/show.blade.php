@@ -60,9 +60,9 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" data-bs-toggle="tab" href="#activityLogs" role="tab" aria-selected="false">
-                            <i class="ri-file-list-line me-1 align-middle"></i> Activity Logs
-                            @if($trip->activityLogs->count() > 0)
-                                <span class="badge bg-primary rounded-pill ms-1">{{ $trip->activityLogs->count() }}</span>
+                            <i class="ri-route-line me-1 align-middle"></i> Activity & Lifecycle
+                            @if(($lifecycle['timeline_count'] ?? 0) > 0)
+                                <span class="badge bg-primary rounded-pill ms-1">{{ $lifecycle['timeline_count'] }}</span>
                             @endif
                         </a>
                     </li>
@@ -207,42 +207,123 @@
                         </div>
                     </div>
 
-                    <!-- Activity Logs Tab -->
+                    <!-- Activity & Lifecycle Tab -->
                     <div class="tab-pane fade" id="activityLogs" role="tabpanel">
                         @php
-                            $isCompleted = $tripStatus['isCompleted'];
-                            // Determine start and end times for duration calculation
-                            $startTime = $trip->created_at;
-                            $latestLog = $trip->activityLogs->sortByDesc('created_at')->first();
-                            $endTime = $latestLog ? $latestLog->created_at : now();
-                            
-                            // Calculate duration string e.g., "2 days 4 hours"
-                            $duration = $startTime->diffForHumans($endTime, [
-                                'syntax' => \Carbon\CarbonInterface::DIFF_ABSOLUTE, 
-                                'parts' => 2,
-                                'short' => true
-                            ]);
+                            $summary = $lifecycle['summary'] ?? [];
+                            $steps = $lifecycle['steps'] ?? [];
+                            $timeline = $lifecycle['timeline'] ?? [];
                         @endphp
 
-                        @if($isCompleted)
-                            <div class="alert alert-success d-flex align-items-center mb-4 shadow-sm border-0 bg-success-subtle text-success">
-                                <div class="avatar-sm flex-shrink-0 me-3">
-                                    <span class="avatar-title bg-success text-white rounded-circle fs-4">
-                                        <i class="ri-timer-flash-line"></i>
-                                    </span>
+                        {{-- Compact status summary --}}
+                        <div class="card border shadow-none mb-4 bg-light-subtle">
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-6 col-md-3">
+                                        <p class="text-muted mb-1 text-uppercase fw-medium fs-12">Current Status</p>
+                                        <span class="badge bg-{{ $summary['status_badge'] ?? 'secondary' }}">{{ $summary['status'] ?? 'Unknown' }}</span>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <p class="text-muted mb-1 text-uppercase fw-medium fs-12">Scheduled Date</p>
+                                        <h6 class="mb-0 fs-14">{{ $summary['scheduled_date'] ?? '—' }}</h6>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <p class="text-muted mb-1 text-uppercase fw-medium fs-12">Driver</p>
+                                        <h6 class="mb-0 fs-14">{{ $summary['driver'] ?? 'Unassigned' }}</h6>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        @if(!empty($summary['is_completed']) && !empty($summary['duration']))
+                                            <p class="text-muted mb-1 text-uppercase fw-medium fs-12">Actual Duration</p>
+                                            <h6 class="mb-0 fs-14 text-success">{{ $summary['duration'] }}</h6>
+                                        @elseif(!empty($summary['is_in_progress']) && !empty($summary['running_for']))
+                                            <p class="text-muted mb-1 text-uppercase fw-medium fs-12">Running For</p>
+                                            <h6 class="mb-0 fs-14 text-info">{{ $summary['running_for'] }}</h6>
+                                        @elseif(!empty($summary['is_completed']) && empty($summary['started_at']))
+                                            <p class="text-muted mb-1 text-uppercase fw-medium fs-12">Actual Duration</p>
+                                            <h6 class="mb-0 fs-14 text-muted">Start not recorded</h6>
+                                        @elseif(!empty($summary['started_at']))
+                                            <p class="text-muted mb-1 text-uppercase fw-medium fs-12">Actual Start</p>
+                                            <h6 class="mb-0 fs-14">{{ $summary['started_at']->format('g:i A') }}</h6>
+                                        @else
+                                            <p class="text-muted mb-1 text-uppercase fw-medium fs-12">Actual Start</p>
+                                            <h6 class="mb-0 fs-14 text-muted">Not started</h6>
+                                        @endif
+                                    </div>
                                 </div>
-                                <div>
-                                    <h5 class="alert-heading fs-16 mb-1 fw-bold">Trip Completed</h5>
-                                    <p class="mb-0 fs-14">
-                                        Total time taken: <span class="fw-bold">{{ $duration }}</span>
-                                    </p>
-                                </div>
+                                @if(!empty($summary['is_completed']) && !empty($summary['started_at']) && !empty($summary['completed_at']))
+                                    <div class="mt-3 pt-3 border-top small text-muted">
+                                        Started {{ $summary['started_at']->format('M j, Y · g:i A') }}
+                                        <span class="mx-2">·</span>
+                                        Completed {{ $summary['completed_at']->format('M j, Y · g:i A') }}
+                                    </div>
+                                @elseif(!empty($summary['is_in_progress']) && !empty($summary['started_at']))
+                                    <div class="mt-3 pt-3 border-top small text-muted">
+                                        Started {{ $summary['started_at']->format('M j, Y · g:i A') }}
+                                    </div>
+                                @elseif(!empty($summary['is_completed']) && empty($summary['started_at']))
+                                    <div class="mt-3 pt-3 border-top small text-muted">
+                                        Actual start time not recorded — duration is unavailable.
+                                    </div>
+                                @endif
                             </div>
-                        @endif
+                        </div>
 
-                        @if($trip->activityLogs->count() > 0)
+                        {{-- Lifecycle stepper --}}
+                        <div class="mb-4">
+                            <h5 class="mb-3">Trip Lifecycle</h5>
+                            <div class="trip-lifecycle-stepper">
+                                @foreach($steps as $step)
+                                    @php
+                                        $state = $step['state'] ?? 'pending';
+                                        $stateClass = match($state) {
+                                            'completed' => 'is-completed',
+                                            'current' => 'is-current',
+                                            'cancelled' => 'is-cancelled',
+                                            default => 'is-pending',
+                                        };
+                                        $iconWrap = match($state) {
+                                            'completed' => 'bg-success text-white',
+                                            'current' => 'bg-info text-white',
+                                            'cancelled' => 'bg-danger text-white',
+                                            default => 'bg-light text-muted border',
+                                        };
+                                    @endphp
+                                    <div class="trip-lifecycle-step {{ $stateClass }}">
+                                        <div class="trip-lifecycle-icon {{ $iconWrap }}">
+                                            @if($state === 'completed')
+                                                <i class="ri-check-line"></i>
+                                            @elseif($state === 'cancelled')
+                                                <i class="ri-close-line"></i>
+                                            @else
+                                                <i class="{{ $step['icon'] ?? 'ri-checkbox-blank-circle-line' }}"></i>
+                                            @endif
+                                        </div>
+                                        <div class="trip-lifecycle-body">
+                                            <div class="fw-semibold">{{ $step['title'] }}</div>
+                                            @if(!empty($step['meta']))
+                                                <div class="text-muted small">{{ $step['meta'] }}</div>
+                                            @endif
+                                            @if(!empty($step['time']))
+                                                <div class="text-muted small">{{ $step['time']->format('M j, Y · g:i A') }}</div>
+                                            @elseif($state === 'pending')
+                                                <div class="text-muted small">Pending</div>
+                                            @elseif($state === 'current' && empty($step['meta']))
+                                                <div class="text-muted small">In progress</div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        {{-- Activity history --}}
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h5 class="mb-0">Activity History</h5>
+                        </div>
+
+                        @if(count($timeline) > 0)
                             <div class="acitivity-timeline-2">
-                                @foreach($trip->activityLogs->groupBy(function($log) { return \Carbon\Carbon::parse($log->created_at)->format('Y-m-d'); }) as $date => $logs)
+                                @foreach(collect($timeline)->groupBy(fn ($event) => $event['time']->format('Y-m-d')) as $date => $events)
                                     <div class="mb-5">
                                         <div class="d-flex align-items-center mb-4">
                                             <span class="badge bg-light text-muted border px-3 py-2 rounded-pill fs-12 fw-medium">
@@ -256,64 +337,55 @@
                                         </div>
 
                                         <div class="ps-3">
-                                            @foreach($logs as $log)
-                                                @php
-                                                    $actionColors = [
-                                                        'created' => 'success',
-                                                        'updated' => 'info',
-                                                        'deleted' => 'danger',
-                                                        'restored' => 'warning',
-                                                    ];
-                                                    $color = $actionColors[$log->action] ?? 'primary';
-                                                    
-                                                    $user = $log->user ?? $log->driver;
-                                                    $userName = $user ? $user->name : 'System';
-                                                    $isDriver = $log->driver ? true : false;
-                                                @endphp
+                                            @foreach($events as $event)
                                                 <div class="d-flex gap-4 mb-4 position-relative log-item">
-                                                    <!-- Vertical Line -->
                                                     @if(!$loop->last)
                                                         <div class="position-absolute top-0 start-0 border-start border-2 border-dashed border-light" style="left: 14px; height: 120%; z-index: 0;"></div>
                                                     @endif
 
-                                                    <!-- Icon/Dot -->
                                                     <div class="flex-shrink-0 position-relative z-1">
                                                         <div class="avatar-xs">
-                                                            <div class="avatar-title bg-white border border-2 border-{{ $color }} text-{{ $color }} rounded-circle fs-16 shadow-sm">
-                                                                <i class="ri-checkbox-blank-circle-fill fs-8"></i>
+                                                            <div class="avatar-title bg-{{ $event['color'] }}-subtle text-{{ $event['color'] }} rounded-circle fs-16">
+                                                                <i class="{{ $event['icon'] }}"></i>
                                                             </div>
                                                         </div>
                                                     </div>
 
-                                                    <!-- Content -->
                                                     <div class="flex-grow-1">
                                                         <div class="row">
                                                             <div class="col-md-9">
-                                                                <div class="d-flex align-items-center gap-2 mb-1">
-                                                                    <h6 class="fs-15 mb-0 fw-semibold text-dark">{{ $log->description }}</h6>
-                                                                    <span class="badge bg-{{ $color }}-subtle text-{{ $color }} fs-10 text-uppercase px-2 py-0.5 rounded-1">{{ $log->action }}</span>
-                                                                </div>
-                                                                
-                                                                <div class="d-flex align-items-center text-muted fs-13 mb-2">
-                                                                    <span class="me-3">
-                                                                        <i class="ri-user-3-line me-1 align-bottom"></i> 
-                                                                        {{ $userName }}
-                                                                        @if($isDriver) <span class="badge bg-light text-muted border ms-1">Driver</span> @endif
-                                                                    </span>
-                                                                    @if($log->ip_address)
-                                                                        <span><i class="ri-global-line me-1 align-bottom"></i> {{ $log->ip_address }}</span>
-                                                                    @endif
+                                                                <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                                                                    <h6 class="fs-15 mb-0 fw-semibold text-dark">{{ $event['title'] }}</h6>
+                                                                    <span class="badge bg-{{ $event['color'] }}-subtle text-{{ $event['color'] }} fs-10 px-2 py-0.5 rounded-1">{{ $event['badge'] }}</span>
                                                                 </div>
 
-                                                                @if(($log->old_values && count($log->old_values) > 0) || ($log->new_values && count($log->new_values) > 0))
-                                                                    <button type="button" class="btn btn-sm btn-link text-primary text-decoration-none p-0 fs-13" data-bs-toggle="modal" data-bs-target="#logModal{{ $log->id }}">
-                                                                        View changes details <i class="ri-arrow-right-line ms-1"></i>
+                                                                @if(!empty($event['description']))
+                                                                    <p class="mb-1 fs-13">{{ $event['description'] }}</p>
+                                                                @endif
+
+                                                                <div class="d-flex align-items-center text-muted fs-13 mb-2 flex-wrap gap-2">
+                                                                    <span>
+                                                                        <i class="ri-user-3-line me-1 align-bottom"></i>
+                                                                        {{ $event['actor_name'] }}
+                                                                        <span class="badge bg-light text-muted border ms-1">{{ $event['actor_type'] }}</span>
+                                                                    </span>
+                                                                </div>
+
+                                                                @if(!empty($event['duration']))
+                                                                    <p class="mb-2 fs-13 text-success fw-medium">
+                                                                        <i class="ri-timer-line me-1"></i>Actual duration: {{ $event['duration'] }}
+                                                                    </p>
+                                                                @endif
+
+                                                                @if(!empty($event['changes']))
+                                                                    <button type="button" class="btn btn-sm btn-link text-primary text-decoration-none p-0 fs-13" data-bs-toggle="modal" data-bs-target="#lifecycleModal{{ $event['id'] }}">
+                                                                        View changes <i class="ri-arrow-right-line ms-1"></i>
                                                                     </button>
                                                                 @endif
                                                             </div>
                                                             <div class="col-md-3 text-md-end">
                                                                 <span class="text-muted fs-12 fw-medium bg-light px-2 py-1 rounded">
-                                                                    {{ \Carbon\Carbon::parse($log->created_at)->format('h:i A') }}
+                                                                    {{ $event['time']->format('g:i A') }}
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -328,11 +400,11 @@
                             <div class="text-center py-5">
                                 <div class="avatar-lg mx-auto mb-3">
                                     <div class="avatar-title bg-light-subtle text-muted rounded-circle fs-1 border border-light-subtle border-dashed">
-                                        <i class="ri-file-history-line"></i>
+                                        <i class="ri-route-line"></i>
                                     </div>
                                 </div>
-                                <h5 class="text-dark">No Activity Logs</h5>
-                                <p class="text-muted mb-0">No activity has been recorded for this trip yet.</p>
+                                <h5 class="text-dark">No Activity Yet</h5>
+                                <p class="text-muted mb-0">Lifecycle events for this trip will appear here.</p>
                             </div>
                         @endif
                     </div>
@@ -531,109 +603,62 @@
     </div>
 </div>
 
-<!-- Log Details Modals -->
-@foreach($trip->activityLogs as $log)
-    @php
-        $color = match($log->action) {
-            'created' => 'success',
-            'updated' => 'info',
-            'deleted' => 'danger',
-            default => 'secondary',
-        };
-        $icon = match($log->action) {
-            'created' => 'ri-add-line',
-            'updated' => 'ri-pencil-line',
-            'deleted' => 'ri-delete-bin-line',
-            default => 'ri-information-line',
-        };
-        $userName = 'System';
-        if($log->user) {
-            $userName = $log->user->name;
-        } elseif($log->driver) {
-            $userName = $log->driver->name . ' (Driver)';
-        }
-    @endphp
-    <!-- Log Details Modal -->
-    <div class="modal fade" id="logModal{{ $log->id }}" tabindex="-1" aria-hidden="true">
+<!-- Friendly change modals (no IP / raw IDs) -->
+@foreach(($lifecycle['timeline'] ?? []) as $event)
+    @if(!empty($event['changes']))
+    <div class="modal fade" id="lifecycleModal{{ $event['id'] }}" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Activity Details</h5>
+                    <h5 class="modal-title">{{ $event['title'] }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="d-flex align-items-center mb-4">
                         <div class="flex-shrink-0 me-3">
                             <div class="avatar-sm">
-                                <span class="avatar-title bg-{{ $color }}-subtle text-{{ $color }} rounded-circle fs-4">
-                                    <i class="{{ $icon }}"></i>
+                                <span class="avatar-title bg-{{ $event['color'] }}-subtle text-{{ $event['color'] }} rounded-circle fs-4">
+                                    <i class="{{ $event['icon'] }}"></i>
                                 </span>
                             </div>
                         </div>
                         <div class="flex-grow-1">
-                            <h5 class="fs-16 mb-1">{{ $log->description }}</h5>
+                            <h5 class="fs-16 mb-1">{{ $event['title'] }}</h5>
                             <p class="text-muted mb-0">
-                                by <span class="fw-semibold">{{ $userName }}</span> on {{ formatDate($log->created_at) }}
+                                by <span class="fw-semibold">{{ $event['actor_name'] }}</span>
+                                <span class="badge bg-light text-muted border ms-1">{{ $event['actor_type'] }}</span>
+                                on {{ $event['time']->format('M j, Y · g:i A') }}
                             </p>
                         </div>
                     </div>
 
-                    @if(($log->old_values && count($log->old_values) > 0) || ($log->new_values && count($log->new_values) > 0))
-                        <div class="card border shadow-none mb-0 bg-light-subtle">
-                            <div class="card-header bg-transparent border-bottom-0">
-                                <h6 class="card-title mb-0">Changes Made</h6>
-                            </div>
-                            <div class="card-body p-0">
-                                <div class="table-responsive">
-                                    <table class="table table-borderless table-nowrap align-middle mb-0">
-                                        <thead class="table-light">
+                    <div class="card border shadow-none mb-0 bg-light-subtle">
+                        <div class="card-header bg-transparent border-bottom-0">
+                            <h6 class="card-title mb-0">What changed</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-borderless table-nowrap align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th scope="col" style="width: 30%;">Field</th>
+                                            <th scope="col">From</th>
+                                            <th scope="col">To</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($event['changes'] as $change)
                                             <tr>
-                                                <th scope="col" style="width: 30%;">Field</th>
-                                                @if($log->old_values && count($log->old_values) > 0) <th scope="col">Old Value</th> @endif
-                                                @if($log->new_values && count($log->new_values) > 0) <th scope="col">New Value</th> @endif
+                                                <td class="fw-medium text-muted">{{ $change['label'] }}</td>
+                                                <td class="text-danger">{{ $change['old'] }}</td>
+                                                <td class="text-success">{{ $change['new'] }}</td>
                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                            @php
-                                                $old = $log->old_values ?? [];
-                                                $new = $log->new_values ?? [];
-                                                $allKeys = array_unique(array_merge(array_keys($old), array_keys($new)));
-                                            @endphp
-                                            @foreach($allKeys as $key)
-                                                <tr>
-                                                    <td class="fw-medium text-muted">{{ ucfirst(str_replace('_', ' ', $key)) }}</td>
-                                                    @if(count($old) > 0)
-                                                        <td class="text-danger">
-                                                            @if(isset($old[$key]))
-                                                                {{ is_array($old[$key]) ? json_encode($old[$key]) : $old[$key] }}
-                                                            @else
-                                                                <span class="text-muted">-</span>
-                                                            @endif
-                                                        </td>
-                                                    @endif
-                                                    @if(count($new) > 0)
-                                                        <td class="text-success">
-                                                            @if(isset($new[$key]))
-                                                                {{ is_array($new[$key]) ? json_encode($new[$key]) : $new[$key] }}
-                                                            @else
-                                                                <span class="text-muted">-</span>
-                                                            @endif
-                                                        </td>
-                                                    @endif
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
+                                        @endforeach
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
-                    @endif
-
-                    @if($log->ip_address)
-                        <div class="mt-3 text-end">
-                            <span class="badge bg-light text-muted border">IP: {{ $log->ip_address }}</span>
-                        </div>
-                    @endif
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
@@ -641,8 +666,66 @@
             </div>
         </div>
     </div>
+    @endif
 @endforeach
 @endsection
+
+@push('styles')
+<style>
+    .trip-lifecycle-stepper {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    @media (min-width: 768px) {
+        .trip-lifecycle-stepper {
+            flex-direction: row;
+            align-items: stretch;
+            gap: 0;
+        }
+        .trip-lifecycle-step {
+            flex: 1 1 0;
+            position: relative;
+            padding-right: 1rem;
+        }
+        .trip-lifecycle-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 18px;
+            left: 44px;
+            right: 8px;
+            border-top: 2px dashed var(--vz-border-color, #dee2e6);
+            z-index: 0;
+        }
+        .trip-lifecycle-step.is-completed:not(:last-child)::after {
+            border-top-color: var(--vz-success, #0ab39c);
+        }
+    }
+    .trip-lifecycle-step {
+        display: flex;
+        gap: 0.75rem;
+        align-items: flex-start;
+    }
+    .trip-lifecycle-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 1;
+        font-size: 1rem;
+    }
+    .trip-lifecycle-body {
+        min-width: 0;
+    }
+    .trip-lifecycle-step.is-pending {
+        opacity: 0.65;
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>
