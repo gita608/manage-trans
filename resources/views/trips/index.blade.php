@@ -9,6 +9,7 @@
         'today' => "Today's Trips",
         'yesterday' => "Yesterday's Trips",
         'tomorrow' => "Tomorrow's Trips",
+        'last_2_days' => 'Trips — Last 2 Days',
         'last_7_days' => 'Trips — Last 7 Days',
         'this_month' => 'Trips — This Month',
         'custom' => 'Filtered Trips',
@@ -261,6 +262,7 @@
                                 <option value="today">Today</option>
                                 <option value="yesterday">Yesterday</option>
                                 <option value="tomorrow">Tomorrow</option>
+                                <option value="last_2_days">Last 2 Days</option>
                                 <option value="last_7_days">Last 7 Days</option>
                                 <option value="this_month">This Month</option>
                                 <option value="custom">Custom Range</option>
