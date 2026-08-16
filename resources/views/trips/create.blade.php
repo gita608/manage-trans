@@ -292,12 +292,124 @@
                 <option value="{{ $driver->id }}">{{ $driver->name }}</option>
             @endforeach
         `;
-        const vesselOptions = `
-            <option value="">Select</option>
+        // Session vessel list (server vessels + vessels created during this form session)
+        const sessionVessels = [
             @foreach($vessels as $vessel)
-                <option value="{{ $vessel->id }}">{{ $vessel->name }}</option>
+                { id: '{{ $vessel->id }}', name: @json($vessel->name) },
             @endforeach
-        `;
+        ];
+
+        function escapeHtml(text) {
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function buildVesselOptionsHtml() {
+            let html = '<option value="">Select</option>';
+            html += '<option value="__create_new__" class="create-new-vessel-option">Create New</option>';
+            sessionVessels.forEach(function(vessel) {
+                html += `<option value="${vessel.id}">${escapeHtml(vessel.name)}</option>`;
+            });
+            return html;
+        }
+
+        function rememberPreviousVessel($select) {
+            const current = $select.val();
+            if (current && current !== '__create_new__') {
+                $select.data('previous-vessel-id', current);
+            } else if (!current) {
+                $select.data('previous-vessel-id', '');
+            }
+        }
+
+        function restorePreviousVessel($select) {
+            let previous = $select.data('previous-vessel-id');
+            if (previous === undefined || previous === null || previous === '__create_new__') {
+                previous = '';
+            }
+            $select.val(previous).trigger('change');
+        }
+
+        function ensureCreateNewOption($select) {
+            if ($select.find('option[value="__create_new__"]').length === 0) {
+                const $placeholder = $select.find('option[value=""]').first();
+                if ($placeholder.length) {
+                    $placeholder.after('<option value="__create_new__" class="create-new-vessel-option">Create New</option>');
+                } else {
+                    $select.prepend('<option value="__create_new__" class="create-new-vessel-option">Create New</option>');
+                }
+            }
+        }
+
+        function addVesselToSession(id, name) {
+            const vesselId = String(id);
+            if (!sessionVessels.some(function(v) { return String(v.id) === vesselId; })) {
+                sessionVessels.push({ id: vesselId, name: name });
+            }
+        }
+
+        function addVesselOptionToAllSelects(newVesselId, newVesselName, $triggerSelect) {
+            const vesselId = String(newVesselId);
+            addVesselToSession(vesselId, newVesselName);
+
+            jQuery('.vessel-select2').each(function() {
+                const $currentSelect = jQuery(this);
+                const isTriggeringSelect = this === $triggerSelect[0];
+
+                const alreadyExists = $currentSelect.find('option').filter(function() {
+                    return String(this.value) === vesselId;
+                }).length > 0;
+
+                if (!alreadyExists) {
+                    // Available everywhere; selected nowhere by default
+                    $currentSelect.append(new Option(newVesselName, vesselId, false, false));
+                }
+
+                ensureCreateNewOption($currentSelect);
+
+                if (isTriggeringSelect) {
+                    $currentSelect.val(vesselId).trigger('change');
+                    $currentSelect.data('previous-vessel-id', vesselId);
+                }
+                // Non-triggering rows: leave current selection untouched
+            });
+        }
+
+        function bindVesselSelect2($select) {
+            $select.select2({
+                placeholder: 'Select Vessel',
+                allowClear: true,
+                width: '100%',
+                templateResult: function(data) {
+                    if (!data.id) {
+                        return data.text;
+                    }
+                    if (data.id === '__create_new__') {
+                        return jQuery('<span style="background-color: #e7f3ff; color: #0d6efd; font-weight: 500; font-size: 0.8125rem; padding: 4px 8px; border-radius: 4px; display: inline-block; width: 100%;">' + data.text + '</span>');
+                    }
+                    return data.text;
+                }
+            }).on('select2:opening', function() {
+                rememberPreviousVessel(jQuery(this));
+            }).on('select2:selecting', function() {
+                rememberPreviousVessel(jQuery(this));
+            }).on('select2:select', function(e) {
+                const data = e.params.data;
+                if (data.id === '__create_new__') {
+                    e.preventDefault();
+                    createNewVessel(jQuery(this));
+                } else {
+                    rememberPreviousVessel(jQuery(this));
+                }
+            });
+
+            // Seed previous value from the initial selection
+            rememberPreviousVessel($select);
+        }
 
         function updateRowNumbers() {
             const rows = crewsContainer.querySelectorAll('.crew-row');
@@ -344,9 +456,7 @@
                 </td>
                 <td>
                     <select class="form-select form-select-sm vessel-select2" name="crews[${index}][vessel_id]" required>
-                        <option value="">Select</option>
-                        <option value="__create_new__" class="create-new-vessel-option">Create New </option>
-                        ${vesselOptions.replace('<option value="">Select</option>', '')}
+                        ${buildVesselOptionsHtml()}
                     </select>
                 </td>
                 <td>
@@ -387,27 +497,7 @@
             setTimeout(() => {
                 const select = row.querySelector('.vessel-select2');
                 if (select && typeof jQuery !== 'undefined' && jQuery.fn.select2) {
-                    jQuery(select).select2({
-                        placeholder: 'Select Vessel',
-                        allowClear: true,
-                        width: '100%',
-                        templateResult: function(data) {
-                            if (!data.id) {
-                                return data.text;
-                            }
-                            if (data.id === '__create_new__') {
-                                var $result = jQuery('<span style="background-color: #e7f3ff; color: #0d6efd; font-weight: 500; font-size: 0.8125rem; padding: 4px 8px; border-radius: 4px; display: inline-block; width: 100%;">' + data.text + '</span>');
-                                return $result;
-                            }
-                            return data.text;
-                        }
-                    }).on('select2:select', function(e) {
-                        const data = e.params.data;
-                        if (data.id === '__create_new__') {
-                            e.preventDefault();
-                            createNewVessel(jQuery(this));
-                        }
-                    });
+                    bindVesselSelect2(jQuery(select));
                 }
             }, 100);
             
@@ -417,35 +507,21 @@
         // Initialize Select2 for existing vessel selects
         function initSelect2() {
             if (typeof jQuery !== 'undefined' && jQuery.fn.select2) {
-                jQuery('.vessel-select2').select2({
-                    placeholder: 'Select Vessel',
-                    allowClear: true,
-                    width: '100%',
-                    templateResult: function(data) {
-                        if (!data.id) {
-                            return data.text;
-                        }
-                        if (data.id === '__create_new__') {
-                            var $result = jQuery('<span style="background-color: #e7f3ff; color: #0d6efd; font-weight: 500; font-size: 0.8125rem; padding: 4px 8px; border-radius: 4px; display: inline-block; width: 100%;">' + data.text + '</span>');
-                            return $result;
-                        }
-                        return data.text;
-                    }
-                }).on('select2:select', function(e) {
-                    const data = e.params.data;
-                    if (data.id === '__create_new__') {
-                        e.preventDefault();
-                        createNewVessel(jQuery(this));
-                    }
+                jQuery('.vessel-select2').each(function() {
+                    bindVesselSelect2(jQuery(this));
                 });
             }
         }
         
         // Function to create a new vessel
         function createNewVessel($select) {
+            // Capture previous valid vessel before prompt (never treat Create New as a vessel)
+            rememberPreviousVessel($select);
+            const previousVesselId = $select.data('previous-vessel-id');
+
             const vesselName = prompt('Enter the new vessel name:');
             if (!vesselName || vesselName.trim() === '') {
-                $select.val('').trigger('change');
+                restorePreviousVessel($select);
                 return;
             }
             
@@ -468,22 +544,10 @@
                 },
                 success: function(response) {
                     if (response.success && response.vessel) {
-                        const newVesselId = response.vessel.id;
-                        const newVesselName = response.vessel.name;
-                        jQuery('.vessel-select2').each(function() {
-                            const isTriggeringSelect = this === $select[0];
-                            jQuery(this).find('option[value="__create_new__"]').remove();
-                            const opt = new Option(newVesselName, newVesselId, isTriggeringSelect, isTriggeringSelect);
-                            jQuery(this).append(opt);
-                            if (isTriggeringSelect) {
-                                jQuery(this).val(newVesselId).trigger('change');
-                            }
-                        });
-                        jQuery('.vessel-select2').each(function() {
-                            if (jQuery(this).find('option[value="__create_new__"]').length === 0) {
-                                jQuery(this).find('option:first').after('<option value="__create_new__" class="create-new-vessel-option">Create New</option>');
-                            }
-                        });
+                        addVesselOptionToAllSelects(response.vessel.id, response.vessel.name, $select);
+                    } else {
+                        $select.data('previous-vessel-id', previousVesselId);
+                        restorePreviousVessel($select);
                     }
                     $select.prop('disabled', false);
                 },
@@ -497,7 +561,8 @@
                         errorMsg = 'Vessel name already exists or is invalid.';
                     }
                     alert(errorMsg);
-                    $select.val('').trigger('change');
+                    $select.data('previous-vessel-id', previousVesselId);
+                    restorePreviousVessel($select);
                     $select.prop('disabled', false);
                     $select.next('.select2-container').find('.select2-selection__rendered').html(originalHtml);
                 }
