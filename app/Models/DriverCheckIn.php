@@ -19,13 +19,21 @@ class DriverCheckIn extends Model
     public const DEFAULT_AUTO_CHECKOUT_HOURS = 12;
 
     /**
-     * Configured auto check-out duration in hours (from settings).
+     * Configured daily auto check-out duration in hours (from settings).
      */
     public static function autoCheckoutHours(): int
     {
         $hours = (int) getSetting('check_in_auto_checkout_hours', self::DEFAULT_AUTO_CHECKOUT_HOURS);
 
         return max(1, $hours);
+    }
+
+    /**
+     * Configured cumulative daily allowance in seconds.
+     */
+    public static function dailyLimitSeconds(): int
+    {
+        return self::autoCheckoutHours() * 3600;
     }
 
     /**
@@ -70,9 +78,115 @@ class DriverCheckIn extends Model
         return $this->status === self::STATUS_CHECKED_IN;
     }
 
+    /**
+     * Normalize a duty-day date string in the app timezone.
+     */
+    public static function normalizeDutyDate(string|Carbon $date): string
+    {
+        if ($date instanceof Carbon) {
+            return $date->copy()->timezone(getAppTimezone())->toDateString();
+        }
+
+        return Carbon::parse($date, getAppTimezone())->toDateString();
+    }
+
+    /**
+     * Seconds already consumed by a driver on a duty day.
+     *
+     * @param  int|null  $excludeId  Exclude a session (usually the current one) from the total
+     * @param  Carbon|null  $asOf  Cap any active session contribution at this timestamp
+     */
+    public static function usedSecondsForDriverDay(
+        int $driverId,
+        string|Carbon $date,
+        ?int $excludeId = null,
+        ?Carbon $asOf = null
+    ): int {
+        $asOf = $asOf ?? Carbon::now(getAppTimezone());
+        $dutyDate = self::normalizeDutyDate($date);
+
+        $sessions = static::query()
+            ->where('driver_id', $driverId)
+            ->whereDate('check_in_date', $dutyDate)
+            ->when($excludeId, fn (Builder $q) => $q->where('id', '!=', $excludeId))
+            ->orderBy('check_in_at')
+            ->orderBy('id')
+            ->get();
+
+        $used = 0;
+
+        foreach ($sessions as $session) {
+            $used += $session->durationSeconds($asOf);
+        }
+
+        return max(0, $used);
+    }
+
+    /**
+     * Remaining cumulative daily allowance for a driver duty day.
+     */
+    public static function remainingSecondsForDriverDay(
+        int $driverId,
+        string|Carbon $date,
+        ?int $excludeId = null,
+        ?Carbon $asOf = null
+    ): int {
+        return max(
+            0,
+            self::dailyLimitSeconds() - self::usedSecondsForDriverDay($driverId, $date, $excludeId, $asOf)
+        );
+    }
+
+    public static function dailyLimitReached(
+        int $driverId,
+        string|Carbon $date,
+        ?int $excludeId = null,
+        ?Carbon $asOf = null
+    ): bool {
+        return self::remainingSecondsForDriverDay($driverId, $date, $excludeId, $asOf) <= 0;
+    }
+
+    /**
+     * Duration contributed by this session in whole seconds.
+     */
+    public function durationSeconds(?Carbon $asOf = null): int
+    {
+        if (!$this->check_in_at) {
+            return 0;
+        }
+
+        $start = $this->check_in_at->copy();
+        $asOf = $asOf ?? Carbon::now(getAppTimezone());
+
+        if ($this->status === self::STATUS_CHECKED_OUT) {
+            $end = $this->checked_out_at?->copy() ?? $start;
+        } else {
+            $end = $asOf->copy();
+        }
+
+        if ($end->lessThan($start)) {
+            return 0;
+        }
+
+        return max(0, $end->getTimestamp() - $start->getTimestamp());
+    }
+
+    /**
+     * When this active session must auto check-out based on remaining daily allowance
+     * at the moment this session started (not a fresh full-day allotment).
+     */
     public function autoCheckoutDueAt(): Carbon
     {
-        return $this->check_in_at->copy()->addHours(self::autoCheckoutHours());
+        $usedBeforeThisSession = self::usedSecondsForDriverDay(
+            (int) $this->driver_id,
+            $this->check_in_date,
+            excludeId: $this->id ? (int) $this->id : null,
+            asOf: $this->check_in_at
+        );
+
+        $remainingAtStart = max(0, self::dailyLimitSeconds() - $usedBeforeThisSession);
+
+        return $this->check_in_at->copy()->addSeconds($remainingAtStart);
     }
 
     public function isExpired(?Carbon $now = null): bool
@@ -83,11 +197,20 @@ class DriverCheckIn extends Model
     }
 
     /**
-     * Close this check-in immediately (vehicle switch).
+     * Close this check-in immediately (vehicle switch), never past its allowed expiry.
      */
     public function closeNow(?Carbon $at = null): void
     {
         $at = $at ?? Carbon::now(getAppTimezone());
+        $dueAt = $this->autoCheckoutDueAt();
+
+        if ($at->greaterThan($dueAt)) {
+            $at = $dueAt;
+        }
+
+        if ($at->lessThan($this->check_in_at)) {
+            $at = $this->check_in_at->copy();
+        }
 
         $this->forceFill([
             'checked_out_at' => $at,
@@ -96,12 +219,18 @@ class DriverCheckIn extends Model
     }
 
     /**
-     * Close this check-in via configured auto expiry.
+     * Close this check-in at its cumulative daily allowance expiry.
      */
     public function closeForAutoExpiry(): void
     {
+        $dueAt = $this->autoCheckoutDueAt();
+
+        if ($dueAt->lessThan($this->check_in_at)) {
+            $dueAt = $this->check_in_at->copy();
+        }
+
         $this->forceFill([
-            'checked_out_at' => $this->autoCheckoutDueAt(),
+            'checked_out_at' => $dueAt,
             'status' => self::STATUS_CHECKED_OUT,
         ])->save();
     }
@@ -116,23 +245,27 @@ class DriverCheckIn extends Model
     }
 
     /**
-     * Auto-close expired active check-ins. Returns how many were closed.
+     * Auto-close active check-ins whose cumulative daily allowance has elapsed.
      */
     public static function autoCheckoutExpired(?Carbon $now = null): int
     {
         $now = $now ?? Carbon::now(getAppTimezone());
-        $cutoff = $now->copy()->subHours(self::autoCheckoutHours());
+        $closed = 0;
 
-        $expired = static::query()
+        static::query()
             ->active()
-            ->where('check_in_at', '<=', $cutoff)
-            ->get();
+            ->orderBy('check_in_at')
+            ->orderBy('id')
+            ->chunkById(100, function ($checkIns) use ($now, &$closed) {
+                foreach ($checkIns as $checkIn) {
+                    if ($checkIn->isExpired($now)) {
+                        $checkIn->closeForAutoExpiry();
+                        $closed++;
+                    }
+                }
+            });
 
-        foreach ($expired as $checkIn) {
-            $checkIn->closeForAutoExpiry();
-        }
-
-        return $expired->count();
+        return $closed;
     }
 
     /**

@@ -19,7 +19,7 @@ class AutoCheckoutCheckIns extends Command
      *
      * @var string
      */
-    protected $description = 'Auto check-out driver sessions that have exceeded the configured hours';
+    protected $description = 'Auto check-out driver sessions that have exhausted their cumulative daily check-in allowance';
 
     /**
      * Execute the console command.

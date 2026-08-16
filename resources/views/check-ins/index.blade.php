@@ -376,6 +376,28 @@
                                             <label class="form-label text-muted mb-0 small">Auto Check-Out Deadline</label>
                                             <div>{{ $checkIn->autoCheckoutDueAt()->format('F d, Y h:i:s A') }}</div>
                                         </div>
+                                        @php
+                                            $dailyLimit = \App\Models\DriverCheckIn::dailyLimitSeconds();
+                                            $dailyUsed = \App\Models\DriverCheckIn::usedSecondsForDriverDay(
+                                                (int) $checkIn->driver_id,
+                                                $checkIn->check_in_date
+                                            );
+                                            $dailyRemaining = max(0, $dailyLimit - $dailyUsed);
+                                            $fmt = function (int $seconds): string {
+                                                $h = intdiv($seconds, 3600);
+                                                $m = intdiv($seconds % 3600, 60);
+                                                $s = $seconds % 60;
+                                                return sprintf('%dh %02dm %02ds', $h, $m, $s);
+                                            };
+                                        @endphp
+                                        <div class="col-md-6 border-top pt-2">
+                                            <label class="form-label text-muted mb-0 small">Daily Used / Limit</label>
+                                            <div class="fw-medium">{{ $fmt($dailyUsed) }} / {{ $fmt($dailyLimit) }}</div>
+                                        </div>
+                                        <div class="col-md-6 border-top pt-2">
+                                            <label class="form-label text-muted mb-0 small">Daily Remaining</label>
+                                            <div class="fw-medium">{{ $fmt($dailyRemaining) }}</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
