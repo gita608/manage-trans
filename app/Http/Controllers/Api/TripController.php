@@ -28,7 +28,7 @@ class TripController extends Controller
         // Get all trips for today assigned to this driver with their crews (eager loaded to avoid N+1)
         $trips = Trip::where('driver_id', $driver->id)
             ->whereDate('trip_date', $today)
-            ->with(['crews' => function($q) {
+            ->with(['partner', 'crews' => function($q) {
                 $q->orderBy('pick_up_time', 'asc');
             }])
             ->get();
@@ -41,22 +41,15 @@ class TripController extends Controller
         $month = $today->format('F');
         $year = $today->format('Y');
 
-        // Process trips into three categories: completed, ongoing, and pending
-        [$completed, $notCompleted] = $trips->partition(function($trip) {
-            return $trip->isCompleted();
-        });
-
-        // Further partition not-completed trips into ongoing and pending
-        [$ongoing, $pending] = $notCompleted->partition(function($trip) {
-            return $trip->status === TripCrew::STATUS_IN_PROGRESS;
-        });
-
-        // Map completed trips to response format
-        $completedTrips = $completed->map(function($trip) use ($dateShort) {
+        // Helper to format a trip
+        $mapTrip = function($trip) {
+            $tripDate = $trip->trip_date instanceof Carbon ? $trip->trip_date : Carbon::parse($trip->trip_date);
             return [
                 'trip_id' => $trip->id,
                 'trip_title' => $trip->title,
-                'trip_date' => $dateShort,
+                'partner_name' => $trip->partner?->title,
+                'trip_date' => $tripDate->format('Y-m-d'),
+                'trip_date_formatted' => $tripDate->format('l, F j, Y'),
                 'crews' => $trip->crews->map(function($crew) {
                     return [
                         'id' => $crew->id,
@@ -67,43 +60,25 @@ class TripController extends Controller
                     ];
                 })->values(),
             ];
-        })->values();
+        };
 
-        // Map ongoing trips to response format
-        $ongoingTrips = $ongoing->map(function($trip) use ($dateShort) {
-            return [
-                'trip_id' => $trip->id,
-                'trip_title' => $trip->title,
-                'trip_date' => $dateShort,
-                'crews' => $trip->crews->map(function($crew) {
-                    return [
-                        'id' => $crew->id,
-                        'name' => $crew->name,
-                        'phone' => $crew->phone,
-                        'phone_2' => $crew->phone_2,
-                        'address' => $crew->address,
-                    ];
-                })->values(),
-            ];
-        })->values();
+        // Partition trips by status into completed, ongoing, pending, cancelled
+        $completedTrips = collect();
+        $ongoingTrips = collect();
+        $pendingTrips = collect();
+        $cancelledTrips = collect();
 
-        // Map pending trips to response format
-        $pendingTrips = $pending->map(function($trip) use ($dateShort) {
-            return [
-                'trip_id' => $trip->id,
-                'trip_title' => $trip->title,
-                'trip_date' => $dateShort,
-                'crews' => $trip->crews->map(function($crew) {
-                    return [
-                        'id' => $crew->id,
-                        'name' => $crew->name,
-                        'phone' => $crew->phone,
-                        'phone_2' => $crew->phone_2,
-                        'address' => $crew->address,
-                    ];
-                })->values(),
-            ];
-        })->values();
+        foreach ($trips as $trip) {
+            if ($trip->status === TripCrew::STATUS_COMPLETED) {
+                $completedTrips->push($mapTrip($trip));
+            } elseif ($trip->status === TripCrew::STATUS_IN_PROGRESS) {
+                $ongoingTrips->push($mapTrip($trip));
+            } elseif ($trip->status === TripCrew::STATUS_CANCELLED) {
+                $cancelledTrips->push($mapTrip($trip));
+            } else {
+                $pendingTrips->push($mapTrip($trip));
+            }
+        }
 
         return response()->json([
             'success' => true,
@@ -121,11 +96,13 @@ class TripController extends Controller
                     'completed' => $completedTrips->count(),
                     'ongoing' => $ongoingTrips->count(),
                     'pending' => $pendingTrips->count(),
+                    'cancelled' => $cancelledTrips->count(),
                 ],
                 'tasks' => [
-                    'pending' => $pendingTrips->all(),
-                    'ongoing' => $ongoingTrips->all(),
-                    'completed' => $completedTrips->all(),
+                    'pending' => $pendingTrips->values()->all(),
+                    'ongoing' => $ongoingTrips->values()->all(),
+                    'completed' => $completedTrips->values()->all(),
+                    'cancelled' => $cancelledTrips->values()->all(),
                 ],
             ],
         ], 200);
@@ -145,7 +122,7 @@ class TripController extends Controller
 
         // Find trip assigned to this driver
         $trip = Trip::where('id', $id)
-            ->with(['crews.vessel', 'tripIssues.issueType', 'tripIssues.driver', 'tripExpenses.expenseType', 'tripExpenses.driver'])
+            ->with(['partner', 'crews.vessel', 'tripIssues.issueType', 'tripIssues.driver', 'tripExpenses.expenseType', 'tripExpenses.driver'])
             ->first();
 
         if (!$trip) {
@@ -257,6 +234,7 @@ class TripController extends Controller
             'data' => [
                 'trip_id' => $trip->id,
                 'trip_title' => $trip->title,
+                'partner_name' => $trip->partner?->title,
                 'trip_date' => [
                     'date' => $tripDate->format('Y-m-d'),
                     'formatted' => $tripDate->format('l, F j, Y'),

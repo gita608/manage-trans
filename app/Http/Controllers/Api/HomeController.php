@@ -44,7 +44,7 @@ class HomeController extends Controller
         // Fetch ongoing trip - trip with in_progress status
         $ongoingTrip = $driver->trips()
             ->where('status', TripCrew::STATUS_IN_PROGRESS)
-            ->with(['crews.vessel'])
+            ->with(['partner', 'crews.vessel'])
             ->orderBy('trip_date', 'desc')
             ->first();
 
@@ -61,7 +61,7 @@ class HomeController extends Controller
         }
         
         $nextTrip = $nextTripQuery
-            ->with(['crews.vessel'])
+            ->with(['partner', 'crews.vessel'])
             ->orderBy('trip_date', 'asc')
             ->orderBy('id', 'asc')
             ->first();
@@ -69,7 +69,7 @@ class HomeController extends Controller
         // Last completed trip - trip with completed status
         $lastCompletedTrip = $driver->trips()
             ->where('status', TripCrew::STATUS_COMPLETED)
-            ->with(['crews.vessel'])
+            ->with(['partner', 'crews.vessel'])
             ->orderBy('trip_date', 'desc')
             ->first();
 
@@ -109,31 +109,40 @@ class HomeController extends Controller
         $tripDate = $trip->trip_date instanceof Carbon ? $trip->trip_date : Carbon::parse($trip->trip_date);
 
         // Format all crews with their basic details
-        $formattedCrews = $crews->map(function ($crew) {
+        $formattedCrews = $crews->map(function ($crew) use ($trip) {
+            $pickupTime = null;
+            if ($crew->pick_up_time) {
+                try {
+                    $pickupTime = Carbon::parse($crew->pick_up_time)->format('g:i A');
+                } catch (\Exception $e) {
+                    $pickupTime = $crew->pick_up_time;
+                }
+            }
+
             return [
+                'id' => $crew->id,
                 'name' => $crew->name,
                 'phone' => $crew->phone,
-                'phone_2' => $crew->phone_2,
-                'vessel' => $crew->vessel->name,
-                'flight_number' => $crew->flight_number,
-                'remarks' => $crew->remarks,
-                'sub_remark' => $crew->sub_remark,
-                'pick_up_time' => $crew->pick_up_time ? Carbon::parse($crew->pick_up_time)->subHours(12)->format('h:i A') : null,
                 'from_location' => $crew->from_location,
                 'to_location' => $crew->to_location,
+                'pick_up_time' => $pickupTime,
+                'vessel' => $crew->vessel?->name,
+                'remarks' => $crew->remarks,
+                'sub_remark' => $crew->sub_remark,
+                'flight_number' => $crew->flight_number,
+                'status' => $trip->status,
             ];
-        })->toArray();
+        })->values()->toArray();
 
-        $formatted = [
+        return [
             'trip_id' => $trip->id,
             'trip_title' => $trip->title,
-            'trip_date' => $tripDate->format(format: 'd-m-Y'),
+            'partner_name' => $trip->partner?->title,
+            'trip_date' => $tripDate->format('Y-m-d'),
+            'trip_date_formatted' => $tripDate->format('l, F j, Y'),
             'status' => $trip->status,
             'crews' => $formattedCrews,
-            'total_crew_count' => $crews->count(),
         ];
-
-        return $formatted;
     }
 }
 
