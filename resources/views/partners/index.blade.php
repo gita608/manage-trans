@@ -91,6 +91,11 @@
                                     </td>
                                     <td>
                                         <div class="d-flex gap-2">
+                                            @if(auth()->user()->hasPermission('view_partners'))
+                                                <a href="{{ route('partners.users.index', $partner) }}" class="btn btn-sm btn-info" title="Manage Users">
+                                                    <i class="ri-user-settings-line"></i>
+                                                </a>
+                                            @endif
                                             <a href="{{ route('partners.edit', $partner) }}" class="btn btn-sm btn-primary" title="Edit">
                                                 <i class="ri-pencil-line"></i>
                                             </a>

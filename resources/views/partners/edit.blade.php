@@ -55,11 +55,33 @@
                     <div class="mb-3">
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" id="is_default" name="is_default" value="1" {{ old('is_default', $partner->is_default) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="is_default">
+            
+
+                <label class="form-check-label" for="is_default">
                                 Set as Default Partner
                             </label>
                         </div>
                         <small class="text-muted">If checked, this partner will be set as the default partner and all other partners will be unset as default.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Partner Portal Submission Methods</label>
+                        
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="allow_manual_submission" name="allow_manual_submission" value="1" {{ old('allow_manual_submission', $partner->allow_manual_submission) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="allow_manual_submission">
+                                Allow Manual Submission
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mb-2">Partner users can manually enter request details through web forms.</small>
+
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="allow_image_submission" name="allow_image_submission" value="1" {{ old('allow_image_submission', $partner->allow_image_submission) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="allow_image_submission">
+                                Allow Image Upload Submission
+                            </label>
+                        </div>
+                        <small class="text-muted d-block">Partner users can upload images for automatic data extraction.</small>
                     </div>
 
                     <div class="mt-4">

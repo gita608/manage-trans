@@ -20,6 +20,7 @@ use App\Http\Controllers\DailyActivityController;
 use App\Http\Controllers\DriverCheckInController;
 use App\Http\Controllers\PublicPagesController;
 use App\Http\Controllers\PartnerController;
+use App\Http\Controllers\PartnerUserController;
 use App\Http\Controllers\PwaController;
 
 // Root route - show login for guests, redirect to dashboard if authenticated
@@ -287,4 +288,34 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['permission:delete_partners'])->group(function () {
         Route::delete('/partners/{partner}', [PartnerController::class, 'destroy'])->name('partners.destroy');
     });
+
+    // Partner User Management Routes (nested under partners)
+    Route::middleware(['permission:view_partners'])->group(function () {
+        Route::get('/partners/{partner}/users', [PartnerUserController::class, 'index'])->name('partners.users.index');
+    });
+
+    Route::middleware(['permission:edit_partners'])->group(function () {
+        Route::get('/partners/{partner}/users/create', [PartnerUserController::class, 'create'])->name('partners.users.create');
+        Route::post('/partners/{partner}/users', [PartnerUserController::class, 'store'])->name('partners.users.store');
+        Route::get('/partners/{partner}/users/{partnerUser}/edit', [PartnerUserController::class, 'edit'])->name('partners.users.edit');
+        Route::put('/partners/{partner}/users/{partnerUser}', [PartnerUserController::class, 'update'])->name('partners.users.update');
+        Route::put('/partners/{partner}/users/{partnerUser}/password', [PartnerUserController::class, 'updatePassword'])->name('partners.users.updatePassword');
+        Route::patch('/partners/{partner}/users/{partnerUser}/toggle-status', [PartnerUserController::class, 'toggleStatus'])->name('partners.users.toggleStatus');
+    });
+});
+
+// Partner Portal Routes
+use App\Http\Controllers\Partner\AuthController as PartnerAuthController;
+use App\Http\Controllers\Partner\DashboardController as PartnerDashboardController;
+
+// Partner Guest Routes (Not authenticated)
+Route::middleware(['guest:partner'])->prefix('partner')->name('partner.')->group(function () {
+    Route::get('/login', [PartnerAuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [PartnerAuthController::class, 'login'])->middleware('throttle:5,1')->name('login.submit');
+});
+
+// Partner Protected Routes (Authenticated)
+Route::middleware(['auth:partner', 'partner.active'])->prefix('partner')->name('partner.')->group(function () {
+    Route::get('/', [PartnerDashboardController::class, 'index'])->name('dashboard');
+    Route::post('/logout', [PartnerAuthController::class, 'logout'])->name('logout');
 });
