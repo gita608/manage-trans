@@ -61,7 +61,8 @@ class PartnerRequestItem extends Model
     }
 
     /**
-     * Get the vessel assigned to this item (internal review field).
+     * Get the vessel selected for this item.
+     * Partners may set vessel_id on manual requests; Manage Trans may also adjust it during review.
      */
     public function vessel()
     {

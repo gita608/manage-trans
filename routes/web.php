@@ -307,6 +307,7 @@ Route::middleware(['auth'])->group(function () {
 // Partner Portal Routes
 use App\Http\Controllers\Partner\AuthController as PartnerAuthController;
 use App\Http\Controllers\Partner\DashboardController as PartnerDashboardController;
+use App\Http\Controllers\Partner\RequestController as PartnerRequestController;
 
 // Partner Guest Routes (Not authenticated)
 Route::middleware(['guest:partner'])->prefix('partner')->name('partner.')->group(function () {
@@ -318,4 +319,13 @@ Route::middleware(['guest:partner'])->prefix('partner')->name('partner.')->group
 Route::middleware(['auth:partner', 'partner.active'])->prefix('partner')->name('partner.')->group(function () {
     Route::get('/', [PartnerDashboardController::class, 'index'])->name('dashboard');
     Route::post('/logout', [PartnerAuthController::class, 'logout'])->name('logout');
+    
+    // Partner Request Routes
+    Route::get('/requests', [PartnerRequestController::class, 'index'])->name('requests.index');
+    Route::get('/requests/create', [PartnerRequestController::class, 'create'])->name('requests.create');
+    Route::post('/requests', [PartnerRequestController::class, 'store'])->name('requests.store');
+    Route::get('/requests/{partnerRequest}', [PartnerRequestController::class, 'show'])->name('requests.show');
+    Route::get('/requests/{partnerRequest}/edit', [PartnerRequestController::class, 'edit'])->name('requests.edit');
+    Route::put('/requests/{partnerRequest}', [PartnerRequestController::class, 'update'])->name('requests.update');
+    Route::patch('/requests/{partnerRequest}/withdraw', [PartnerRequestController::class, 'withdraw'])->name('requests.withdraw');
 });

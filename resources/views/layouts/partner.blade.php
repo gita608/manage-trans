@@ -124,7 +124,19 @@
                             </a>
                         </li>
 
-                        <!-- Additional menu items will be added in future phases -->
+                        @if(Auth::guard('partner')->user()->partner->allow_manual_submission)
+                            <li class="nav-item">
+                                <a class="nav-link menu-link {{ request()->routeIs('partner.requests.create') ? 'active' : '' }}" href="{{ route('partner.requests.create') }}">
+                                    <i class="ri-add-circle-line"></i> <span>New Request</span>
+                                </a>
+                            </li>
+                        @endif
+
+                        <li class="nav-item">
+                            <a class="nav-link menu-link {{ request()->routeIs('partner.requests.*') && !request()->routeIs('partner.requests.create') ? 'active' : '' }}" href="{{ route('partner.requests.index') }}">
+                                <i class="ri-file-list-3-line"></i> <span>My Requests</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
