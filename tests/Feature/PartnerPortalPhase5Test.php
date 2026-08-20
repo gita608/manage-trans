@@ -407,6 +407,77 @@ class PartnerPortalPhase5Test extends TestCase
             ->assertSee('>1<', false);
     }
 
+    public function test_guest_cannot_access_pending_count_or_live_queue(): void
+    {
+        $this->get(route('partner-requests.pending-count'))->assertRedirect(route('login'));
+        $this->get(route('partner-requests.live'))->assertRedirect(route('login'));
+    }
+
+    public function test_user_without_view_trips_cannot_access_pending_count_or_live_queue(): void
+    {
+        $staff = $this->createStaff();
+        $this->actingAs($staff)->get(route('partner-requests.pending-count'))->assertRedirect(route('error.403'));
+        $this->actingAs($staff)->get(route('partner-requests.live'))->assertRedirect(route('error.403'));
+    }
+
+    public function test_partner_guard_cannot_access_pending_count_or_live_queue(): void
+    {
+        [$partner, $partnerUser] = $this->createPartnerContext();
+
+        $this->actingAs($partnerUser, 'partner')
+            ->get(route('partner-requests.pending-count'))
+            ->assertRedirect(route('login'));
+
+        $this->actingAs($partnerUser, 'partner')
+            ->get(route('partner-requests.live'))
+            ->assertRedirect(route('login'));
+    }
+
+    public function test_authorized_staff_receives_pending_count_json(): void
+    {
+        [$partner, $partnerUser] = $this->createPartnerContext();
+        $this->createPendingRequest($partner, $partnerUser);
+        PartnerRequest::create([
+            'partner_id' => $partner->id,
+            'submission_method' => PartnerRequest::METHOD_MANUAL,
+            'status' => PartnerRequest::STATUS_APPROVED,
+            'submitted_at' => now(),
+        ]);
+
+        $staff = $this->createStaff(['view_trips']);
+        $this->actingAs($staff)
+            ->getJson(route('partner-requests.pending-count'))
+            ->assertOk()
+            ->assertJson(['pending_count' => 1]);
+    }
+
+    public function test_live_queue_fragment_includes_pending_request_and_respects_filters(): void
+    {
+        [$partner, $partnerUser] = $this->createPartnerContext();
+        $pending = $this->createPendingRequest($partner, $partnerUser);
+        $approved = PartnerRequest::create([
+            'partner_id' => $partner->id,
+            'submission_method' => PartnerRequest::METHOD_MANUAL,
+            'status' => PartnerRequest::STATUS_APPROVED,
+            'submitted_at' => now(),
+        ]);
+
+        $staff = $this->createStaff(['view_trips']);
+
+        $this->actingAs($staff)
+            ->get(route('partner-requests.live'))
+            ->assertOk()
+            ->assertSee($pending->fresh()->request_reference)
+            ->assertDontSee($approved->fresh()->request_reference)
+            ->assertDontSee('Request Queue');
+
+        $this->actingAs($staff)
+            ->get(route('partner-requests.live', ['status' => 'approved']))
+            ->assertOk()
+            ->assertSee($approved->fresh()->request_reference)
+            ->assertDontSee($pending->fresh()->request_reference);
+    }
+
     public function test_pending_manual_request_detail_is_read_only(): void
     {
         [$partner, $partnerUser] = $this->createPartnerContext();
@@ -1011,6 +1082,40 @@ class PartnerPortalPhase5Test extends TestCase
 
         $request->update(['status' => PartnerRequest::STATUS_DECLINED, 'decline_reason' => 'No']);
         Storage::disk('local')->assertExists($path);
+    }
+
+    public function test_internal_image_endpoint_blocks_path_traversal_and_arbitrary_paths(): void
+    {
+        Storage::fake('local');
+        [$partner, $partnerUser] = $this->createPartnerContext();
+        $authorized = $this->createStaff(['view_trips']);
+        Storage::disk('local')->put('temp/internal-secret.jpg', 'secret');
+
+        $traversalRequest = PartnerRequest::create([
+            'partner_id' => $partner->id,
+            'partner_user_id' => $partnerUser->id,
+            'submission_method' => PartnerRequest::METHOD_IMAGE,
+            'status' => PartnerRequest::STATUS_PENDING,
+            'submitted_at' => now(),
+            'source_image_path' => 'partner-requests/'.$partner->id.'/../temp/internal-secret.jpg',
+        ]);
+
+        $this->actingAs($authorized)
+            ->get(route('partner-requests.image', $traversalRequest))
+            ->assertNotFound();
+
+        $arbitraryRequest = PartnerRequest::create([
+            'partner_id' => $partner->id,
+            'partner_user_id' => $partnerUser->id,
+            'submission_method' => PartnerRequest::METHOD_IMAGE,
+            'status' => PartnerRequest::STATUS_PENDING,
+            'submitted_at' => now(),
+            'source_image_path' => 'temp/internal-secret.jpg',
+        ]);
+
+        $this->actingAs($authorized)
+            ->get(route('partner-requests.image', $arbitraryRequest))
+            ->assertNotFound();
     }
 
     public function test_partner_portal_shows_decline_reason_approved_zero_trips_message_and_trip_references(): void

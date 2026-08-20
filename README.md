@@ -23,7 +23,7 @@ ManageTrans is a Laravel-based transportation management platform with:
 * **Settings** — App name, branding, timezone, auth toggles
 * **Public pages** — Privacy policy, contact
 * **Installable app** — Works on phones and installs to the home screen or desktop, with an offline fallback page
-* **Partner Portal** — Multi-user Partner login, manual/image transportation requests, internal review/approval, REQ→TRP traceability and operational Trip integration
+* **Partner Portal** — Multi-user Partner login; manual/image transportation requests; internal approve/decline; approved requests continue through normal Trip creation with REQ↔TRP lineage retained
 
 ## Tech Stack
 

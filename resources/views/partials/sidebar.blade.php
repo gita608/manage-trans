@@ -61,9 +61,9 @@
                         href="{{ route('partner-requests.index') }}">
                         <i class="ri-file-list-3-line"></i>
                         <span>Partner Requests</span>
-                        @if(($pendingPartnerRequestCount ?? 0) > 0)
-                            <span class="badge rounded-pill bg-warning ms-1">{{ $pendingPartnerRequestCount }}</span>
-                        @endif
+                        <span class="badge rounded-pill bg-warning ms-1"
+                              data-partner-request-pending-badge
+                              @if(($pendingPartnerRequestCount ?? 0) < 1) hidden @endif>{{ $pendingPartnerRequestCount ?? 0 }}</span>
                     </a>
                 </li>
                 @endif

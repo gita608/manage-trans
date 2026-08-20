@@ -922,6 +922,95 @@ class PartnerPortalPhase4Test extends TestCase
             ->assertDontSee($path);
     }
 
+    public function test_image_storage_failure_before_req_creation_leaves_no_persisted_data(): void
+    {
+        $filesystem = Mockery::mock(\Illuminate\Contracts\Filesystem\Filesystem::class);
+        $filesystem->shouldReceive('putFileAs')->andReturn(false);
+        $filesystem->shouldReceive('exists')->andReturn(false);
+        Storage::shouldReceive('disk')->with('local')->andReturn($filesystem);
+
+        $user = $this->createPartnerUser();
+
+        $response = $this->actingAs($user, 'partner')
+            ->post(route('partner.requests.image.store'), [
+                'image' => $this->validImage(),
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas(
+            'error',
+            'Your image could not be uploaded. Please try again.'
+        );
+
+        $this->assertDatabaseCount('partner_requests', 0);
+        $this->assertDatabaseCount('partner_request_items', 0);
+        $this->assertDatabaseCount('trips', 0);
+    }
+
+    public function test_partner_image_endpoint_blocks_path_traversal(): void
+    {
+        Storage::fake('local');
+        $user = $this->createPartnerUser();
+        $otherPartnerId = $user->partner_id + 99;
+        $secretPath = 'partner-requests/'.$otherPartnerId.'/secret.jpg';
+        Storage::disk('local')->put($secretPath, 'secret-bytes');
+
+        $request = PartnerRequest::create([
+            'partner_id' => $user->partner_id,
+            'partner_user_id' => $user->id,
+            'submission_method' => PartnerRequest::METHOD_IMAGE,
+            'status' => PartnerRequest::STATUS_PENDING,
+            'request_reference' => 'REQ-000110',
+            'source_image_path' => 'partner-requests/'.$user->partner_id.'/../'.$otherPartnerId.'/secret.jpg',
+        ]);
+
+        $this->actingAs($user, 'partner')
+            ->get(route('partner.requests.image', $request))
+            ->assertNotFound();
+    }
+
+    public function test_partner_image_endpoint_blocks_another_partners_storage_prefix(): void
+    {
+        Storage::fake('local');
+        $user = $this->createPartnerUser();
+        $otherPartner = Partner::create(['title' => 'Other Partner']);
+        $secretPath = 'partner-requests/'.$otherPartner->id.'/secret.jpg';
+        Storage::disk('local')->put($secretPath, 'secret-bytes');
+
+        $request = PartnerRequest::create([
+            'partner_id' => $user->partner_id,
+            'partner_user_id' => $user->id,
+            'submission_method' => PartnerRequest::METHOD_IMAGE,
+            'status' => PartnerRequest::STATUS_PENDING,
+            'request_reference' => 'REQ-000111',
+            'source_image_path' => $secretPath,
+        ]);
+
+        $this->actingAs($user, 'partner')
+            ->get(route('partner.requests.image', $request))
+            ->assertNotFound();
+    }
+
+    public function test_partner_image_endpoint_blocks_arbitrary_private_path(): void
+    {
+        Storage::fake('local');
+        $user = $this->createPartnerUser();
+        Storage::disk('local')->put('temp/private.jpg', 'secret-bytes');
+
+        $request = PartnerRequest::create([
+            'partner_id' => $user->partner_id,
+            'partner_user_id' => $user->id,
+            'submission_method' => PartnerRequest::METHOD_IMAGE,
+            'status' => PartnerRequest::STATUS_PENDING,
+            'request_reference' => 'REQ-000112',
+            'source_image_path' => 'temp/private.jpg',
+        ]);
+
+        $this->actingAs($user, 'partner')
+            ->get(route('partner.requests.image', $request))
+            ->assertNotFound();
+    }
+
     protected function tearDown(): void
     {
         Mockery::close();

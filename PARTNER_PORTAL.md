@@ -26,7 +26,7 @@ Development branch:
 
 Latest completed Partner Portal commit:
 
-`de53665` feat: integrate partner trips with operations
+`ad2368c` feat: polish partner portal and simplify request workflow
 
 Completed:
 

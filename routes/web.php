@@ -166,6 +166,8 @@ Route::middleware(['auth:web'])->group(function () {
     // Partner Request Review Routes (internal operational workflow)
     Route::middleware(['permission:view_trips'])->group(function () {
         Route::get('/partner-requests', [PartnerRequestReviewController::class, 'index'])->name('partner-requests.index');
+        Route::get('/partner-requests/pending-count', [PartnerRequestReviewController::class, 'pendingCount'])->name('partner-requests.pending-count');
+        Route::get('/partner-requests/live', [PartnerRequestReviewController::class, 'live'])->name('partner-requests.live');
         Route::get('/partner-requests/{partnerRequest}', [PartnerRequestReviewController::class, 'show'])->name('partner-requests.show');
         Route::get('/partner-requests/{partnerRequest}/image', [PartnerRequestReviewController::class, 'image'])->name('partner-requests.image');
     });

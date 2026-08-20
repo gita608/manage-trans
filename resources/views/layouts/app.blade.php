@@ -93,6 +93,14 @@
 
     @stack('scripts')
 
+    @if(auth()->check() && auth()->user()?->hasPermission('view_trips'))
+        <script>
+            document.documentElement.setAttribute('data-partner-request-pending-count-url', @json(route('partner-requests.pending-count')));
+            document.documentElement.setAttribute('data-partner-request-live-url', @json(route('partner-requests.live')));
+        </script>
+        <script src="{{ assetVersioned('assets/js/partner-request-live.js') }}"></script>
+    @endif
+
     <!-- App.js Compatibility Wrapper - Must load before app.js -->
     <script src="{{ asset('assets/js/app-compat.js') }}"></script>
     <!-- App js -->

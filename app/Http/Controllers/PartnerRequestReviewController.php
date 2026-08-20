@@ -14,46 +14,19 @@ class PartnerRequestReviewController extends Controller
 {
     public function index(Request $request)
     {
-        $status = $request->get('status', 'pending');
-        $submissionMethod = $request->get('submission_method', 'all');
-        $partnerId = $request->get('partner_id');
-        $search = trim((string) $request->get('search'));
+        return view('partner-requests.index', $this->queueViewData($request, true));
+    }
 
-        $query = PartnerRequest::query()
-            ->with(['partner', 'partnerUser'])
-            ->withCount('items');
+    public function pendingCount()
+    {
+        return response()->json([
+            'pending_count' => $this->pendingRequestCount(),
+        ]);
+    }
 
-        if ($status !== 'all') {
-            $query->where('status', $status);
-        }
-
-        if ($submissionMethod !== 'all') {
-            $query->where('submission_method', $submissionMethod);
-        }
-
-        if (!empty($partnerId)) {
-            $query->where('partner_id', $partnerId);
-        }
-
-        if ($search !== '') {
-            $query->where(function ($builder) use ($search) {
-                $builder->where('request_reference', 'like', '%' . $search . '%')
-                    ->orWhereHas('partner', function ($partnerQuery) use ($search) {
-                        $partnerQuery->where('title', 'like', '%' . $search . '%');
-                    });
-            });
-        }
-
-        if ($status === 'pending') {
-            $query->orderBy('submitted_at');
-        } else {
-            $query->latest('submitted_at');
-        }
-
-        $partnerRequests = $query->paginate(20)->appends($request->query());
-        $partners = Partner::orderBy('title')->get(['id', 'title']);
-
-        return view('partner-requests.index', compact('partnerRequests', 'partners', 'status', 'submissionMethod', 'partnerId', 'search'));
+    public function live(Request $request)
+    {
+        return view('partner-requests.partials.queue-live', $this->queueViewData($request, false));
     }
 
     public function show(PartnerRequest $partnerRequest)
@@ -150,6 +123,67 @@ class PartnerRequestReviewController extends Controller
             Storage::disk('local')->path($storedPath),
             ['Content-Type' => Storage::disk('local')->mimeType($storedPath)]
         );
+    }
+
+    protected function queueViewData(Request $request, bool $includePartners): array
+    {
+        $status = $request->get('status', 'pending');
+        $submissionMethod = $request->get('submission_method', 'all');
+        $partnerId = $request->get('partner_id');
+        $search = trim((string) $request->get('search'));
+
+        $query = PartnerRequest::query()
+            ->with(['partner', 'partnerUser'])
+            ->withCount('items');
+
+        if ($status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        if ($submissionMethod !== 'all') {
+            $query->where('submission_method', $submissionMethod);
+        }
+
+        if (!empty($partnerId)) {
+            $query->where('partner_id', $partnerId);
+        }
+
+        if ($search !== '') {
+            $query->where(function ($builder) use ($search) {
+                $builder->where('request_reference', 'like', '%' . $search . '%')
+                    ->orWhereHas('partner', function ($partnerQuery) use ($search) {
+                        $partnerQuery->where('title', 'like', '%' . $search . '%');
+                    });
+            });
+        }
+
+        if ($status === 'pending') {
+            $query->orderBy('submitted_at');
+        } else {
+            $query->latest('submitted_at');
+        }
+
+        $data = [
+            'partnerRequests' => $query->paginate(20)->appends($request->query()),
+            'status' => $status,
+            'submissionMethod' => $submissionMethod,
+            'partnerId' => $partnerId,
+            'search' => $search,
+            'pendingCount' => $this->pendingRequestCount(),
+        ];
+
+        if ($includePartners) {
+            $data['partners'] = Partner::orderBy('title')->get(['id', 'title']);
+        }
+
+        return $data;
+    }
+
+    protected function pendingRequestCount(): int
+    {
+        return PartnerRequest::query()
+            ->where('status', PartnerRequest::STATUS_PENDING)
+            ->count();
     }
 
     protected function isValidPartnerRequestImagePath(string $storedPath, int $partnerId): bool

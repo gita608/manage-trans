@@ -9,8 +9,10 @@ use App\Models\Trip;
 use App\Models\TripCrew;
 use App\Models\TripExpenseType;
 use App\Models\TripIssueType;
+use App\Models\User;
 use App\Models\Vessel;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -29,7 +31,7 @@ class DriverTripApiSecurityTest extends TestCase
         foreach ([
             'personal_access_tokens', 'trip_expenses', 'trip_expense_types',
             'trip_issues', 'trip_issue_types', 'activity_logs', 'trip_crews',
-            'trips', 'partner_requests', 'partners', 'vessels', 'drivers',
+            'trips', 'partner_requests', 'partners', 'vessels', 'drivers', 'users',
         ] as $table) {
             Schema::dropIfExists($table);
         }
@@ -40,6 +42,16 @@ class DriverTripApiSecurityTest extends TestCase
             $table->string('name');
             $table->tinyInteger('type')->default(1);
             $table->string('notification_token')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->string('password');
+            $table->integer('role')->default(User::ROLE_STAFF);
+            $table->rememberToken();
             $table->timestamps();
         });
 
@@ -263,5 +275,49 @@ class DriverTripApiSecurityTest extends TestCase
             'expense_type_id' => $expenseType->id,
             'amount' => 99,
         ])->assertNotFound();
+    }
+
+    public function test_driver_api_access_flips_after_internal_reassignment(): void
+    {
+        $admin = User::create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'password' => Hash::make('password'),
+            'role' => User::ROLE_ADMIN,
+        ]);
+        $driverA = Driver::create(['name' => 'Driver A']);
+        $driverB = Driver::create(['name' => 'Driver B']);
+        $partner = Partner::first() ?? Partner::create(['title' => 'Partner A']);
+        $partnerRequest = PartnerRequest::create([
+            'partner_id' => $partner->id,
+            'submission_method' => PartnerRequest::METHOD_MANUAL,
+            'status' => PartnerRequest::STATUS_APPROVED,
+        ]);
+        $trip = $this->createAssignedTrip($driverA, $partnerRequest);
+
+        Sanctum::actingAs($driverA);
+        $this->getJson(route('api.driver.trip.show', $trip->id))
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        Sanctum::actingAs($driverB);
+        $this->getJson(route('api.driver.trip.show', $trip->id))
+            ->assertNotFound()
+            ->assertJsonPath('success', false);
+
+        $this->actingAs($admin, 'web')->patch(route('trips.assign-driver', $trip), [
+            'driver_id' => $driverB->id,
+        ])->assertRedirect(route('trips.index'));
+
+        Sanctum::actingAs($driverA);
+        $this->getJson(route('api.driver.trip.show', $trip->id))
+            ->assertNotFound()
+            ->assertJsonPath('success', false);
+
+        Sanctum::actingAs($driverB);
+        $this->getJson(route('api.driver.trip.show', $trip->id))
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.trip_reference', $trip->fresh()->trip_reference);
     }
 }
