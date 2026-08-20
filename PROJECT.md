@@ -167,9 +167,9 @@ erDiagram
 
 ### 4.1 Partner Portal
 * `Partner` → `PartnerUsers` → `PartnerRequests` → `PartnerRequestItems` → operational `Trips` / `TripCrews`.
-* Dedicated `partner` guard; manual and image submission; private retained image source; internal review/approval.
+* Dedicated `partner` guard; manual and image submission; private retained image source; internal Approve/Decline (decision only).
 * Identity: `REQ-XXXXXX` (submission/review history) and `TRP-XXXXXX` (live operational Trip).
-* Approval groups items by Driver + date; `trips.partner_request_id` nullable (null for internal trips).
+* Approval creates zero Trips. Normal Trip create converts an approved REQ and groups crews by Driver + date. `trips.partner_request_id` is nullable (null for internal trips).
 * One REQ may produce one or many TRPs. Trip is live operational state; PartnerRequest is historical submission/review state.
 * Phase 6 operational integration complete (driver API, notifications, reports, lineage). Full contracts: [PARTNER_PORTAL.md](./PARTNER_PORTAL.md).
 

@@ -26,7 +26,7 @@ Development branch:
 
 Latest completed Partner Portal commit:
 
-`ad2368c` feat: polish partner portal and simplify request workflow
+`9850bb4` feat: enhance partner request review with live updates and pending count functionality
 
 Completed:
 
@@ -36,19 +36,28 @@ Completed:
 - Phase 4 — Image/Textract Partner requests
 - Phase 5 — Internal review + approval decision (REQ intake)
 - Phase 6 — Operational integration (Trip creation from approved REQ)
-- Phase 7 — Complete UI/UX improvement ✅
+- Phase 7 — Complete UI/UX improvement
+- Phase 8 — Final QA and release ✅
 
-Remaining:
+Partner Portal implementation is **READY FOR RELEASE REVIEW**.
 
-- Phase 8 — Final QA and release
+It is not merged to `main` and not deployed. `main` remains unchanged until
+explicit merge authorization.
 
-`main` remains production-oriented and must not be modified/merged until final
-release authorization.
+Current automated baseline:
 
-Current automated baseline after Phase 7:
+- 264 passed
+- 816 assertions
 
-- 253 passed
-- 774 assertions
+Phase 8 QA summary (concise):
+
+- Full automated suite passed (`sqlite` `:memory:`; Firebase/AWS mocked)
+- Partner auth/security, Manual/Image request E2E, Approve/Decline passed
+- Approved REQ → normal Trip creation; Driver+Date grouping; duplicate conversion protection passed
+- Driver API ownership, private image/path traversal, reports/lifecycle integration passed
+- Manual browser/mobile QA passed at 375px / 768px / 1440px (Partner + internal flows)
+- Accessibility/dark-mode runtime reviewed during that manual QA
+- Production-shaped migration status verified; full migration replay not repeated during Phase 8 to preserve restored data
 
 Phase 7 summary:
 
@@ -706,19 +715,20 @@ Focus:
 
 Do NOT change business rules/database architecture merely for UI redesign.
 
-## Phase 8 — Final QA / Release
+## Phase 8 — Final QA / Release ✅
 
-After UI/UX:
+Phase 8 is complete. Partner Portal is **READY FOR RELEASE REVIEW**.
 
-- full automated regression
-- complete Partner E2E
-- internal workflow E2E
-- driver workflow E2E
-- security
-- permissions
-- mobile/responsive
-- production-shaped migration check
-- branch diff review
+Not merged. Not deployed. `main` is unchanged until explicit authorization.
+
+Manual browser QA (passed): 375px / 768px / 1440px — Partner login/dashboard,
+Manual/Image requests, My Requests, request states, internal queue/detail,
+Approve/Decline, approved REQ → Trip Create, Partner Users, overflow, modals,
+dark mode, accessibility/focus/touch. This was manual QA, not automated browser
+evidence.
+
+Remaining after this branch (out of Phase 8 implementation):
+
 - draft PR when authorized
 - staging/UAT
 - merge to main only with authorization
