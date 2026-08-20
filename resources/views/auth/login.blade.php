@@ -82,6 +82,14 @@
     </button>
 </form>
 
+<div class="auth-footer mt-3 text-center">
+    <p class="text-muted small mb-0">
+        <i class="ri-building-line me-1" aria-hidden="true"></i>
+        Are you a partner?
+        <a href="{{ route('partner.login') }}" class="fw-medium">Sign in to Partner Portal</a>
+    </p>
+</div>
+
 @if(isset($enableSignup) && $enableSignup)
 <div class="auth-footer">
     <p>Don't have an account? <a href="{{ route('register') }}">Sign up</a></p>

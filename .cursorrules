@@ -1,5 +1,11 @@
 # Cursor Rules for ManageTrans
 
+For Partner Portal work, read `PARTNER_PORTAL.md` FIRST. It is the current
+source of truth for Partner Portal architecture and completed phases. Do not
+broadly explore the repository to rediscover information already documented
+there. Inspect implementation files only when the requested task requires
+details not covered by that document.
+
 Read `AGENTS.md` and `PROJECT.md` in the workspace root for architecture, database contracts, permissions, and API specs.
 
 Key Guidelines:
@@ -9,7 +15,7 @@ Key Guidelines:
 4. Mobile API (`routes/api.php`): `auth:sanctum`; JSON `{ "success": boolean, "data": ..., "message": ... }`.
 5. Eager-load lists: `with(['driver', 'crews.vessel', 'partner'])` (add expenses/issues when needed).
 6. Seed RBAC with `php artisan db:seed --class=PermissionSeeder` (not in default `DatabaseSeeder`).
-7. Textract temps on `local` disk must be deleted after parse; public media on `public` disk.
+7. OCR distinction: Internal Trip OCR uses a temporary `local` image — delete after parsing. Partner Request OCR stores a private source image on `local` — retain with the REQ as historical evidence. Public media (expenses, daily activities, photos) on `public` disk.
 8. Manual audit logs after API writes: `$model->saveQuietly()` first to avoid duplicate `LogsActivity` entries.
 9. `public/sw.js` caches static `/assets/**` only — never HTML or non-GET requests (CSRF/session). Regenerate icons with `php artisan pwa:icons`.
 10. Logos/favicons render through `brandingUrl()`; `public/assets` CSS/JS link through `assetVersioned()`.

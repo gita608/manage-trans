@@ -35,8 +35,13 @@ class PartnerController extends Controller
             'is_default' => ['nullable', 'boolean'],
         ]);
 
+        // Handle checkbox fields that may not be present when unchecked
+        $validated['is_default'] = $request->boolean('is_default');
+        $validated['allow_manual_submission'] = $request->boolean('allow_manual_submission');
+        $validated['allow_image_submission'] = $request->boolean('allow_image_submission');
+
         // If this partner is set as default, unset all other defaults
-        if (isset($validated['is_default']) && $validated['is_default']) {
+        if ($validated['is_default']) {
             Partner::where('is_default', true)->update(['is_default' => false]);
         }
 
@@ -63,12 +68,17 @@ class PartnerController extends Controller
             'is_default' => ['nullable', 'boolean'],
         ]);
 
+        // Handle checkbox fields that may not be present when unchecked
+        $validated['is_default'] = $request->boolean('is_default');
+        $validated['allow_manual_submission'] = $request->boolean('allow_manual_submission');
+        $validated['allow_image_submission'] = $request->boolean('allow_image_submission');
+
         // If this partner is set as default, unset all other defaults
-        if (isset($validated['is_default']) && $validated['is_default']) {
+        if ($validated['is_default']) {
             Partner::where('is_default', true)->where('id', '!=', $partner->id)->update(['is_default' => false]);
         } else {
             // If unsetting default, ensure at least one partner remains default
-            if ($partner->is_default && !($validated['is_default'] ?? false)) {
+            if ($partner->is_default) {
                 $otherPartner = Partner::where('id', '!=', $partner->id)->first();
                 if ($otherPartner) {
                     $otherPartner->update(['is_default' => true]);
@@ -86,16 +96,27 @@ class PartnerController extends Controller
      */
     public function destroy(Partner $partner)
     {
-        // If deleting the default partner, set another one as default
-        if ($partner->is_default) {
-            $otherPartner = Partner::where('id', '!=', $partner->id)->first();
-            if ($otherPartner) {
-                $otherPartner->update(['is_default' => true]);
+        try {
+            // If deleting the default partner, set another one as default first
+            if ($partner->is_default) {
+                $otherPartner = Partner::where('id', '!=', $partner->id)->first();
+                if ($otherPartner) {
+                    $otherPartner->update(['is_default' => true]);
+                }
             }
+
+            $partner->delete();
+
+            return redirect()->route('partners.index')->with('success', 'Partner deleted successfully!');
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Check if deletion failed due to RESTRICT constraint (existing requests)
+            if ($e->getCode() == '23000' || str_contains($e->getMessage(), 'RESTRICT') || str_contains($e->getMessage(), 'foreign key constraint')) {
+                return redirect()->route('partners.index')
+                    ->with('error', 'Cannot delete this partner because it has historical requests or users. Please contact support if you need assistance.');
+            }
+            
+            // Re-throw other exceptions
+            throw $e;
         }
-
-        $partner->delete();
-
-        return redirect()->route('partners.index')->with('success', 'Partner deleted successfully!');
     }
 }

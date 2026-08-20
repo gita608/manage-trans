@@ -6,7 +6,7 @@
 </div>
 @endif
 
-@if(session('error'))
+@if(session('error') && !session('approval_errors'))
 <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm" role="alert">
     <i class="ri-error-warning-line me-2 align-middle fs-16"></i>
     <strong>Error!</strong> {{ session('error') }}

@@ -7,24 +7,21 @@ use App\Models\TripCrew;
 use App\Models\Driver;
 use App\Models\Vessel;
 use App\Models\Partner;
-use App\Models\Notification;
+use App\Models\PartnerRequest;
 use App\Services\TextractService;
-use App\Services\FirebaseNotificationService;
+use App\Services\TripAssignmentNotificationService;
 use App\Services\TripLifecyclePresenter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class TripController extends Controller
 {
-    protected $firebaseService;
-
-    public function __construct(FirebaseNotificationService $firebaseService)
-    {
-        $this->firebaseService = $firebaseService;
+    public function __construct(
+        protected TripAssignmentNotificationService $tripAssignmentNotificationService
+    ) {
     }
 
     /**
@@ -32,7 +29,17 @@ class TripController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Trip::with(['driver', 'crews.vessel']);
+        $query = Trip::with(['driver', 'crews.vessel', 'partner', 'partnerRequest']);
+
+        $search = trim((string) $request->input('search', ''));
+        if ($search !== '') {
+            $query->where(function ($builder) use ($search) {
+                $builder->where('trip_reference', 'like', '%' . $search . '%')
+                    ->orWhereHas('partnerRequest', function ($partnerRequestQuery) use ($search) {
+                        $partnerRequestQuery->where('request_reference', 'like', '%' . $search . '%');
+                    });
+            });
+        }
 
         // Date Filtering Logic
         $dateFrom = $request->input('date_from');
@@ -152,10 +159,40 @@ class TripController extends Controller
     public function create()
     {
         $drivers = Driver::orderBy('name')->get();
-        $vessels = Vessel::orderBy('name')->get(); // Still needed for dynamic select
+        $vessels = Vessel::orderBy('name')->get();
         $partners = Partner::orderBy('is_default', 'desc')->orderBy('title')->get();
         $defaultPartner = Partner::where('is_default', true)->first();
+
         return view('trips.create', compact('drivers', 'vessels', 'partners', 'defaultPartner'));
+    }
+
+    public function createFromPartnerRequest(PartnerRequest $partnerRequest)
+    {
+        if (!$partnerRequest->isApproved()) {
+            abort(404);
+        }
+
+        if ($partnerRequest->trips()->exists()) {
+            return redirect()->route('partner-requests.show', $partnerRequest)
+                ->with('error', 'Operational trips have already been created from this request.');
+        }
+
+        $partnerRequest->load(['items.vessel', 'partner']);
+        $drivers = Driver::orderBy('name')->get();
+        $vessels = Vessel::orderBy('name')->get();
+        $partners = Partner::whereKey($partnerRequest->partner_id)->orderBy('title')->get();
+        $defaultPartner = $partnerRequest->partner;
+        $sourcePartnerRequest = $partnerRequest;
+        $prefillCrews = $this->buildCrewPrefillFromPartnerRequest($partnerRequest);
+
+        return view('trips.create', compact(
+            'drivers',
+            'vessels',
+            'partners',
+            'defaultPartner',
+            'sourcePartnerRequest',
+            'prefillCrews'
+        ));
     }
 
     /**
@@ -166,6 +203,7 @@ class TripController extends Controller
         $validated = $request->validate([
             'driver_id' => ['nullable', 'exists:drivers,id'],
             'partner_id' => ['nullable', 'exists:partners,id'],
+            'partner_request_id' => ['nullable', 'integer', 'exists:partner_requests,id'],
             'title' => ['nullable', 'string', 'max:255'],
             'crews' => ['required', 'array', 'min:1'],
             'crews.*.driver_id' => ['nullable', 'exists:drivers,id'],
@@ -193,8 +231,20 @@ class TripController extends Controller
             'crews.*.name.required' => 'Crew member name is required for every row.',
         ]);
 
+        $partnerRequestId = $request->input('partner_request_id');
+        $sourcePartnerRequest = null;
+
+        if ($partnerRequestId) {
+            $sourcePartnerRequest = PartnerRequest::query()->find($partnerRequestId);
+            if (!$sourcePartnerRequest || !$sourcePartnerRequest->isApproved()) {
+                return back()->withInput()->with('error', 'The source partner request is not approved.');
+            }
+        }
+
         $partnerId = $request->input('partner_id');
-        if (empty($partnerId) || $partnerId === '') {
+        if ($sourcePartnerRequest) {
+            $partnerId = $sourcePartnerRequest->partner_id;
+        } elseif (empty($partnerId) || $partnerId === '') {
             $defaultPartner = Partner::where('is_default', true)->first();
             $partnerId = $defaultPartner ? $defaultPartner->id : null;
         } else {
@@ -203,31 +253,68 @@ class TripController extends Controller
 
         $rootDriverId = $validated['driver_id'] ?? null;
         $groupedTrips = $this->groupCrewsByDriverAndDate($request->crews, $rootDriverId);
+        $tripIdsToNotify = [];
 
-        DB::transaction(function () use ($groupedTrips, $partnerId) {
-            foreach ($groupedTrips as $group) {
-                $driverId = $group['driver_id'];
-                $tripDate = $group['trip_date'];
-                $tripTitle = Trip::generateTripTitle($driverId, $tripDate);
-                $status = $driverId ? TripCrew::STATUS_ASSIGNED : TripCrew::STATUS_UNASSIGNED;
+        try {
+            DB::transaction(function () use ($groupedTrips, $partnerId, $partnerRequestId, &$tripIdsToNotify) {
+                if ($partnerRequestId) {
+                    $lockedRequest = PartnerRequest::query()
+                        ->whereKey($partnerRequestId)
+                        ->lockForUpdate()
+                        ->first();
 
-                $trip = Trip::create([
-                    'driver_id' => $driverId,
-                    'partner_id' => $partnerId,
-                    'trip_date' => $tripDate,
-                    'title' => $tripTitle,
-                    'status' => $status,
-                ]);
+                    if (!$lockedRequest || !$lockedRequest->isApproved()) {
+                        throw new \RuntimeException('source_not_approved');
+                    }
 
-                foreach ($group['crews'] as $crewData) {
-                    $trip->crews()->create($crewData);
+                    if ($lockedRequest->trips()->exists()) {
+                        throw new \RuntimeException('already_converted');
+                    }
+
+                    $partnerId = $lockedRequest->partner_id;
                 }
 
-                if ($driverId) {
-                    $this->sendTripNotification($trip);
+                foreach ($groupedTrips as $group) {
+                    $driverId = $group['driver_id'];
+                    $tripDate = $group['trip_date'];
+                    $tripTitle = Trip::generateTripTitle($driverId, $tripDate);
+                    $status = $driverId ? TripCrew::STATUS_ASSIGNED : TripCrew::STATUS_UNASSIGNED;
+
+                    $trip = Trip::create([
+                        'driver_id' => $driverId,
+                        'partner_id' => $partnerId,
+                        'partner_request_id' => $partnerRequestId,
+                        'trip_date' => $tripDate,
+                        'title' => $tripTitle,
+                        'status' => $status,
+                    ]);
+
+                    foreach ($group['crews'] as $crewData) {
+                        $trip->crews()->create($crewData);
+                    }
+
+                    if ($driverId) {
+                        $tripIdsToNotify[] = $trip->id;
+                    }
                 }
+            });
+        } catch (\RuntimeException $e) {
+            if ($e->getMessage() === 'already_converted' && $sourcePartnerRequest) {
+                return redirect()->route('partner-requests.show', $sourcePartnerRequest)
+                    ->with('error', 'Operational trips have already been created from this request.');
             }
-        });
+
+            return back()->withInput()->with('error', 'Unable to create trips from this partner request.');
+        }
+
+        foreach ($tripIdsToNotify as $tripId) {
+            $this->notifyTripAssignment($tripId);
+        }
+
+        if ($sourcePartnerRequest) {
+            return redirect()->route('partner-requests.show', $sourcePartnerRequest)
+                ->with('success', 'Operational trip(s) created successfully from the partner request.');
+        }
 
         return redirect()->route('trips.index')->with('success', 'Trip(s) created successfully!');
     }
@@ -237,7 +324,7 @@ class TripController extends Controller
      */
     public function show(Trip $trip)
     {
-        $trip->load(['driver', 'crews.vessel', 'activityLogs.user', 'activityLogs.driver', 'tripIssues.issueType', 'tripIssues.driver', 'tripExpenses.expenseType', 'tripExpenses.driver']);
+        $trip->load(['driver', 'crews.vessel', 'partner', 'partnerRequest', 'activityLogs.user', 'activityLogs.driver', 'tripIssues.issueType', 'tripIssues.driver', 'tripExpenses.expenseType', 'tripExpenses.driver']);
         
         // Calculate trip status data
         $totalJobs = $trip->crews->count();
@@ -263,7 +350,9 @@ class TripController extends Controller
         $drivers = Driver::orderBy('name')->get();
         $vessels = Vessel::orderBy('name')->get();
         $partners = Partner::orderBy('is_default', 'desc')->orderBy('title')->get();
-        return view('trips.edit', compact('trip', 'drivers', 'vessels', 'partners'));
+        $isPartnerSourced = (bool) $trip->partner_request_id;
+
+        return view('trips.edit', compact('trip', 'drivers', 'vessels', 'partners', 'isPartnerSourced'));
     }
 
     /**
@@ -304,8 +393,11 @@ class TripController extends Controller
         $partnerId = $validated['partner_id'] ?? null;
         $rootDriverId = $validated['driver_id'] ?? null;
         $groupedTrips = $this->groupCrewsByDriverAndDate($request->crews, $rootDriverId);
+        $resolvedPartnerId = $this->resolvePartnerIdForTrip($trip, $partnerId);
+        $partnerRequestId = $trip->partner_request_id;
+        $tripIdsToNotify = [];
 
-        DB::transaction(function () use ($groupedTrips, $partnerId, $trip) {
+        DB::transaction(function () use ($groupedTrips, $resolvedPartnerId, $partnerRequestId, $trip, &$tripIdsToNotify) {
             $isFirst = true;
             foreach ($groupedTrips as $group) {
                 $driverId = $group['driver_id'];
@@ -328,7 +420,7 @@ class TripController extends Controller
 
                     $updateData = [
                         'driver_id' => $driverId,
-                        'partner_id' => $partnerId,
+                        'partner_id' => $resolvedPartnerId,
                         'trip_date' => $groupTripDate,
                         'title' => $tripTitle,
                     ];
@@ -347,7 +439,7 @@ class TripController extends Controller
                     }
 
                     if ($driverNewlyAssigned) {
-                        $this->sendTripNotification($trip);
+                        $tripIdsToNotify[] = $trip->id;
                     }
 
                     $isFirst = false;
@@ -357,7 +449,8 @@ class TripController extends Controller
 
                     $newTrip = Trip::create([
                         'driver_id' => $driverId,
-                        'partner_id' => $partnerId,
+                        'partner_id' => $resolvedPartnerId,
+                        'partner_request_id' => $partnerRequestId,
                         'trip_date' => $groupTripDate,
                         'title' => $newTitle,
                         'status' => $newStatus,
@@ -368,11 +461,15 @@ class TripController extends Controller
                     }
 
                     if ($driverId) {
-                        $this->sendTripNotification($newTrip);
+                        $tripIdsToNotify[] = $newTrip->id;
                     }
                 }
             }
         });
+
+        foreach ($tripIdsToNotify as $tripId) {
+            $this->notifyTripAssignment($tripId);
+        }
 
         return redirect()->route('trips.index')->with('success', 'Trip updated successfully!');
     }
@@ -397,7 +494,7 @@ class TripController extends Controller
         ]);
 
         if ($driverNewlyAssigned) {
-            $this->sendTripNotification($trip);
+            $this->notifyTripAssignment($trip->id);
         }
 
         $driver = Driver::find($driverId);
@@ -458,6 +555,11 @@ class TripController extends Controller
      */
     public function destroy(Trip $trip)
     {
+        if ($trip->partner_request_id) {
+            return redirect()->back()
+                ->with('error', 'Trips created from Partner Requests cannot be deleted. Cancel the trip instead.');
+        }
+
         $trip->delete();
 
         return redirect()->route('trips.index')->with('success', 'Trip deleted successfully!');
@@ -615,7 +717,9 @@ class TripController extends Controller
             $partnerId = (int) $partnerId;
         }
 
-        DB::transaction(function () use ($groupedTrips, $partnerId, &$createdCount) {
+        $tripIdsToNotify = [];
+
+        DB::transaction(function () use ($groupedTrips, $partnerId, &$createdCount, &$tripIdsToNotify) {
             foreach ($groupedTrips as $group) {
                 $driverId = $group['driver_id'] ?: null;
                 $title = Trip::generateTripTitle($driverId, $group['trip_date']);
@@ -634,12 +738,16 @@ class TripController extends Controller
                 }
 
                 if ($driverId) {
-                    $this->sendTripNotification($trip);
+                    $tripIdsToNotify[] = $trip->id;
                 }
 
                 $createdCount++;
             }
         });
+
+        foreach ($tripIdsToNotify as $tripId) {
+            $this->notifyTripAssignment($tripId);
+        }
 
         if ($createdCount > 0) {
             return redirect()->route('trips.index')->with('success', "Successfully created {$createdCount} trip(s).");
@@ -868,51 +976,79 @@ class TripController extends Controller
         }
     }
 
-    /**
-     * Send push notification to driver when a trip is created
-     *
-     * @param Trip $trip
-     * @return void
-     */
-    protected function sendTripNotification(Trip $trip)
+    protected function resolvePartnerIdForTrip(Trip $trip, ?int $requestedPartnerId): ?int
     {
-        // Reload trip with relationships to ensure we have fresh data
-        $trip->load(['driver', 'crews']);
-        
-        if (!$trip->driver) {
-            return;
+        if ($trip->partner_request_id) {
+            $trip->loadMissing('partnerRequest');
+
+            return $trip->partnerRequest?->partner_id ?? $trip->partner_id;
         }
 
-        $driver = $trip->driver;
-        $tripDate = Carbon::parse($trip->trip_date)->format('M d, Y');
-        $crewCount = $trip->crews->count();
-        
-        // Prepare notification message
-        $title = 'New Trip Assigned';
-        $message = "You have been assigned a new trip on {$tripDate} with {$crewCount} " . ($crewCount === 1 ? 'crew member' : 'crew members') . ". Trip: {$trip->title}";
+        return $requestedPartnerId;
+    }
 
-        // Create database notification
-        try {
-            Notification::create([
-                'user_id' => Auth::id(),
-                'driver_id' => $driver->id,
-                'title' => $title,
-                'message' => $message,
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to create notification record: ' . $e->getMessage());
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    protected function buildCrewPrefillFromPartnerRequest(PartnerRequest $partnerRequest): array
+    {
+        if ($partnerRequest->items->isEmpty()) {
+            return [[
+                'name' => '',
+                'driver_id' => '',
+                'trip_date' => date('Y-m-d'),
+                'vessel_id' => '',
+                'pick_up_time' => '',
+                'from_location' => '',
+                'to_location' => '',
+                'phone' => '',
+                'phone_2' => '',
+                'remarks' => '',
+                'sub_remark' => '',
+                'address' => '',
+                'flight_number' => '',
+            ]];
         }
 
-        // Send push notification if driver has notification token
-        if ($driver->notification_token) {
-            try {
-                $this->firebaseService->sendToDriver($driver, $title, $message, null, [
-                    'type' => 'trip_assigned',
-                    'trip_id' => $trip->id,
-                ]);
-            } catch (\Exception $e) {
-                Log::error('Failed to send push notification: ' . $e->getMessage());
+        return $partnerRequest->items->map(function ($item) use ($partnerRequest) {
+            $crew = [
+                'trip_date' => $item->trip_date?->format('Y-m-d') ?? date('Y-m-d'),
+                'name' => $item->name ?? '',
+                'phone' => $item->phone ?? '',
+                'from_location' => $item->from_location ?? '',
+                'to_location' => $item->to_location ?? '',
+                'vessel_id' => $item->vessel_id ?? '',
+                'driver_id' => '',
+                'pick_up_time' => '',
+                'phone_2' => '',
+                'address' => '',
+                'flight_number' => '',
+                'remarks' => '',
+                'sub_remark' => '',
+            ];
+
+            if ($partnerRequest->isImage()) {
+                $crew['pick_up_time'] = $item->pick_up_time
+                    ? Carbon::parse($item->pick_up_time)->format('H:i')
+                    : '';
+                $crew['phone_2'] = $item->phone_2 ?? '';
+                $crew['address'] = $item->address ?? '';
+                $crew['flight_number'] = $item->flight_number ?? '';
+                $crew['remarks'] = $item->remarks ?? '';
+                $crew['sub_remark'] = $item->sub_remark ?? '';
             }
+
+            return $crew;
+        })->all();
+    }
+
+    protected function notifyTripAssignment(int $tripId): void
+    {
+        $trip = Trip::with(['driver', 'crews'])->find($tripId);
+
+        if ($trip) {
+            $this->tripAssignmentNotificationService->notifyDriverAssigned($trip, Auth::id());
         }
     }
 }
+

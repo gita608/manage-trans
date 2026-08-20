@@ -18,10 +18,27 @@ class Trip extends Model
     protected $fillable = [
         'driver_id',
         'partner_id',
+        'partner_request_id',
         'trip_date',
         'title',
         'status',
+        'trip_reference',
     ];
+
+    /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function ($trip) {
+            if (empty($trip->trip_reference)) {
+                $trip->trip_reference = sprintf('TRP-%06d', $trip->id);
+                $trip->saveQuietly();
+            }
+        });
+    }
 
     public function crews()
     {
@@ -142,6 +159,14 @@ class Trip extends Model
     public function partner()
     {
         return $this->belongsTo(Partner::class);
+    }
+
+    /**
+     * Get the partner request that this trip was created from.
+     */
+    public function partnerRequest()
+    {
+        return $this->belongsTo(PartnerRequest::class);
     }
 
     /**

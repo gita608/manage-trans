@@ -48,6 +48,11 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="partner_id" class="form-label fw-semibold">Partner</label>
+                                @if($isPartnerSourced)
+                                    <input type="hidden" name="partner_id" value="{{ $trip->partner_id }}">
+                                    <input type="text" class="form-control" value="{{ $trip->partner?->title ?? 'Partner Request Partner' }}" readonly>
+                                    <small class="text-muted">Partner is locked for trips created from Partner Requests.</small>
+                                @else
                                 <select class="form-select @error('partner_id') is-invalid @enderror" id="partner_id" name="partner_id">
                                     <option value="">Select Partner</option>
                                     @foreach($partners as $partner)
@@ -62,6 +67,7 @@
                                 @error('partner_id')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+                                @endif
                             </div>
                         </div>
                     </div>

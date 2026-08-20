@@ -51,8 +51,10 @@ class TripExpenseHoursTest extends TestCase
 
         Schema::create('trips', function (Blueprint $table) {
             $table->id();
+            $table->string('trip_reference')->unique()->nullable();
             $table->foreignId('driver_id')->nullable();
             $table->foreignId('partner_id')->nullable();
+            $table->foreignId('partner_request_id')->nullable();
             $table->date('trip_date');
             $table->string('title')->nullable();
             $table->string('status')->default('assigned');

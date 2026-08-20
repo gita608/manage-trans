@@ -235,34 +235,46 @@ class DriverAuthController extends Controller
 
         // Get trips with vessel relationship
         $trips = $driver->trips()
-            ->with('vessel')
+            ->with(['partner', 'crews.vessel'])
             ->orderBy('trip_date', 'desc')
-            ->orderBy('pick_up_time', 'desc')
+            ->orderBy('id', 'desc')
             ->get()
             ->map(function ($trip) {
+                $firstCrew = $trip->crews->first();
+
                 return [
                     'id' => $trip->id,
-                    'crew_name' => $trip->crews->first()->name ?? null,
-                    'crew_phone' => $trip->crews->first()->phone ?? null,
-                    'crew_phone_2' => $trip->crews->first()->phone_2 ?? null,
-                    'crew_address' => $trip->crews->first()->address ?? null,
-                    'crews' => $trip->crews->map(function($crew) {
+                    'trip_reference' => $trip->trip_reference,
+                    'trip_title' => $trip->title,
+                    'crew_name' => $firstCrew?->name,
+                    'crew_phone' => $firstCrew?->phone,
+                    'crew_phone_2' => $firstCrew?->phone_2,
+                    'crew_address' => $firstCrew?->address,
+                    'crews' => $trip->crews->map(function ($crew) {
                         return [
+                            'id' => $crew->id,
                             'name' => $crew->name,
                             'phone' => $crew->phone,
                             'phone_2' => $crew->phone_2,
                             'address' => $crew->address,
+                            'pick_up_time' => $crew->pick_up_time,
+                            'from_location' => $crew->from_location,
+                            'to_location' => $crew->to_location,
+                            'vessel' => $crew->vessel ? [
+                                'id' => $crew->vessel->id,
+                                'name' => $crew->vessel->name,
+                            ] : null,
                         ];
-                    }),
+                    })->values(),
                     'trip_date' => $trip->trip_date->format('d/m/Y'),
-                    'pick_up_time' => $trip->pick_up_time,
-                    'from_location' => $trip->from_location,
-                    'to_location' => $trip->to_location,
+                    'pick_up_time' => $firstCrew?->pick_up_time,
+                    'from_location' => $firstCrew?->from_location,
+                    'to_location' => $firstCrew?->to_location,
                     'status' => $trip->status,
                     'status_label' => ucfirst(str_replace('_', ' ', $trip->status)),
-                    'vessel' => $trip->vessel ? [
-                        'id' => $trip->vessel->id,
-                        'name' => $trip->vessel->name,
+                    'vessel' => $firstCrew?->vessel ? [
+                        'id' => $firstCrew->vessel->id,
+                        'name' => $firstCrew->vessel->name,
                     ] : null,
                     'created_at' => $trip->created_at->format('d/m/Y h:i A'),
                 ];

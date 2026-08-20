@@ -20,6 +20,8 @@ use App\Http\Controllers\DailyActivityController;
 use App\Http\Controllers\DriverCheckInController;
 use App\Http\Controllers\PublicPagesController;
 use App\Http\Controllers\PartnerController;
+use App\Http\Controllers\PartnerUserController;
+use App\Http\Controllers\PartnerRequestReviewController;
 use App\Http\Controllers\PwaController;
 
 // Root route - show login for guests, redirect to dashboard if authenticated
@@ -48,7 +50,7 @@ Route::middleware(['guest'])->group(function () {
 });
 
 // Dashboard Routes (Protected)
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth:web'])->group(function () {
     // Dashboard
     Route::middleware(['permission:view_dashboard'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -139,6 +141,7 @@ Route::middleware(['auth'])->group(function () {
     
     Route::middleware(['permission:create_trips'])->group(function () {
         Route::get('/trips/create', [TripController::class, 'create'])->name('trips.create');
+        Route::get('/trips/create/from-partner-request/{partnerRequest}', [TripController::class, 'createFromPartnerRequest'])->name('trips.create-from-partner-request');
         Route::post('/trips', [TripController::class, 'store'])->name('trips.store');
         Route::post('/trips/extract-from-image', [TripController::class, 'extractFromImage'])->name('trips.extract-from-image');
         Route::post('/trips/bulk-store', [TripController::class, 'storeBulk'])->name('trips.store-bulk');
@@ -158,6 +161,23 @@ Route::middleware(['auth'])->group(function () {
     
     Route::middleware(['permission:delete_trips'])->group(function () {
         Route::delete('/trips/{trip}', [TripController::class, 'destroy'])->name('trips.destroy');
+    });
+
+    // Partner Request Review Routes (internal operational workflow)
+    Route::middleware(['permission:view_trips'])->group(function () {
+        Route::get('/partner-requests', [PartnerRequestReviewController::class, 'index'])->name('partner-requests.index');
+        Route::get('/partner-requests/pending-count', [PartnerRequestReviewController::class, 'pendingCount'])->name('partner-requests.pending-count');
+        Route::get('/partner-requests/live', [PartnerRequestReviewController::class, 'live'])->name('partner-requests.live');
+        Route::get('/partner-requests/{partnerRequest}', [PartnerRequestReviewController::class, 'show'])->name('partner-requests.show');
+        Route::get('/partner-requests/{partnerRequest}/image', [PartnerRequestReviewController::class, 'image'])->name('partner-requests.image');
+    });
+
+    Route::middleware(['permission:edit_trips'])->group(function () {
+        Route::post('/partner-requests/{partnerRequest}/decline', [PartnerRequestReviewController::class, 'decline'])->name('partner-requests.decline');
+    });
+
+    Route::middleware(['permission:create_trips'])->group(function () {
+        Route::post('/partner-requests/{partnerRequest}/approve', [PartnerRequestReviewController::class, 'approve'])->name('partner-requests.approve');
     });
 
     // Trip Issue Type Routes
@@ -287,4 +307,48 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['permission:delete_partners'])->group(function () {
         Route::delete('/partners/{partner}', [PartnerController::class, 'destroy'])->name('partners.destroy');
     });
+
+    // Partner User Management Routes (nested under partners)
+    Route::middleware(['permission:view_partners'])->group(function () {
+        Route::get('/partners/{partner}/users', [PartnerUserController::class, 'index'])->name('partners.users.index');
+    });
+
+    Route::middleware(['permission:edit_partners'])->group(function () {
+        Route::get('/partners/{partner}/users/create', [PartnerUserController::class, 'create'])->name('partners.users.create');
+        Route::post('/partners/{partner}/users', [PartnerUserController::class, 'store'])->name('partners.users.store');
+        Route::get('/partners/{partner}/users/{partnerUser}/edit', [PartnerUserController::class, 'edit'])->name('partners.users.edit');
+        Route::put('/partners/{partner}/users/{partnerUser}', [PartnerUserController::class, 'update'])->name('partners.users.update');
+        Route::put('/partners/{partner}/users/{partnerUser}/password', [PartnerUserController::class, 'updatePassword'])->name('partners.users.updatePassword');
+        Route::patch('/partners/{partner}/users/{partnerUser}/toggle-status', [PartnerUserController::class, 'toggleStatus'])->name('partners.users.toggleStatus');
+    });
+});
+
+// Partner Portal Routes
+use App\Http\Controllers\Partner\AuthController as PartnerAuthController;
+use App\Http\Controllers\Partner\DashboardController as PartnerDashboardController;
+use App\Http\Controllers\Partner\RequestController as PartnerRequestController;
+
+// Partner Guest Routes (Not authenticated)
+Route::middleware(['guest:partner'])->prefix('partner')->name('partner.')->group(function () {
+    Route::get('/login', [PartnerAuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [PartnerAuthController::class, 'login'])->middleware('throttle:5,1')->name('login.submit');
+});
+
+// Partner Protected Routes (Authenticated)
+Route::middleware(['auth:partner', 'partner.active'])->prefix('partner')->name('partner.')->group(function () {
+    Route::get('/', [PartnerDashboardController::class, 'index'])->name('dashboard');
+    Route::post('/logout', [PartnerAuthController::class, 'logout'])->name('logout');
+    
+    // Partner Request Routes
+    Route::get('/requests', [PartnerRequestController::class, 'index'])->name('requests.index');
+    Route::get('/requests/new', [PartnerRequestController::class, 'newRequest'])->name('requests.new');
+    Route::get('/requests/create', [PartnerRequestController::class, 'create'])->name('requests.create');
+    Route::post('/requests', [PartnerRequestController::class, 'store'])->name('requests.store');
+    Route::get('/requests/upload', [PartnerRequestController::class, 'createImage'])->name('requests.image.create');
+    Route::post('/requests/upload', [PartnerRequestController::class, 'storeImage'])->name('requests.image.store');
+    Route::get('/requests/{partnerRequest}', [PartnerRequestController::class, 'show'])->name('requests.show');
+    Route::get('/requests/{partnerRequest}/image', [PartnerRequestController::class, 'image'])->name('requests.image');
+    Route::get('/requests/{partnerRequest}/edit', [PartnerRequestController::class, 'edit'])->name('requests.edit');
+    Route::put('/requests/{partnerRequest}', [PartnerRequestController::class, 'update'])->name('requests.update');
+    Route::patch('/requests/{partnerRequest}/withdraw', [PartnerRequestController::class, 'withdraw'])->name('requests.withdraw');
 });

@@ -136,6 +136,7 @@ class HomeController extends Controller
 
         return [
             'trip_id' => $trip->id,
+            'trip_reference' => $trip->trip_reference,
             'trip_title' => $trip->title,
             'partner_name' => $trip->partner?->title,
             'trip_date' => $tripDate->format('Y-m-d'),

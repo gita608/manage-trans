@@ -43,9 +43,11 @@
                         <form action="{{ route('trips.destroy', $trip) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this trip?');">
                             @csrf
                             @method('DELETE')
+                            @if(!$trip->partner_request_id)
                             <button type="submit" class="btn btn-danger">
                                 <i class="ri-delete-bin-line align-middle me-1"></i> Delete
                             </button>
+                            @endif
                         </form>
                     </div>
                 </div>
@@ -92,6 +94,10 @@
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-3">
+                                        <p class="text-muted mb-1 text-uppercase fw-medium fs-12">Reference</p>
+                                        <h6 class="mb-0 fs-14">{{ $trip->trip_reference ?? 'N/A' }}</h6>
+                                    </div>
+                                    <div class="col-md-3">
                                         <p class="text-muted mb-1 text-uppercase fw-medium fs-12">Driver</p>
                                         @if($trip->driver)
                                             <h6 class="mb-0 fs-14">{{ $trip->driver->name }}</h6>
@@ -112,6 +118,24 @@
                                         <span class="badge bg-{{ $statusBadge }} fs-12">{{ $statusText }}</span>
                                     </div>
                                 </div>
+                                @if($trip->partnerRequest)
+                                    <div class="row mt-3">
+                                        <div class="col-md-6">
+                                            <p class="text-muted mb-1 text-uppercase fw-medium fs-12">Source Request</p>
+                                            <h6 class="mb-0 fs-14">
+                                                <a href="{{ route('partner-requests.show', $trip->partnerRequest) }}">
+                                                    {{ $trip->partnerRequest->request_reference }}
+                                                </a>
+                                            </h6>
+                                        </div>
+                                        @if($trip->partner)
+                                            <div class="col-md-6">
+                                                <p class="text-muted mb-1 text-uppercase fw-medium fs-12">Partner</p>
+                                                <h6 class="mb-0 fs-14">{{ $trip->partner->title }}</h6>
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
                         </div>
 
