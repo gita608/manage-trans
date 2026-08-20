@@ -111,7 +111,13 @@
                         <strong>Created Trips:</strong>
                         <ul class="mb-0 mt-2">
                             @foreach($partnerRequest->trips as $trip)
-                                <li>{{ $trip->trip_reference }}</li>
+                                <li>
+                                    <strong>{{ $trip->trip_reference }}</strong>
+                                    @if($trip->trip_date)
+                                        — {{ \Carbon\Carbon::parse($trip->trip_date)->format('M d, Y') }}
+                                    @endif
+                                    — {{ ucfirst(str_replace('_', ' ', $trip->status)) }}
+                                </li>
                             @endforeach
                         </ul>
                     </div>

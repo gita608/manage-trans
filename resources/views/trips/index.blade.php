@@ -268,6 +268,12 @@
                         </div>
                         <div class="col-sm-6 col-xxl-2">
                             <label class="form-label fw-semibold">
+                                <i class="ri-hashtag me-1"></i>Reference
+                            </label>
+                            <input type="text" id="filter-search" class="form-control" placeholder="TRP or REQ" value="{{ request('search') }}">
+                        </div>
+                        <div class="col-sm-6 col-xxl-2">
+                            <label class="form-label fw-semibold">
                                 <i class="ri-calendar-line me-1"></i>Date Range
                             </label>
                             <select id="filter-date-range" class="form-select">
@@ -314,7 +320,20 @@
                             <div class="trip-card-main">
                                 <div class="trip-card-title">
                                     <span class="trip-number">#{{ $loop->iteration }}</span>
-                                    <h5 class="trip-name mb-0">{{ $trip->title ?? 'Untitled Trip' }}</h5>
+                                    <div class="min-width-0">
+                                        @if($trip->trip_reference)
+                                            <div class="text-muted small">{{ $trip->trip_reference }}</div>
+                                        @endif
+                                        <h5 class="trip-name mb-0">{{ $trip->title ?? 'Untitled Trip' }}</h5>
+                                        @if($trip->partnerRequest)
+                                            <div class="text-muted small mt-1">
+                                                Source:
+                                                <a href="{{ route('partner-requests.show', $trip->partnerRequest) }}">
+                                                    {{ $trip->partnerRequest->request_reference }}
+                                                </a>
+                                            </div>
+                                        @endif
+                                    </div>
                                     <span class="status-pill status-{{ $statusBadge }}">{{ $statusText }}</span>
                                 </div>
                                 <div class="trip-card-meta">
@@ -450,6 +469,7 @@
                         var driverSel = document.getElementById('filter-driver');
                         var vesselSel = document.getElementById('filter-vessel');
                         var statusSel = document.getElementById('filter-status');
+                        var searchInp = document.getElementById('filter-search');
                         var dateRangeSel = document.getElementById('filter-date-range');
                         var dateFromInp = document.getElementById('filter-date-from');
                         var dateToInp = document.getElementById('filter-date-to');
@@ -461,6 +481,7 @@
                         if (urlParams.has('driver')) driverSel.value = urlParams.get('driver');
                         if (urlParams.has('vessel')) vesselSel.value = urlParams.get('vessel');
                         if (urlParams.has('status')) statusSel.value = urlParams.get('status');
+                        if (urlParams.has('search')) searchInp.value = urlParams.get('search');
                         
                         if (urlParams.has('date_range')) {
                             dateRangeSel.value = urlParams.get('date_range');
@@ -481,6 +502,7 @@
                             if (driverSel.value) params.set('driver', driverSel.value);
                             if (vesselSel.value) params.set('vessel', vesselSel.value);
                             if (statusSel.value) params.set('status', statusSel.value);
+                            if (searchInp.value) params.set('search', searchInp.value.trim());
                             
                             if (dateRangeSel.value) {
                                 params.set('date_range', dateRangeSel.value);

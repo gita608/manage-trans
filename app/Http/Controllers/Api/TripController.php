@@ -46,6 +46,7 @@ class TripController extends Controller
             $tripDate = $trip->trip_date instanceof Carbon ? $trip->trip_date : Carbon::parse($trip->trip_date);
             return [
                 'trip_id' => $trip->id,
+                'trip_reference' => $trip->trip_reference,
                 'trip_title' => $trip->title,
                 'partner_name' => $trip->partner?->title,
                 'trip_date' => $tripDate->format('Y-m-d'),
@@ -121,7 +122,8 @@ class TripController extends Controller
         $driver = $request->user();
 
         // Find trip assigned to this driver
-        $trip = Trip::where('id', $id)
+        $trip = Trip::where('driver_id', $driver->id)
+            ->whereKey($id)
             ->with(['partner', 'crews.vessel', 'tripIssues.issueType', 'tripIssues.driver', 'tripExpenses.expenseType', 'tripExpenses.driver'])
             ->first();
 
@@ -233,6 +235,7 @@ class TripController extends Controller
             'success' => true,
             'data' => [
                 'trip_id' => $trip->id,
+                'trip_reference' => $trip->trip_reference,
                 'trip_title' => $trip->title,
                 'partner_name' => $trip->partner?->title,
                 'trip_date' => [
@@ -273,7 +276,8 @@ class TripController extends Controller
         $driver = $request->user();
 
         // Verify trip belongs to the driver
-        $trip = Trip::where('id', $id)
+        $trip = Trip::where('driver_id', $driver->id)
+            ->whereKey($id)
             ->first();
 
         if (!$trip) {

@@ -8,6 +8,7 @@ use App\Models\PartnerRequest;
 use App\Models\PartnerRequestItem;
 use App\Models\Vessel;
 use App\Services\PartnerRequestApprovalService;
+use App\Services\TripAssignmentNotificationService;
 use App\Support\PartnerRequestReviewVersion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -136,7 +137,7 @@ class PartnerRequestReviewController extends Controller
             ->with('success', 'Review saved successfully.');
     }
 
-    public function approve(Request $request, PartnerRequest $partnerRequest, PartnerRequestApprovalService $approvalService)
+    public function approve(Request $request, PartnerRequest $partnerRequest, PartnerRequestApprovalService $approvalService, TripAssignmentNotificationService $tripAssignmentNotificationService)
     {
         if (!Auth::user()->hasPermission('create_trips')) {
             abort(403);
@@ -156,6 +157,12 @@ class PartnerRequestReviewController extends Controller
             return redirect()->route('partner-requests.show', $partnerRequest)
                 ->with('error', $result['message'])
                 ->with('approval_errors', $result['errors'] ?? []);
+        }
+
+        foreach ($result['trips'] ?? [] as $trip) {
+            if ($trip->driver_id) {
+                $tripAssignmentNotificationService->notifyDriverAssigned($trip, Auth::id());
+            }
         }
 
         return redirect()->route('partner-requests.show', $partnerRequest)
