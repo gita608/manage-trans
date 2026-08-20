@@ -3,64 +3,69 @@
 @section('title', 'New Request - Partner Portal')
 
 @section('content')
-<div class="row">
-    <div class="col-12">
-        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-            <h4 class="mb-sm-0">New Request</h4>
+@include('partner.partials.page-header', [
+    'title' => 'New Request',
+    'subtitle' => 'Choose how you would like to submit your transportation request.',
+    'breadcrumbs' => [
+        ['label' => 'Dashboard', 'url' => route('partner.dashboard')],
+        ['label' => 'New Request']
+    ]
+])
 
-            <div class="page-title-right">
-                <ol class="breadcrumb m-0">
-                    <li class="breadcrumb-item"><a href="{{ route('partner.dashboard') }}">Dashboard</a></li>
-                    <li class="breadcrumb-item active">New Request</li>
-                </ol>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row justify-content-center">
-    <div class="col-lg-10">
-        <div class="text-center mb-4">
-            <h5 class="mb-2">How would you like to submit?</h5>
-            <p class="text-muted mb-0">Choose the option that best fits your schedule.</p>
-        </div>
-
-        <div class="row g-3">
-            <div class="col-md-6">
-                <a href="{{ route('partner.requests.create') }}" class="text-decoration-none">
-                    <div class="card h-100 border shadow-sm">
-                        <div class="card-body p-4 d-flex flex-column">
-                            <div class="avatar-md mb-3">
-                                <span class="avatar-title bg-primary-subtle text-primary rounded fs-2">
-                                    <i class="ri-edit-line"></i>
-                                </span>
+<div class="row justify-content-center partner-method-picker">
+    <div class="col-lg-10 col-xl-8">
+        <div class="row g-4">
+            @if(Auth::guard('partner')->user()->partner->allow_manual_submission)
+                <div class="col-md-6">
+                    <a href="{{ route('partner.requests.create') }}"
+                       class="request-method-card text-decoration-none"
+                       role="button"
+                       aria-label="Enter crew transportation details manually">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <div class="avatar-lg mb-3">
+                                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                        <i class="ri-edit-line fs-1" aria-hidden="true"></i>
+                                    </span>
+                                </div>
+                                <h5 class="mb-3">Manual Request</h5>
+                                <p class="text-muted mb-0">
+                                    Enter transportation details directly using a simple form.
+                                </p>
                             </div>
-                            <h5 class="text-dark mb-2">Enter Manually</h5>
-                            <p class="text-muted mb-0 flex-grow-1">
-                                Enter crew transportation details using a simple form.
-                            </p>
                         </div>
-                    </div>
-                </a>
-            </div>
+                    </a>
+                </div>
+            @endif
 
-            <div class="col-md-6">
-                <a href="{{ route('partner.requests.image.create') }}" class="text-decoration-none">
-                    <div class="card h-100 border shadow-sm">
-                        <div class="card-body p-4 d-flex flex-column">
-                            <div class="avatar-md mb-3">
-                                <span class="avatar-title bg-success-subtle text-success rounded fs-2">
-                                    <i class="ri-image-add-line"></i>
-                                </span>
+            @if(Auth::guard('partner')->user()->partner->allow_image_submission)
+                <div class="col-md-6">
+                    <a href="{{ route('partner.requests.image.create') }}"
+                       class="request-method-card text-decoration-none"
+                       role="button"
+                       aria-label="Upload your schedule image for review">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <div class="avatar-lg mb-3">
+                                    <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                        <i class="ri-image-add-line fs-1" aria-hidden="true"></i>
+                                    </span>
+                                </div>
+                                <h5 class="mb-3">Upload Schedule Image</h5>
+                                <p class="text-muted mb-0">
+                                    Upload your schedule and Manage Trans will review it.
+                                </p>
                             </div>
-                            <h5 class="text-dark mb-2">Upload Schedule Image</h5>
-                            <p class="text-muted mb-0 flex-grow-1">
-                                Upload the transportation schedule you received. Manage Trans will review the extracted information.
-                            </p>
                         </div>
-                    </div>
-                </a>
-            </div>
+                    </a>
+                </div>
+            @endif
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{{ route('partner.dashboard') }}" class="btn btn-soft-secondary btn-touch">
+                <i class="ri-arrow-left-line align-middle me-1"></i> Back to Dashboard
+            </a>
         </div>
     </div>
 </div>

@@ -3,35 +3,38 @@
 @section('title', 'Edit Request - Partner Portal')
 
 @section('content')
-<!-- Page Title -->
-<div class="row">
-    <div class="col-12">
-        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-            <h4 class="mb-sm-0">Edit Request</h4>
+@include('partner.partials.page-header', [
+    'title' => 'Edit Request',
+    'subtitle' => 'Update crew transportation details for ' . $partnerRequest->request_reference . '.',
+    'breadcrumbs' => [
+        ['label' => 'Dashboard', 'url' => route('partner.dashboard')],
+        ['label' => 'My Requests', 'url' => route('partner.requests.index')],
+        ['label' => $partnerRequest->request_reference, 'url' => route('partner.requests.show', $partnerRequest)],
+        ['label' => 'Edit']
+    ]
+])
 
-            <div class="page-title-right">
-                <ol class="breadcrumb m-0">
-                    <li class="breadcrumb-item"><a href="{{ route('partner.dashboard') }}">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="{{ route('partner.requests.index') }}">My Requests</a></li>
-                    <li class="breadcrumb-item"><a href="{{ route('partner.requests.show', $partnerRequest) }}">{{ $partnerRequest->request_reference }}</a></li>
-                    <li class="breadcrumb-item active">Edit</li>
-                </ol>
-            </div>
-        </div>
-    </div>
-</div>
-
-<form action="{{ route('partner.requests.update', $partnerRequest) }}" method="POST" id="requestForm">
+<form action="{{ route('partner.requests.update', $partnerRequest) }}" method="POST" id="requestForm" novalidate>
     @csrf
     @method('PUT')
 
     <div class="row">
         <div class="col-lg-12">
-            <div class="card">
+            <div class="card partner-page-card">
                 <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">{{ $partnerRequest->request_reference }}</h5>
-                        <span class="badge bg-warning-subtle text-warning">Editing</span>
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <div class="d-flex align-items-start gap-2 flex-grow-1 flex-text-safe">
+                            <span class="partner-card-header-icon"><i class="ri-ship-line fs-5" aria-hidden="true"></i></span>
+                            <div class="min-width-0">
+                                <h5 class="card-title mb-0 text-break-safe">{{ $partnerRequest->request_reference }}</h5>
+                                <p class="text-muted mb-0 mt-1 small">
+                                    Fields marked with <span class="text-danger">*</span> are required.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0">
+                            @include('partner.partials.status-badge', ['status' => 'pending', 'withIcon' => false])
+                        </div>
                     </div>
                 </div>
                 <div class="card-body">
@@ -39,9 +42,9 @@
                         <!-- Crew items will be populated here -->
                     </div>
 
-                    <div class="mt-3">
-                        <button type="button" class="btn btn-success" id="addCrewBtn">
-                            <i class="ri-add-line align-middle me-1"></i> Add Crew
+                    <div class="mt-4">
+                        <button type="button" class="btn btn-success btn-touch" id="addCrewBtn">
+                            <i class="ri-add-line align-middle me-1"></i> Add Another Crew Member
                         </button>
                     </div>
                 </div>
@@ -49,13 +52,19 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row mt-3">
         <div class="col-lg-12">
-            <div class="text-end">
-                <a href="{{ route('partner.requests.show', $partnerRequest) }}" class="btn btn-light">Cancel</a>
-                <button type="submit" class="btn btn-primary" id="submitBtn">
-                    <i class="ri-save-line align-middle me-1"></i> Update Request
+            <div class="card partner-page-card partner-form-actions">
+                <div class="card-body">
+                    <div class="d-flex flex-column flex-sm-row gap-2 justify-content-end">
+                <a href="{{ route('partner.requests.show', $partnerRequest) }}" class="btn btn-light btn-touch">
+                    <i class="ri-close-line align-middle me-1"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary btn-touch" id="submitBtn">
+                    <i class="ri-save-line align-middle me-1"></i> Save Changes
                 </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -63,11 +72,14 @@
 
 <!-- Crew Item Template -->
 <template id="crew-item-template">
-    <div class="crew-item border rounded p-3 mb-3" data-index="0">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="mb-0">Crew #<span class="crew-number">1</span></h6>
-            <button type="button" class="btn btn-sm btn-danger remove-crew-btn">
-                <i class="ri-delete-bin-line"></i> Remove
+    <div class="crew-item border rounded p-4 mb-4" data-index="0">
+        <div class="crew-item-header d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0 d-flex align-items-center">
+                <i class="ri-user-3-line me-2 text-primary" aria-hidden="true"></i>
+                Crew #<span class="crew-number">1</span>
+            </h6>
+            <button type="button" class="btn btn-sm btn-danger remove-crew-btn" aria-label="Remove this crew member">
+                <i class="ri-delete-bin-line me-1"></i> Remove
             </button>
         </div>
 
@@ -75,38 +87,100 @@
 
         <div class="row g-3">
             <div class="col-md-6">
-                <label class="form-label">Trip Date <span class="text-danger">*</span></label>
-                <input type="date" class="form-control" name="items[0][trip_date]" required>
+                <label class="form-label" for="crew-trip-date-0">
+                    Trip Date <span class="text-danger">*</span>
+                </label>
+                <input type="date"
+                       class="form-control"
+                       id="crew-trip-date-0"
+                       name="items[0][trip_date]"
+                       required
+                       aria-required="true">
+                <small class="form-text-helper">When does this crew member need transportation?</small>
+                @error('items.0.trip_date')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
             </div>
 
             <div class="col-md-6">
-                <label class="form-label">Name <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" name="items[0][name]" placeholder="Crew member name" required>
+                <label class="form-label" for="crew-name-0">
+                    Crew Member Name <span class="text-danger">*</span>
+                </label>
+                <input type="text"
+                       class="form-control"
+                       id="crew-name-0"
+                       name="items[0][name]"
+                       placeholder="Full name"
+                       required
+                       aria-required="true">
+                @error('items.0.name')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
             </div>
 
             <div class="col-md-6">
-                <label class="form-label">Phone</label>
-                <input type="text" class="form-control" name="items[0][phone]" placeholder="Phone number">
+                <label class="form-label" for="crew-phone-0">
+                    Phone Number
+                </label>
+                <input type="text"
+                       class="form-control"
+                       id="crew-phone-0"
+                       name="items[0][phone]"
+                       placeholder="+123 456 7890">
+                <small class="form-text-helper">Contact number for this crew member</small>
+                @error('items.0.phone')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
             </div>
 
             <div class="col-md-6">
-                <label class="form-label">Vessel</label>
-                <select class="form-select" name="items[0][vessel_id]">
-                    <option value="">Not sure / Manage Trans will assign</option>
+                <label class="form-label" for="crew-vessel-0">
+                    Vessel
+                </label>
+                <select class="form-select" id="crew-vessel-0" name="items[0][vessel_id]">
+                    <option value="">Select vessel (optional)</option>
                     @foreach($vessels as $vessel)
                         <option value="{{ $vessel->id }}">{{ $vessel->name }}</option>
                     @endforeach
                 </select>
+                <small class="form-text-helper">Leave blank if unsure</small>
+                @error('items.0.vessel_id')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
             </div>
 
             <div class="col-md-6">
-                <label class="form-label">From Location <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" name="items[0][from_location]" placeholder="Pickup location" required>
+                <label class="form-label" for="crew-from-0">
+                    From Location <span class="text-danger">*</span>
+                </label>
+                <input type="text"
+                       class="form-control"
+                       id="crew-from-0"
+                       name="items[0][from_location]"
+                       placeholder="Pickup location"
+                       required
+                       aria-required="true">
+                <small class="form-text-helper">Where should we pick up?</small>
+                @error('items.0.from_location')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
             </div>
 
             <div class="col-md-6">
-                <label class="form-label">To Location <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" name="items[0][to_location]" placeholder="Drop-off location" required>
+                <label class="form-label" for="crew-to-0">
+                    To Location <span class="text-danger">*</span>
+                </label>
+                <input type="text"
+                       class="form-control"
+                       id="crew-to-0"
+                       name="items[0][to_location]"
+                       placeholder="Drop-off location"
+                       required
+                       aria-required="true">
+                <small class="form-text-helper">Where should we drop off?</small>
+                @error('items.0.to_location')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
             </div>
         </div>
     </div>
@@ -125,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load existing items
     const existingItems = @json($partnerRequest->items);
-    
+
     if (existingItems.length > 0) {
         existingItems.forEach(item => {
             addCrewItem(item);
@@ -150,24 +224,39 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Disable submit button after submission
-    form.addEventListener('submit', function() {
+    // Prevent double submission
+    form.addEventListener('submit', function(e) {
+        if (submitBtn.disabled) {
+            e.preventDefault();
+            return false;
+        }
+
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Updating...';
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Saving...';
     });
 
     function addCrewItem(itemData = null) {
         const clone = template.content.cloneNode(true);
         const crewDiv = clone.querySelector('.crew-item');
-        
+
         // Update index
         crewDiv.setAttribute('data-index', crewIndex);
-        
-        // Update all input/select names
+
+        // Update all input/select names and IDs
         const inputs = crewDiv.querySelectorAll('input, select, textarea');
         inputs.forEach(input => {
             if (input.name) {
                 input.name = input.name.replace('[0]', `[${crewIndex}]`);
+            }
+            if (input.id) {
+                const newId = input.id.replace('-0', `-${crewIndex}`);
+                input.id = newId;
+
+                // Update corresponding label
+                const label = crewDiv.querySelector(`label[for="${input.id.replace(`-${crewIndex}`, '-0')}"]`);
+                if (label) {
+                    label.setAttribute('for', newId);
+                }
             }
         });
 
@@ -181,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Populate Partner-editable fields only
             const fields = ['trip_date', 'name', 'phone', 'from_location', 'to_location', 'vessel_id'];
-            
+
             fields.forEach(field => {
                 const input = crewDiv.querySelector(`[name$="[${field}]"]`);
                 if (input && itemData[field] !== null && itemData[field] !== undefined) {
@@ -208,7 +297,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Clear default items
         container.innerHTML = '';
         crewIndex = 0;
-        
+
         // Add items from old input
         oldItems.forEach((item, index) => {
             addCrewItem(item);

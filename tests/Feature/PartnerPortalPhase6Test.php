@@ -357,12 +357,44 @@ class PartnerPortalPhase6Test extends TestCase
 
     protected function approveRequest(PartnerRequest $request, User $staff): Trip
     {
-        $item = $request->items->first();
         $this->actingAs($staff)->post(route('partner-requests.approve', $request), [
             'request_version' => PartnerRequestReviewVersion::make($request->fresh('items')),
-        ])->assertRedirect();
+        ])->assertRedirect(route('trips.create-from-partner-request', $request));
+
+        $request->refresh();
+        $item = $request->items->first();
+        $vesselId = $item->vessel_id ?? $this->createVessel()->id;
+
+        $this->actingAs($staff)->post(route('trips.store'), [
+            'partner_request_id' => $request->id,
+            'partner_id' => $request->partner_id,
+            'crews' => [[
+                'driver_id' => $item->driver_id,
+                'trip_date' => $item->trip_date instanceof Carbon
+                    ? $item->trip_date->format('Y-m-d')
+                    : Carbon::parse($item->trip_date)->format('Y-m-d'),
+                'vessel_id' => $vesselId,
+                'pick_up_time' => '09:00',
+                'from_location' => $item->from_location ?? 'Port',
+                'to_location' => $item->to_location ?? 'Airport',
+                'name' => $item->name ?? 'Crew',
+            ]],
+        ])->assertRedirect(route('partner-requests.show', $request));
 
         return Trip::where('partner_request_id', $request->id)->firstOrFail();
+    }
+
+    protected function createTripsFromApprovedRequest(PartnerRequest $request, User $staff, array $crews): void
+    {
+        $this->actingAs($staff)->post(route('partner-requests.approve', $request), [
+            'request_version' => PartnerRequestReviewVersion::make($request->fresh('items')),
+        ])->assertRedirect(route('trips.create-from-partner-request', $request));
+
+        $this->actingAs($staff)->post(route('trips.store'), [
+            'partner_request_id' => $request->id,
+            'partner_id' => $request->partner_id,
+            'crews' => $crews,
+        ])->assertRedirect(route('partner-requests.show', $request));
     }
 
     protected function crewUpdatePayload(Trip $trip, array $overrides = []): array
@@ -699,9 +731,9 @@ class PartnerPortalPhase6Test extends TestCase
         $this->assertSame($originalItemDriverId, $request->items()->first()->driver_id);
     }
 
-    public function test_approval_with_assigned_driver_creates_notification(): void
+    public function test_approval_with_assigned_driver_sends_no_notification_until_trip_creation(): void
     {
-        $staff = $this->createStaff(['view_trips', 'edit_trips', 'create_trips']);
+        $staff = $this->createStaff(['view_trips', 'create_trips']);
         [$partner, $partnerUser] = $this->createPartnerContext();
         $driver = Driver::create([
             'name' => 'Driver A',
@@ -711,6 +743,26 @@ class PartnerPortalPhase6Test extends TestCase
 
         $this->actingAs($staff)->post(route('partner-requests.approve', $request), [
             'request_version' => PartnerRequestReviewVersion::make($request->fresh('items')),
+        ])->assertRedirect(route('trips.create-from-partner-request', $request));
+
+        $this->assertSame(0, Notification::where('driver_id', $driver->id)->count());
+        $this->assertSame(0, Trip::where('partner_request_id', $request->id)->count());
+
+        $item = $request->fresh('items')->items->first();
+        $this->actingAs($staff)->post(route('trips.store'), [
+            'partner_request_id' => $request->id,
+            'partner_id' => $request->partner_id,
+            'crews' => [[
+                'driver_id' => $driver->id,
+                'trip_date' => $item->trip_date instanceof Carbon
+                    ? $item->trip_date->format('Y-m-d')
+                    : Carbon::parse($item->trip_date)->format('Y-m-d'),
+                'vessel_id' => $item->vessel_id,
+                'pick_up_time' => '09:00',
+                'from_location' => $item->from_location ?? 'Port',
+                'to_location' => $item->to_location ?? 'Airport',
+                'name' => $item->name ?? 'Crew',
+            ]],
         ]);
 
         $this->assertSame(1, Notification::where('driver_id', $driver->id)->count());
@@ -726,6 +778,25 @@ class PartnerPortalPhase6Test extends TestCase
 
         $this->actingAs($staff)->post(route('partner-requests.approve', $request), [
             'request_version' => PartnerRequestReviewVersion::make($request->fresh('items')),
+        ])->assertRedirect(route('trips.create-from-partner-request', $request));
+
+        $this->assertSame(0, Trip::where('partner_request_id', $request->id)->count());
+        $this->assertSame(0, Notification::count());
+
+        $item = $request->fresh('items')->items->first();
+        $this->actingAs($staff)->post(route('trips.store'), [
+            'partner_request_id' => $request->id,
+            'partner_id' => $request->partner_id,
+            'crews' => [[
+                'trip_date' => $item->trip_date instanceof Carbon
+                    ? $item->trip_date->format('Y-m-d')
+                    : Carbon::parse($item->trip_date)->format('Y-m-d'),
+                'vessel_id' => $item->vessel_id,
+                'pick_up_time' => '09:00',
+                'from_location' => $item->from_location ?? 'Port',
+                'to_location' => $item->to_location ?? 'Airport',
+                'name' => $item->name ?? 'Crew',
+            ]],
         ]);
 
         $trip = Trip::where('partner_request_id', $request->id)->firstOrFail();
@@ -740,29 +811,28 @@ class PartnerPortalPhase6Test extends TestCase
         $this->assertSame(1, Notification::where('driver_id', $driver->id)->count());
     }
 
-    public function test_push_failure_does_not_roll_back_approval(): void
+    public function test_push_failure_does_not_roll_back_trip_creation_from_approved_request(): void
     {
         $this->mock(FirebaseNotificationService::class, function ($mock) {
             $mock->shouldReceive('sendToDriver')->andThrow(new \RuntimeException('FCM down'));
         });
 
-        $staff = $this->createStaff(['view_trips', 'edit_trips', 'create_trips']);
+        $staff = $this->createStaff(['view_trips', 'create_trips']);
         [$partner, $partnerUser] = $this->createPartnerContext();
         $driver = Driver::create(['name' => 'Driver A', 'notification_token' => 'token']);
         $request = $this->createPendingRequest($partner, $partnerUser, $driver);
 
-        $this->actingAs($staff)->post(route('partner-requests.approve', $request), [
-            'request_version' => PartnerRequestReviewVersion::make($request->fresh('items')),
-        ])->assertRedirect()->assertSessionHas('success');
+        $trip = $this->approveRequest($request, $staff);
 
         $this->assertSame(PartnerRequest::STATUS_APPROVED, $request->fresh()->status);
         $this->assertSame(1, Trip::where('partner_request_id', $request->id)->count());
         $this->assertSame(1, Notification::where('driver_id', $driver->id)->count());
+        $this->assertSame($trip->id, Trip::where('partner_request_id', $request->id)->value('id'));
     }
 
-    public function test_two_assigned_trps_produce_two_notifications(): void
+    public function test_two_assigned_trps_produce_two_notifications_after_trip_creation(): void
     {
-        $staff = $this->createStaff(['view_trips', 'edit_trips', 'create_trips']);
+        $staff = $this->createStaff(['view_trips', 'create_trips']);
         [$partner, $partnerUser] = $this->createPartnerContext();
         $driverA = Driver::create(['name' => 'Driver A', 'notification_token' => 'a']);
         $driverB = Driver::create(['name' => 'Driver B', 'notification_token' => 'b']);
@@ -784,7 +854,6 @@ class PartnerPortalPhase6Test extends TestCase
                 'partner_request_id' => $request->id,
                 'driver_id' => $driverId,
                 'trip_date' => $date,
-                'pick_up_time' => '09:00:00',
                 'name' => 'Crew',
                 'from_location' => 'A',
                 'to_location' => 'B',
@@ -792,8 +861,25 @@ class PartnerPortalPhase6Test extends TestCase
             ]);
         }
 
-        $this->actingAs($staff)->post(route('partner-requests.approve', $request), [
-            'request_version' => PartnerRequestReviewVersion::make($request->fresh('items')),
+        $this->createTripsFromApprovedRequest($request->fresh('items'), $staff, [
+            [
+                'driver_id' => $driverA->id,
+                'trip_date' => '2026-08-21',
+                'vessel_id' => $vessel->id,
+                'pick_up_time' => '09:00',
+                'from_location' => 'A',
+                'to_location' => 'B',
+                'name' => 'Crew A',
+            ],
+            [
+                'driver_id' => $driverB->id,
+                'trip_date' => '2026-08-22',
+                'vessel_id' => $vessel->id,
+                'pick_up_time' => '09:00',
+                'from_location' => 'A',
+                'to_location' => 'B',
+                'name' => 'Crew B',
+            ],
         ]);
 
         $this->assertSame(2, Trip::where('partner_request_id', $request->id)->count());
@@ -1083,7 +1169,8 @@ class PartnerPortalPhase6Test extends TestCase
                     'name' => 'Crew 2',
                 ],
             ],
-        ])->assertStatus(500);
+        ])->assertRedirect()
+            ->assertSessionHas('error');
 
         $this->assertSame(0, Trip::count());
         $this->assertSame(0, Notification::count());

@@ -2,9 +2,15 @@
 
 @section('title', $partnerRequest->request_reference . ' | Partner Requests')
 
+@push('styles')
+<link href="{{ assetVersioned('assets/css/partner-review.css') }}" rel="stylesheet" type="text/css" />
+@endpush
+
 @section('content')
+<div class="partner-review-page">
 @include('partials.page-header', [
-    'title' => $partnerRequest->request_reference,
+    'title' => 'Review Request',
+    'subtitle' => $partnerRequest->request_reference . ' · ' . ($partnerRequest->partner->title ?? 'Partner'),
     'breadcrumbs' => [
         ['label' => 'Dashboard', 'url' => route('dashboard')],
         ['label' => 'Partner Requests', 'url' => route('partner-requests.index')],
@@ -12,284 +18,263 @@
     ],
 ])
 
-@if(session('success'))
-    <div class="alert alert-success">{{ session('success') }}</div>
-@endif
-@if(session('error'))
-    <div class="alert alert-danger">{{ session('error') }}</div>
-@endif
-@if(session('approval_errors'))
-    <div class="alert alert-danger">
-        <strong>Approval could not be completed:</strong>
-        <ul class="mb-0 mt-2">
-            @foreach(session('approval_errors') as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
-
-<div class="card mb-4">
-    <div class="card-body">
-        <div class="row g-3">
-            <div class="col-md-3">
-                <p class="text-muted mb-1">Partner</p>
-                <p class="fw-medium mb-0">{{ $partnerRequest->partner->title }}</p>
-            </div>
-            <div class="col-md-3">
-                <p class="text-muted mb-1">Submitted By</p>
-                <p class="fw-medium mb-0">{{ $partnerRequest->partnerUser->name ?? 'N/A' }}</p>
-            </div>
-            <div class="col-md-3">
-                <p class="text-muted mb-1">Submitted</p>
-                <p class="fw-medium mb-0">{{ $partnerRequest->submitted_at?->format('M d, Y g:i A') ?? 'N/A' }}</p>
-            </div>
-            <div class="col-md-3">
-                <p class="text-muted mb-1">Method</p>
-                <p class="mb-0">
-                    @if($partnerRequest->isManual())
-                        <span class="badge bg-info-subtle text-info">Manual</span>
-                    @else
-                        <span class="badge bg-primary-subtle text-primary">Image</span>
-                    @endif
-                </p>
-            </div>
-            <div class="col-md-3">
-                <p class="text-muted mb-1">Status</p>
-                <p class="mb-0">@include('partner-requests.partials.status-badge', ['status' => $partnerRequest->status])</p>
-            </div>
-            <div class="col-md-3">
-                <p class="text-muted mb-1">Partner Last Updated</p>
-                <p class="fw-medium mb-0">{{ $partnerRequest->partner_updated_at?->format('M d, Y g:i A') ?? '—' }}</p>
-            </div>
-            @if($partnerRequest->isImage())
-                <div class="col-md-3">
-                    <p class="text-muted mb-1">Extraction Status</p>
-                    <p class="mb-0">
-                        @if($partnerRequest->extraction_status === 'completed')
-                            <span class="badge bg-success-subtle text-success">Completed</span>
-                        @elseif($partnerRequest->extraction_status === 'failed')
-                            <span class="badge bg-danger-subtle text-danger">Failed</span>
-                        @elseif($partnerRequest->extraction_status === 'processing')
-                            <span class="badge bg-warning-subtle text-warning">Processing</span>
-                        @else
-                            <span class="text-muted">—</span>
-                        @endif
-                    </p>
-                </div>
-            @endif
+<div class="partner-request-summary partner-review-card mb-4">
+    <div class="summary-grid">
+        <div class="summary-item">
+            <label>Partner</label>
+            <div class="value">{{ $partnerRequest->partner->title }}</div>
         </div>
-
-        @if($partnerRequest->isDeclined() && $partnerRequest->decline_reason)
-            <div class="alert alert-danger mt-3 mb-0">
-                <strong>Decline Reason:</strong> {{ $partnerRequest->decline_reason }}
+        <div class="summary-item">
+            <label>Submitted By</label>
+            <div class="value">{{ $partnerRequest->partnerUser->name ?? 'N/A' }}</div>
+        </div>
+        <div class="summary-item">
+            <label>Submitted</label>
+            <div class="value">{{ $partnerRequest->submitted_at?->format('M d, Y g:i A') ?? 'N/A' }}</div>
+        </div>
+        <div class="summary-item">
+            <label>Method</label>
+            <div class="value">
+                @if($partnerRequest->isManual())
+                    <span class="badge bg-info-subtle text-info"><i class="ri-edit-line me-1"></i> Manual</span>
+                @else
+                    <span class="badge bg-primary-subtle text-primary"><i class="ri-image-line me-1"></i> Image</span>
+                @endif
+            </div>
+        </div>
+        <div class="summary-item">
+            <label>Status</label>
+            <div class="value">
+                @include('partner-requests.partials.status-badge', ['status' => $partnerRequest->status])
+            </div>
+        </div>
+        @if($partnerRequest->partner_updated_at)
+            <div class="summary-item">
+                <label>Partner Last Updated</label>
+                <div class="value">{{ $partnerRequest->partner_updated_at->format('M d, g:i A') }}</div>
             </div>
         @endif
-
-        @if($partnerRequest->isApproved())
-            <div class="alert alert-success mt-3 mb-0">
-                Approved by {{ $partnerRequest->approvedBy->name ?? 'N/A' }}
-                on {{ $partnerRequest->approved_at?->format('M d, Y g:i A') }}.
+        @if($partnerRequest->isImage())
+            <div class="summary-item">
+                <label>Extraction</label>
+                <div class="value">
+                    @if($partnerRequest->extraction_status === 'completed')
+                        <span class="badge bg-success-subtle text-success">Completed</span>
+                    @elseif($partnerRequest->extraction_status === 'failed')
+                        <span class="badge bg-danger-subtle text-danger">Failed</span>
+                    @elseif($partnerRequest->extraction_status === 'processing')
+                        <span class="badge bg-warning-subtle text-warning">Processing</span>
+                    @else
+                        <span class="text-muted">—</span>
+                    @endif
+                </div>
             </div>
         @endif
     </div>
+
+    @if($partnerRequest->isDeclined() && $partnerRequest->decline_reason)
+        <div class="alert alert-danger mt-3 mb-0">
+            <strong><i class="ri-error-warning-line me-2"></i>Decline Reason:</strong>
+            <div class="mt-2 p-3 bg-light-subtle rounded border">{{ $partnerRequest->decline_reason }}</div>
+        </div>
+    @endif
+
+    @if($partnerRequest->isApproved())
+        <div class="alert alert-success mt-3 mb-0">
+            <i class="ri-checkbox-circle-line me-2"></i>
+            Approved by <strong>{{ $partnerRequest->approvedBy->name ?? 'N/A' }}</strong>
+            on {{ $partnerRequest->approved_at?->format('M d, Y g:i A') }}.
+        </div>
+        @if($partnerRequest->trips->isEmpty())
+            <div class="alert alert-info mt-3 mb-0 d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div>
+                    <strong>Approved — Awaiting Trip Creation</strong>
+                    <p class="mb-0 small mt-1">Operational trips have not been created yet. Continue in the normal trip workflow.</p>
+                </div>
+                @if($canCreateTrip)
+                    <a href="{{ route('trips.create-from-partner-request', $partnerRequest) }}" class="btn btn-primary btn-sm">
+                        <i class="ri-add-line me-1"></i> Create Trip
+                    </a>
+                @endif
+            </div>
+        @endif
+    @endif
 </div>
 
 @if($partnerRequest->isImage())
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="card-title mb-0">Uploaded Schedule</h5>
-        </div>
-        <div class="card-body">
+    <div class="image-review-container">
+        <div class="image-review-main">
             @if($partnerRequest->extraction_status === 'failed')
-                <div class="alert alert-warning">
-                    Automatic extraction was unsuccessful. Review the uploaded schedule and enter the transportation details manually.
+                <div class="alert alert-warning extraction-failed-alert d-flex align-items-start mb-4">
+                    <i class="ri-error-warning-line alert-icon me-3"></i>
+                    <div>
+                        <strong>Automatic extraction was unsuccessful.</strong>
+                        <p class="mb-0 mt-1">The source image is preserved for reference. Approve the request, then enter operational details in trip creation.</p>
+                    </div>
                 </div>
             @endif
-            <img src="{{ route('partner-requests.image', $partnerRequest) }}"
-                 alt="Uploaded schedule for {{ $partnerRequest->request_reference }}"
-                 class="img-fluid rounded border"
-                 style="max-height: 480px;">
+
+            @include('partner-requests.partials.submission-items')
+
+            @if($canDecide)
+                @include('partner-requests.partials.decision-actions')
+            @endif
+        </div>
+
+        <div class="image-review-preview">
+            <div class="card partner-review-card">
+                <div class="card-header py-2">
+                    <h6 class="card-title mb-0 d-flex align-items-center gap-2">
+                        <span class="partner-review-card-header-icon"><i class="ri-image-line" aria-hidden="true"></i></span>
+                        Source Schedule
+                    </h6>
+                </div>
+                <div class="card-body p-2">
+                    <div class="image-preview-controls">
+                        <a href="{{ route('partner-requests.image', $partnerRequest) }}" target="_blank" class="btn btn-sm btn-soft-primary">
+                            <i class="ri-external-link-line me-1"></i> View Source Schedule
+                        </a>
+                    </div>
+                    <img src="{{ route('partner-requests.image', $partnerRequest) }}"
+                         alt="Schedule for {{ $partnerRequest->request_reference }}"
+                         class="img-fluid rounded">
+                </div>
+            </div>
         </div>
     </div>
+@else
+    @include('partner-requests.partials.submission-items')
+
+    @if($canDecide)
+        @include('partner-requests.partials.decision-actions')
+    @else
+        <div class="mb-4">
+            <a href="{{ route('partner-requests.index') }}" class="btn btn-light">
+                <i class="ri-arrow-left-line me-1"></i> Back to Queue
+            </a>
+        </div>
+    @endif
 @endif
 
 @if($partnerRequest->isApproved() && $partnerRequest->trips->count() > 0)
-    <div class="card mb-4">
+    <div class="card partner-review-card mt-4">
         <div class="card-header">
-            <h5 class="card-title mb-0">Created Trips</h5>
+            <h5 class="card-title mb-0 d-flex align-items-center gap-2">
+                <span class="partner-review-card-header-icon"><i class="ri-ship-line" aria-hidden="true"></i></span>
+                Created Trips
+            </h5>
         </div>
         <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-sm align-middle mb-0">
-                    <thead>
-                        <tr>
-                            <th>Reference</th>
-                            <th>Driver</th>
-                            <th>Date</th>
-                            <th>Crew</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($partnerRequest->trips as $trip)
-                            <tr>
-                                <td><a href="{{ route('trips.show', $trip) }}">{{ $trip->trip_reference }}</a></td>
-                                <td>{{ $trip->driver->name ?? 'Unassigned' }}</td>
-                                <td>{{ $trip->trip_date ? \Carbon\Carbon::parse($trip->trip_date)->format('M d, Y') : 'N/A' }}</td>
-                                <td>{{ $trip->crews->count() }}</td>
-                                <td>{{ ucfirst(str_replace('_', ' ', $trip->status)) }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+            <ul class="created-trips-list">
+                @foreach($partnerRequest->trips as $trip)
+                    <li>
+                        <a href="{{ route('trips.show', $trip) }}" class="trip-reference">{{ $trip->trip_reference }}</a>
+                        <div class="trip-meta">
+                            <span class="trip-meta-item"><i class="ri-user-line"></i>{{ $trip->driver->name ?? 'Unassigned' }}</span>
+                            <span class="trip-meta-item"><i class="ri-calendar-line"></i>{{ $trip->trip_date ? \Carbon\Carbon::parse($trip->trip_date)->format('M d, Y') : 'N/A' }}</span>
+                            <span class="trip-meta-item"><i class="ri-team-line"></i>{{ $trip->crews->count() }} crew</span>
+                            <span class="trip-meta-item">
+                                <span class="badge bg-secondary-subtle text-secondary">{{ ucfirst(str_replace('_', ' ', $trip->status)) }}</span>
+                            </span>
+                        </div>
+                    </li>
+                @endforeach
+            </ul>
         </div>
     </div>
 @endif
 
-<form action="{{ route('partner-requests.update', $partnerRequest) }}" method="POST" id="reviewForm">
-    @csrf
-    @method('PUT')
-    <input type="hidden" name="request_version" value="{{ $requestVersion }}">
-
-    <div class="card mb-4">
-        <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
-            <h5 class="card-title mb-0">Crew Review</h5>
-            @if($canEdit)
-                <button type="button" class="btn btn-sm btn-success" id="addCrewBtn">
-                    <i class="ri-add-line"></i> Add Crew
-                </button>
-            @endif
-        </div>
-        <div class="card-body">
-            <div id="crew-items-container">
-                @forelse($partnerRequest->items as $index => $item)
-                    @include('partner-requests.partials.crew-item', [
-                        'index' => $index,
-                        'item' => $item,
-                        'drivers' => $drivers,
-                        'vessels' => $vessels,
-                        'canEdit' => $canEdit,
-                        'isImage' => $partnerRequest->isImage(),
-                    ])
-                @empty
-                    @if(!$canEdit)
-                        <p class="text-muted mb-0">No crew items recorded.</p>
-                    @endif
-                @endforelse
-            </div>
-        </div>
-    </div>
-
-    @if($canEdit)
-        <div class="d-flex flex-wrap gap-2 justify-content-between mb-4">
-            <a href="{{ route('partner-requests.index') }}" class="btn btn-light">Back to Queue</a>
-            <div class="d-flex flex-wrap gap-2">
-                <button type="submit" class="btn btn-primary">Save Review</button>
-                @if(auth()->user()->hasPermission('create_trips'))
-                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#approveModal">Approve</button>
-                @endif
-                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#declineModal">Decline</button>
-            </div>
-        </div>
-    @else
-        <div class="mb-4">
-            <a href="{{ route('partner-requests.index') }}" class="btn btn-light">Back to Queue</a>
-        </div>
-    @endif
-</form>
-
-@if($canEdit)
-    <form action="{{ route('partner-requests.approve', $partnerRequest) }}" method="POST" id="approveForm">
-        @csrf
-        <input type="hidden" name="request_version" value="{{ $requestVersion }}">
-    </form>
-
-    <div class="modal fade" id="approveModal" tabindex="-1" aria-hidden="true">
+@if($canDecide)
+    <div class="modal fade modal-approve" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Approve Request</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title" id="approveModalLabel">Approve Request</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    Approve this request and create operational trips grouped by driver and date?
+                    <p class="mb-3">Approve this request and continue to operational Trip setup?</p>
+                    <div class="approval-info d-flex align-items-start">
+                        <i class="ri-information-line" aria-hidden="true"></i>
+                        <div>
+                            <strong>Approval records the decision only</strong>
+                            <p class="mb-0 mt-1 small">No trips are created yet. You will enter driver, vessel, pickup time, and crew details on the next screen.</p>
+                        </div>
+                    </div>
+                    <p class="mb-0 mt-3 text-muted small">Request: <strong>{{ $partnerRequest->request_reference }}</strong></p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-success" onclick="document.getElementById('approveForm').submit();">Approve</button>
+                    <button type="button" class="btn btn-success" id="approveBtn">
+                        <i class="ri-checkbox-circle-line me-1"></i> Approve Request
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <form action="{{ route('partner-requests.decline', $partnerRequest) }}" method="POST" id="declineForm">
-        @csrf
-        <input type="hidden" name="request_version" value="{{ $requestVersion }}">
-        <div class="modal fade" id="declineModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Decline Request</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal fade modal-decline" id="declineModal" tabindex="-1" aria-labelledby="declineModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="declineModalLabel">Decline Request</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="decline-warning d-flex align-items-start mb-3">
+                        <i class="ri-error-warning-line"></i>
+                        <div>
+                            <strong>Request will be marked as declined</strong>
+                            <p class="mb-0 mt-1 small">The submission history is preserved. The partner will see your decline reason.</p>
+                        </div>
                     </div>
-                    <div class="modal-body">
-                        <label class="form-label">Decline Reason <span class="text-danger">*</span></label>
-                        <textarea name="decline_reason" class="form-control" rows="4" required maxlength="2000"></textarea>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-danger">Decline Request</button>
-                    </div>
+                    <label class="form-label" for="decline_reason">Decline Reason<span class="text-danger ms-1">*</span></label>
+                    <textarea name="decline_reason" id="decline_reason" class="form-control" rows="4" required maxlength="2000" placeholder="Provide a clear reason for declining this request..."></textarea>
+                    <div class="char-count"><span id="charCount">0</span> / 2000 characters</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="declineBtn">
+                        <i class="ri-close-circle-line me-1"></i> Decline Request
+                    </button>
                 </div>
             </div>
         </div>
-    </form>
+    </div>
 @endif
-
-<template id="crew-item-template">
-    @include('partner-requests.partials.crew-item', [
-        'index' => '__INDEX__',
-        'item' => null,
-        'drivers' => $drivers,
-        'vessels' => $vessels,
-        'canEdit' => true,
-        'isImage' => $partnerRequest->isImage(),
-    ])
-</template>
+</div>
 @endsection
 
 @push('scripts')
-@if($canEdit)
+@if($canDecide)
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    let crewIndex = {{ max($partnerRequest->items->count(), 0) }};
-    const container = document.getElementById('crew-items-container');
-    const template = document.getElementById('crew-item-template');
-    const addBtn = document.getElementById('addCrewBtn');
-
-    function renumberCrewItems() {
-        container.querySelectorAll('.crew-item').forEach((item, index) => {
-            const number = item.querySelector('.crew-number');
-            if (number) number.textContent = index + 1;
-        });
-    }
-
-    addBtn?.addEventListener('click', function () {
-        const html = template.innerHTML.replaceAll('__INDEX__', crewIndex);
-        const wrapper = document.createElement('div');
-        wrapper.innerHTML = html.trim();
-        container.appendChild(wrapper.firstElementChild);
-        crewIndex++;
-        renumberCrewItems();
+    const approveBtn = document.getElementById('approveBtn');
+    const approveForm = document.getElementById('approveForm');
+    approveBtn?.addEventListener('click', function() {
+        approveBtn.disabled = true;
+        approveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Approving...';
+        approveForm.submit();
     });
 
-    container.addEventListener('click', function (event) {
-        const removeBtn = event.target.closest('.remove-crew-btn');
-        if (!removeBtn) return;
-        removeBtn.closest('.crew-item')?.remove();
-        renumberCrewItems();
+    const declineTextarea = document.getElementById('decline_reason');
+    const declineBtn = document.getElementById('declineBtn');
+    const declineForm = document.getElementById('declineForm');
+    const declineHidden = document.getElementById('decline_reason_hidden');
+    const charCount = document.getElementById('charCount');
+
+    declineTextarea?.addEventListener('input', function() {
+        charCount.textContent = this.value.length;
+        declineBtn.disabled = this.value.trim().length === 0;
+    });
+
+    declineBtn?.addEventListener('click', function() {
+        const reason = declineTextarea.value.trim();
+        if (!reason) return;
+        declineHidden.value = reason;
+        declineBtn.disabled = true;
+        declineBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Declining...';
+        declineForm.submit();
     });
 });
 </script>

@@ -10,7 +10,12 @@
 <div class="row">
     <div class="col-12">
         <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-            <h4 class="mb-sm-0">{{ $title }}</h4>
+            <div class="flex-grow-1 flex-text-safe min-width-0">
+                <h4 class="mb-sm-0">{{ $title }}</h4>
+                @if(!empty($subtitle))
+                    <p class="partner-review-subtitle text-muted mb-0 mt-1">{{ $subtitle }}</p>
+                @endif
+            </div>
             <div class="page-title-right d-flex align-items-center gap-2 flex-wrap">
                 @isset($actions)
                     {!! $actions !!}

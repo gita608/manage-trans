@@ -19,7 +19,7 @@
     @stack('styles')
     <link href="{{ assetVersioned('assets/css/dark-mode-custom.css') }}" rel="stylesheet" type="text/css" />
 </head>
-<body>
+<body class="@yield('body_class')">
     <div class="grid-background"></div>
     <div class="orb orb-1"></div>
     <div class="orb orb-2"></div>

@@ -2,17 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Driver;
 use App\Models\Partner;
 use App\Models\PartnerRequest;
-use App\Models\PartnerRequestItem;
-use App\Models\Vessel;
 use App\Services\PartnerRequestApprovalService;
-use App\Services\TripAssignmentNotificationService;
 use App\Support\PartnerRequestReviewVersion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class PartnerRequestReviewController extends Controller
@@ -67,77 +62,27 @@ class PartnerRequestReviewController extends Controller
             'partner',
             'partnerUser',
             'items.vessel',
-            'items.driver',
             'trips.driver',
             'trips.crews',
             'approvedBy',
             'declinedBy',
         ]);
 
-        $drivers = Driver::orderBy('name')->get(['id', 'name']);
-        $vessels = Vessel::orderBy('name')->get(['id', 'name']);
-        $canEdit = $partnerRequest->isPending();
+        $canDecide = $partnerRequest->isPending();
+        $canCreateTrip = $partnerRequest->isApproved()
+            && $partnerRequest->trips->isEmpty()
+            && Auth::user()->hasPermission('create_trips');
         $requestVersion = PartnerRequestReviewVersion::make($partnerRequest);
 
-        return view('partner-requests.show', compact('partnerRequest', 'drivers', 'vessels', 'canEdit', 'requestVersion'));
+        return view('partner-requests.show', compact(
+            'partnerRequest',
+            'canDecide',
+            'canCreateTrip',
+            'requestVersion'
+        ));
     }
 
-    public function update(Request $request, PartnerRequest $partnerRequest)
-    {
-        $validated = $request->validate([
-            'request_version' => ['required', 'string', 'size:64'],
-            'items' => ['nullable', 'array'],
-            'items.*.id' => ['nullable', 'integer', 'exists:partner_request_items,id'],
-            'items.*.trip_date' => ['nullable', 'date'],
-            'items.*.pick_up_time' => ['nullable', 'date_format:H:i'],
-            'items.*.name' => ['nullable', 'string', 'max:255'],
-            'items.*.phone' => ['nullable', 'string', 'max:255'],
-            'items.*.phone_2' => ['nullable', 'string', 'max:255'],
-            'items.*.address' => ['nullable', 'string', 'max:255'],
-            'items.*.from_location' => ['nullable', 'string', 'max:255'],
-            'items.*.to_location' => ['nullable', 'string', 'max:255'],
-            'items.*.flight_number' => ['nullable', 'string', 'max:255'],
-            'items.*.remarks' => ['nullable', 'string'],
-            'items.*.sub_remark' => ['nullable', 'string', 'max:255'],
-            'items.*.driver_id' => ['nullable', 'exists:drivers,id'],
-            'items.*.vessel_id' => ['nullable', 'exists:vessels,id'],
-        ]);
-
-        try {
-            DB::transaction(function () use ($partnerRequest, $validated) {
-                $lockedRequest = PartnerRequest::query()
-                    ->whereKey($partnerRequest->id)
-                    ->lockForUpdate()
-                    ->first();
-
-                if (!$lockedRequest || !$lockedRequest->isPending()) {
-                    throw new \RuntimeException('non_pending');
-                }
-
-                $lockedRequest->load('items');
-
-                if (PartnerRequestReviewVersion::isStale($lockedRequest, $validated['request_version'])) {
-                    throw new \RuntimeException('stale');
-                }
-
-                $this->syncReviewItems($lockedRequest, $validated['items'] ?? []);
-                $lockedRequest->touch();
-            });
-        } catch (\RuntimeException $e) {
-            if ($e->getMessage() === 'stale') {
-                return redirect()->route('partner-requests.show', $partnerRequest)
-                    ->with('error', 'This request changed while you were reviewing it. Please reload and review the latest version.');
-            }
-
-            return redirect()->route('partner-requests.show', $partnerRequest)
-                ->with('error', 'Only pending requests can be reviewed.');
-        }
-
-        return redirect()->route('partner-requests.show', $partnerRequest)
-            ->with('success', 'Review saved successfully.');
-    }
-
-    public function approve(Request $request, PartnerRequest $partnerRequest, PartnerRequestApprovalService $approvalService, TripAssignmentNotificationService $tripAssignmentNotificationService)
+    public function approve(Request $request, PartnerRequest $partnerRequest, PartnerRequestApprovalService $approvalService)
     {
         if (!Auth::user()->hasPermission('create_trips')) {
             abort(403);
@@ -155,17 +100,10 @@ class PartnerRequestReviewController extends Controller
 
         if (!$result['success']) {
             return redirect()->route('partner-requests.show', $partnerRequest)
-                ->with('error', $result['message'])
-                ->with('approval_errors', $result['errors'] ?? []);
+                ->with('error', $result['message']);
         }
 
-        foreach ($result['trips'] ?? [] as $trip) {
-            if ($trip->driver_id) {
-                $tripAssignmentNotificationService->notifyDriverAssigned($trip, Auth::id());
-            }
-        }
-
-        return redirect()->route('partner-requests.show', $partnerRequest)
+        return redirect()->route('trips.create-from-partner-request', $partnerRequest)
             ->with('success', $result['message']);
     }
 
@@ -212,50 +150,6 @@ class PartnerRequestReviewController extends Controller
             Storage::disk('local')->path($storedPath),
             ['Content-Type' => Storage::disk('local')->mimeType($storedPath)]
         );
-    }
-
-    protected function syncReviewItems(PartnerRequest $partnerRequest, array $itemsData): void
-    {
-        $submittedIds = [];
-
-        foreach ($itemsData as $itemData) {
-            $fields = [
-                'trip_date' => $itemData['trip_date'] ?? null,
-                'pick_up_time' => $itemData['pick_up_time'] ?? null,
-                'name' => $itemData['name'] ?? null,
-                'phone' => $itemData['phone'] ?? null,
-                'phone_2' => $itemData['phone_2'] ?? null,
-                'address' => $itemData['address'] ?? null,
-                'from_location' => $itemData['from_location'] ?? null,
-                'to_location' => $itemData['to_location'] ?? null,
-                'flight_number' => $itemData['flight_number'] ?? null,
-                'remarks' => $itemData['remarks'] ?? null,
-                'sub_remark' => $itemData['sub_remark'] ?? null,
-                'driver_id' => $itemData['driver_id'] ?? null,
-                'vessel_id' => $itemData['vessel_id'] ?? null,
-            ];
-
-            if (!empty($itemData['id'])) {
-                $item = PartnerRequestItem::query()
-                    ->where('id', $itemData['id'])
-                    ->where('partner_request_id', $partnerRequest->id)
-                    ->first();
-
-                if ($item) {
-                    $item->update($fields);
-                    $submittedIds[] = $item->id;
-                }
-
-                continue;
-            }
-
-            $newItem = $partnerRequest->items()->create($fields);
-            $submittedIds[] = $newItem->id;
-        }
-
-        $partnerRequest->items()
-            ->whereNotIn('id', $submittedIds)
-            ->delete();
     }
 
     protected function isValidPartnerRequestImagePath(string $storedPath, int $partnerId): bool

@@ -3,124 +3,122 @@
 @section('title', 'My Requests - Partner Portal')
 
 @section('content')
-<!-- Page Title -->
-<div class="row">
-    <div class="col-12">
-        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-            <h4 class="mb-sm-0">My Requests</h4>
-
-            <div class="page-title-right">
-                <ol class="breadcrumb m-0">
-                    <li class="breadcrumb-item"><a href="{{ route('partner.dashboard') }}">Dashboard</a></li>
-                    <li class="breadcrumb-item active">My Requests</li>
-                </ol>
-            </div>
-        </div>
-    </div>
-</div>
+@include('partner.partials.page-header', [
+    'title' => 'My Requests',
+    'subtitle' => 'View and manage your transportation request history.',
+    'breadcrumbs' => [
+        ['label' => 'Dashboard', 'url' => route('partner.dashboard')],
+        ['label' => 'My Requests']
+    ]
+])
 
 <div class="row">
     <div class="col-lg-12">
-        <div class="card">
-            <div class="card-header d-flex flex-wrap align-items-center gap-2 justify-content-between">
-                <h5 class="card-title mb-0">Request List</h5>
+        <div class="card partner-page-card">
+            <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <h5 class="card-title mb-0">Request History</h5>
                 @php
                     $partnerNav = Auth::guard('partner')->user()->partner;
                     $canSubmitRequests = $partnerNav->allow_manual_submission || $partnerNav->allow_image_submission;
                 @endphp
                 @if($canSubmitRequests)
-                    <a href="{{ route('partner.requests.new') }}" class="btn btn-sm btn-primary">
+                    <a href="{{ route('partner.requests.new') }}" class="btn btn-sm btn-primary btn-touch">
                         <i class="ri-add-line align-middle me-1"></i> New Request
                     </a>
                 @endif
             </div>
             <div class="card-body">
                 <!-- Filter Tabs -->
-                <ul class="nav nav-tabs nav-tabs-custom nav-success mb-3" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link {{ !request('status') || request('status') === 'all' ? 'active' : '' }}" 
-                           href="{{ route('partner.requests.index', ['status' => 'all']) }}">
-                            All
+                <ul class="nav nav-tabs nav-tabs-custom nav-success mb-4 partner-filter-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link {{ !request('status') || request('status') === 'all' ? 'active' : '' }}"
+                           href="{{ route('partner.requests.index', ['status' => 'all']) }}"
+                           role="tab"
+                           aria-current="{{ !request('status') || request('status') === 'all' ? 'page' : 'false' }}">
+                            <i class="ri-file-list-line me-1"></i> All
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request('status') === 'pending' ? 'active' : '' }}" 
-                           href="{{ route('partner.requests.index', ['status' => 'pending']) }}">
-                            Pending
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link {{ request('status') === 'pending' ? 'active' : '' }}"
+                           href="{{ route('partner.requests.index', ['status' => 'pending']) }}"
+                           role="tab"
+                           aria-current="{{ request('status') === 'pending' ? 'page' : 'false' }}">
+                            <i class="ri-time-line me-1"></i> Pending
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request('status') === 'approved' ? 'active' : '' }}" 
-                           href="{{ route('partner.requests.index', ['status' => 'approved']) }}">
-                            Approved
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link {{ request('status') === 'approved' ? 'active' : '' }}"
+                           href="{{ route('partner.requests.index', ['status' => 'approved']) }}"
+                           role="tab"
+                           aria-current="{{ request('status') === 'approved' ? 'page' : 'false' }}">
+                            <i class="ri-checkbox-circle-line me-1"></i> Approved
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request('status') === 'declined' ? 'active' : '' }}" 
-                           href="{{ route('partner.requests.index', ['status' => 'declined']) }}">
-                            Declined
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link {{ request('status') === 'declined' ? 'active' : '' }}"
+                           href="{{ route('partner.requests.index', ['status' => 'declined']) }}"
+                           role="tab"
+                           aria-current="{{ request('status') === 'declined' ? 'page' : 'false' }}">
+                            <i class="ri-close-circle-line me-1"></i> Declined
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request('status') === 'withdrawn' ? 'active' : '' }}" 
-                           href="{{ route('partner.requests.index', ['status' => 'withdrawn']) }}">
-                            Withdrawn
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link {{ request('status') === 'withdrawn' ? 'active' : '' }}"
+                           href="{{ route('partner.requests.index', ['status' => 'withdrawn']) }}"
+                           role="tab"
+                           aria-current="{{ request('status') === 'withdrawn' ? 'page' : 'false' }}">
+                            <i class="ri-arrow-go-back-line me-1"></i> Withdrawn
                         </a>
                     </li>
                 </ul>
 
                 @if($requests->count() > 0)
-                    <div class="table-responsive">
+                    <!-- Desktop Table -->
+                    <div class="table-responsive d-none d-md-block">
                         <table class="table table-hover align-middle table-nowrap mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Reference</th>
-                                    <th>Method</th>
-                                    <th>Crew Items</th>
-                                    <th>Submitted</th>
-                                    <th>Submitted By</th>
-                                    <th>Status</th>
-                                    <th class="text-center" style="min-width: 100px;">Actions</th>
+                                    <th scope="col">Reference</th>
+                                    <th scope="col">Method</th>
+                                    <th scope="col">Crew</th>
+                                    <th scope="col">Submitted</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col" class="text-center" style="min-width: 120px;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($requests as $request)
                                     <tr>
                                         <td>
-                                            <a href="{{ route('partner.requests.show', $request) }}" class="fw-medium">
+                                            <a href="{{ route('partner.requests.show', $request) }}" class="fw-medium text-break-safe">
                                                 {{ $request->request_reference }}
                                             </a>
                                         </td>
                                         <td>
-                                            @if($request->submission_method === 'manual')
-                                                <span class="badge bg-info-subtle text-info">Manual</span>
-                                            @else
-                                                <span class="badge bg-primary-subtle text-primary">Image</span>
-                                            @endif
+                                            @include('partner.partials.method-badge', ['method' => $request->submission_method])
                                         </td>
-                                        <td>{{ $request->items->count() }} Crew</td>
-                                        <td>{{ $request->submitted_at ? $request->submitted_at->format('M d, Y g:i A') : 'N/A' }}</td>
-                                        <td>{{ $request->partnerUser->name ?? 'N/A' }}</td>
                                         <td>
-                                            @if($request->status === 'pending')
-                                                <span class="badge bg-warning-subtle text-warning">Pending</span>
-                                            @elseif($request->status === 'approved')
-                                                <span class="badge bg-success-subtle text-success">Approved</span>
-                                            @elseif($request->status === 'declined')
-                                                <span class="badge bg-danger-subtle text-danger">Declined</span>
-                                            @elseif($request->status === 'withdrawn')
-                                                <span class="badge bg-secondary-subtle text-secondary">Withdrawn</span>
-                                            @endif
+                                            <span class="text-muted">{{ $request->items->count() }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted">{{ $request->submitted_at ? $request->submitted_at->format('M d, Y') : 'N/A' }}</span>
+                                        </td>
+                                        <td>
+                                            @include('partner.partials.status-badge', ['status' => $request->status, 'withIcon' => false])
                                         </td>
                                         <td class="text-center">
                                             <div class="dropdown">
-                                                <button class="btn btn-sm btn-soft-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <button class="btn btn-sm btn-soft-secondary dropdown-toggle"
+                                                        type="button"
+                                                        data-bs-toggle="dropdown"
+                                                        aria-expanded="false"
+                                                        aria-label="Request actions">
                                                     <i class="ri-more-fill"></i>
                                                 </button>
                                                 <ul class="dropdown-menu dropdown-menu-end">
                                                     <li>
                                                         <a class="dropdown-item" href="{{ route('partner.requests.show', $request) }}">
-                                                            <i class="ri-eye-fill align-bottom me-2 text-muted"></i> View
+                                                            <i class="ri-eye-fill align-bottom me-2 text-muted"></i> View Details
                                                         </a>
                                                     </li>
                                                     @if($request->canPartnerEdit())
@@ -131,6 +129,7 @@
                                                         </li>
                                                     @endif
                                                     @if($request->isPending())
+                                                        <li><hr class="dropdown-divider"></li>
                                                         <li>
                                                             <form action="{{ route('partner.requests.withdraw', $request) }}" method="POST" onsubmit="return confirm('Are you sure you want to withdraw this request? This action cannot be undone.');">
                                                                 @csrf
@@ -150,31 +149,90 @@
                         </table>
                     </div>
 
-                    <!-- Pagination -->
-                    <div class="mt-3">
-                        {{ $requests->links() }}
+                    <!-- Mobile Cards -->
+                    <div class="d-md-none">
+                        @foreach($requests as $request)
+                            <div class="request-card">
+                                <div class="request-card-header">
+                                    <a href="{{ route('partner.requests.show', $request) }}" class="request-card-reference text-break-safe">
+                                        {{ $request->request_reference }}
+                                    </a>
+                                    @include('partner.partials.status-badge', ['status' => $request->status, 'withIcon' => false])
+                                </div>
+                                <div class="request-card-body">
+                                    <div class="request-card-row">
+                                        <span class="request-card-label">Method</span>
+                                        <span class="request-card-value">
+                                            @include('partner.partials.method-badge', ['method' => $request->submission_method])
+                                        </span>
+                                    </div>
+                                    <div class="request-card-row">
+                                        <span class="request-card-label">Crew Items</span>
+                                        <span class="request-card-value">{{ $request->items->count() }}</span>
+                                    </div>
+                                    <div class="request-card-row">
+                                        <span class="request-card-label">Submitted</span>
+                                        <span class="request-card-value">{{ $request->submitted_at ? $request->submitted_at->format('M d, Y') : 'N/A' }}</span>
+                                    </div>
+                                </div>
+                                <div class="request-card-footer">
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ route('partner.requests.show', $request) }}" class="btn btn-sm btn-primary flex-grow-1 btn-touch">
+                                            <i class="ri-eye-line me-1"></i> View
+                                        </a>
+                                        @if($request->canPartnerEdit())
+                                            <a href="{{ route('partner.requests.edit', $request) }}" class="btn btn-sm btn-soft-primary btn-touch">
+                                                <i class="ri-pencil-line"></i>
+                                            </a>
+                                        @endif
+                                        @if($request->isPending())
+                                            <form action="{{ route('partner.requests.withdraw', $request) }}" method="POST" onsubmit="return confirm('Are you sure you want to withdraw this request?');" class="d-inline">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="btn btn-sm btn-soft-danger btn-touch" aria-label="Withdraw request">
+                                                    <i class="ri-close-circle-line"></i>
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
-                @else
-                    <!-- Empty State -->
-                    <div class="text-center py-5">
-                        <div class="mb-4">
-                            <i class="ri-file-list-3-line display-4 text-muted"></i>
+
+                    <!-- Pagination -->
+                    @if($requests->hasPages())
+                        <div class="mt-4">
+                            {{ $requests->links() }}
                         </div>
-                        <h5 class="mb-3">No requests found</h5>
-                        @if(!request('status') || request('status') === 'all')
-                            @if($canSubmitRequests)
-                                <p class="text-muted mb-3">Get started by creating your first request.</p>
-                                <a href="{{ route('partner.requests.new') }}" class="btn btn-primary">
+                    @endif
+                @else
+                    @include('partner.partials.empty-state', [
+                        'icon' => 'ri-file-list-3-line',
+                        'title' => !request('status') || request('status') === 'all'
+                            ? 'No requests submitted yet'
+                            : 'No ' . request('status') . ' requests found',
+                        'message' => !request('status') || request('status') === 'all'
+                            ? ($canSubmitRequests
+                                ? 'Get started by creating your first transportation request.'
+                                : 'No requests have been submitted yet.')
+                            : 'Try viewing all requests or change the filter.',
+                    ])
+                    @if(!request('status') || request('status') === 'all')
+                        @if($canSubmitRequests)
+                            <div class="text-center mt-3">
+                                <a href="{{ route('partner.requests.new') }}" class="btn btn-primary btn-touch">
                                     <i class="ri-add-line align-middle me-1"></i> Create Request
                                 </a>
-                            @else
-                                <p class="text-muted mb-0">No requests have been submitted yet.</p>
-                            @endif
-                        @else
-                            <p class="text-muted mb-3">No {{ request('status') }} requests found.</p>
-                            <a href="{{ route('partner.requests.index') }}" class="btn btn-soft-primary">View All Requests</a>
+                            </div>
                         @endif
-                    </div>
+                    @else
+                        <div class="text-center mt-3">
+                            <a href="{{ route('partner.requests.index') }}" class="btn btn-soft-primary btn-touch">
+                                View All Requests
+                            </a>
+                        </div>
+                    @endif
                 @endif
             </div>
         </div>

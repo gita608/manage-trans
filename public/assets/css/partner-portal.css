@@ -1,0 +1,959 @@
+/**
+ * Partner Portal - Custom Styles
+ * Phase 7A UI/UX improvements
+ */
+
+/* ============================================
+   Partner Layout & Navigation
+   ============================================ */
+
+/* Improve sidebar logo sizing */
+.app-menu .navbar-brand-box .logo img {
+    max-height: 32px;
+    width: auto;
+}
+
+/* Better sidebar spacing */
+.app-menu .navbar-nav {
+    padding: 1rem 0;
+}
+
+.app-menu .nav-item {
+    margin-bottom: 0.25rem;
+}
+
+.app-menu .nav-link {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.375rem;
+    margin: 0 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.app-menu .nav-link.active {
+    font-weight: 600;
+    background: var(--vz-primary-bg-subtle);
+    color: var(--vz-primary);
+}
+
+.app-menu .nav-link.active i {
+    color: var(--vz-primary);
+}
+
+.app-menu .menu-title span {
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+/* Partner main content area */
+.partner-portal-content .page-content {
+    background-color: var(--vz-body-bg);
+}
+
+.partner-portal-content .card {
+    border-color: var(--vz-border-color);
+}
+
+/* Shared page chrome */
+.partner-page-title {
+    font-weight: 600;
+    color: var(--vz-heading-color);
+    font-size: 1.375rem;
+}
+
+.partner-page-subtitle {
+    font-size: 0.9375rem;
+}
+
+.partner-page-breadcrumb .breadcrumb {
+    font-size: 0.8125rem;
+    justify-content: flex-end;
+}
+
+.partner-page-card {
+    border: 0;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.04);
+}
+
+.partner-page-card > .card-header {
+    background: var(--vz-card-bg);
+    border-bottom: 1px solid var(--vz-border-color);
+    padding: 1rem 1.5rem;
+}
+
+.partner-page-card > .card-body {
+    padding: 1.5rem;
+}
+
+.partner-card-header-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--vz-primary-bg-subtle);
+    color: var(--vz-primary);
+    flex-shrink: 0;
+}
+
+.partner-form-actions {
+    background: var(--vz-card-bg);
+}
+
+.partner-form-actions .card-body {
+    padding: 1rem 1.5rem;
+}
+
+.partner-section-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--vz-heading-color);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.partner-detail-grid .detail-label {
+    font-size: 0.8125rem;
+    color: var(--vz-secondary-color);
+    margin-bottom: 0.25rem;
+}
+
+.partner-detail-grid .detail-value {
+    font-weight: 500;
+    color: var(--vz-body-color);
+    margin-bottom: 0;
+}
+
+.partner-crew-detail-card {
+    background: var(--vz-light);
+    border: 1px solid var(--vz-border-color);
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.partner-crew-detail-card:last-child {
+    margin-bottom: 0;
+}
+
+.partner-image-preview-wrap {
+    border: 1px solid var(--vz-border-color);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background: var(--vz-light);
+    text-align: center;
+}
+
+.partner-image-preview-wrap img {
+    max-height: 600px;
+    max-width: 100%;
+    object-fit: contain;
+    background: #fff;
+    border-radius: 0.375rem;
+}
+
+.partner-help-card {
+    border: 0;
+    background: var(--vz-info-bg-subtle);
+}
+
+.partner-help-card h6 {
+    font-weight: 600;
+    color: var(--vz-heading-color);
+}
+
+/* Partner login (auth layout) */
+body.partner-auth-login .auth-left {
+    background: linear-gradient(135deg, var(--vz-primary) 0%, var(--vz-primary-text-emphasis) 100%);
+}
+
+body.partner-auth-login .auth-logo img {
+    height: 120px;
+}
+
+body.partner-auth-login .auth-left h1 {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+body.partner-auth-login .auth-left p {
+    font-size: 1rem;
+    opacity: 0.92;
+}
+
+body.partner-auth-login .btn-submit {
+    background: linear-gradient(135deg, var(--vz-primary) 0%, var(--vz-primary-text-emphasis) 100%);
+}
+
+body.partner-auth-login .btn-submit:hover {
+    box-shadow: 0 10px 25px rgba(var(--vz-primary-rgb), 0.35);
+}
+
+body.partner-auth-login .form-control:focus {
+    border-color: var(--vz-primary);
+    box-shadow: 0 0 0 4px rgba(var(--vz-primary-rgb), 0.12);
+}
+
+body.partner-auth-login .form-control:focus + .input-icon,
+body.partner-auth-login .input-wrapper:focus-within .input-icon {
+    color: var(--vz-primary);
+}
+
+body.partner-auth-login .form-check-input:checked {
+    background-color: var(--vz-primary);
+    border-color: var(--vz-primary);
+}
+
+body.partner-auth-login .auth-footer a {
+    color: var(--vz-primary);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+body.partner-auth-login .auth-footer a:hover {
+    text-decoration: underline;
+}
+
+.partner-auth-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    margin-top: 1.5rem;
+    padding: 0.875rem 1rem;
+    border-radius: 0.75rem;
+    background: var(--vz-primary-bg-subtle);
+    border: 1px solid rgba(var(--vz-primary-rgb), 0.15);
+    color: var(--vz-body-color);
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.partner-auth-notice i {
+    color: var(--vz-primary);
+    font-size: 1.125rem;
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+}
+
+[data-bs-theme="dark"] body.partner-auth-login .partner-auth-notice {
+    background: rgba(var(--vz-primary-rgb), 0.12);
+    border-color: rgba(var(--vz-primary-rgb), 0.25);
+}
+
+body.partner-auth-login .alert-success {
+    background: rgba(var(--vz-success-rgb), 0.1);
+    border-color: var(--vz-success);
+    color: var(--vz-success-text-emphasis, #099885);
+}
+
+@media (max-width: 767.98px) {
+    body.partner-auth-login .auth-logo img {
+        height: 80px;
+    }
+
+    body.partner-auth-login .auth-left h1 {
+        font-size: 1.5rem;
+    }
+
+    body.partner-auth-login .auth-left {
+        padding: 3rem 1.5rem;
+    }
+
+    body.partner-auth-login .auth-right {
+        padding: 2rem 1.5rem;
+    }
+}
+
+.partner-filter-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.partner-filter-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.partner-filter-tabs .nav-link {
+    white-space: nowrap;
+    font-size: 0.875rem;
+    padding: 0.5rem 0.875rem;
+}
+
+.partner-method-picker .request-method-card .card {
+    border: 0;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.04);
+}
+
+.partner-method-picker-intro {
+    margin-bottom: 2rem;
+}
+
+.partner-method-picker-intro h5 {
+    font-weight: 600;
+    color: var(--vz-heading-color);
+}
+
+/* Partner identity in topbar */
+.topbar-user .user-name-text {
+    font-weight: 600;
+    color: var(--vz-body-color);
+}
+
+.topbar-user .user-name-sub-text {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--vz-secondary-color);
+}
+
+/* ============================================
+   Partner Dashboard
+   ============================================ */
+
+/* Status cards clickable hover */
+.partner-status-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+    text-decoration: none !important;
+    display: block;
+    height: 100%;
+}
+
+.partner-status-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+.partner-status-card .card-body {
+    padding: 1.25rem 1.5rem;
+}
+
+.partner-stat-card {
+    border-left: 3px solid transparent;
+}
+
+.partner-stat-card--warning {
+    border-left-color: var(--vz-warning);
+}
+
+.partner-stat-card--success {
+    border-left-color: var(--vz-success);
+}
+
+.partner-stat-card--danger {
+    border-left-color: var(--vz-danger);
+}
+
+.partner-stat-card--secondary {
+    border-left-color: var(--vz-secondary-color);
+}
+
+/* Dashboard welcome section */
+.partner-welcome-card {
+    background: linear-gradient(135deg, var(--vz-primary) 0%, var(--vz-primary-text-emphasis) 100%);
+    color: #fff;
+    border: none;
+    overflow: hidden;
+    position: relative;
+}
+
+.partner-welcome-card::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -5%;
+    width: 220px;
+    height: 220px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.partner-welcome-card .card-body {
+    padding: 1.25rem 1.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.partner-welcome-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.18);
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.partner-welcome-eyebrow {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 0.25rem;
+}
+
+.partner-welcome-card h4 {
+    color: #fff;
+    font-weight: 600;
+    font-size: 1.25rem;
+}
+
+.partner-welcome-subtitle {
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 0.9375rem;
+}
+
+.partner-welcome-card .partner-welcome-cta.btn-light {
+    background: #fff;
+    border-color: #fff;
+    color: var(--vz-primary);
+    font-weight: 500;
+}
+
+.partner-welcome-card .partner-welcome-cta.btn-light:hover,
+.partner-welcome-card .partner-welcome-cta.btn-light:focus {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(255, 255, 255, 0.92);
+    color: var(--vz-primary-text-emphasis);
+}
+
+/* ============================================
+   Request Method Selector
+   ============================================ */
+
+.request-method-card {
+    transition: all 0.3s ease;
+    border: 2px solid var(--vz-border-color);
+    cursor: pointer;
+    text-decoration: none !important;
+    display: block;
+    height: 100%;
+    min-height: 200px;
+}
+
+.request-method-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.12);
+    border-color: var(--vz-primary);
+}
+
+.request-method-card:focus {
+    outline: 2px solid var(--vz-primary);
+    outline-offset: 2px;
+}
+
+.request-method-card .card-body {
+    padding: 2rem;
+}
+
+.request-method-card h5 {
+    color: var(--vz-heading-color);
+    margin-bottom: 0.75rem;
+}
+
+.request-method-card p {
+    color: var(--vz-body-color);
+}
+
+/* ============================================
+   Crew Forms
+   ============================================ */
+
+.crew-item {
+    background: var(--vz-card-bg-custom, var(--vz-light));
+    position: relative;
+}
+
+.crew-item-header {
+    background: var(--vz-primary-bg-subtle);
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem 0.375rem 0 0;
+    margin: -0.75rem -0.75rem 1rem;
+}
+
+.crew-item h6 {
+    color: var(--vz-heading-color);
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Better form spacing */
+.crew-item .form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--vz-body-color);
+}
+
+.crew-item .form-label .text-danger {
+    margin-left: 0.25rem;
+}
+
+.crew-item input.form-control,
+.crew-item select.form-select {
+    border-radius: 0.375rem;
+}
+
+/* Helper text */
+.form-text-helper {
+    font-size: 0.875rem;
+    color: var(--vz-secondary-color);
+    margin-top: 0.25rem;
+    display: block;
+}
+
+/* ============================================
+   Image Upload
+   ============================================ */
+
+#dropZone {
+    min-height: 240px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#dropZone:hover {
+    border-color: var(--vz-primary) !important;
+    background: var(--vz-primary-bg-subtle);
+}
+
+#dropZone.border-primary {
+    background: var(--vz-primary-bg-subtle);
+}
+
+#previewContainer img {
+    max-width: 100%;
+    object-fit: contain;
+}
+
+/* ============================================
+   Request Status Badges
+   ============================================ */
+
+.status-badge {
+    padding: 0.375rem 0.75rem;
+    font-weight: 500;
+    border-radius: 0.25rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.status-badge i {
+    font-size: 1rem;
+}
+
+.method-badge {
+    padding: 0.25rem 0.625rem;
+    font-weight: 500;
+    border-radius: 0.25rem;
+    font-size: 0.8125rem;
+}
+
+/* ============================================
+   Request Journey Timeline
+   ============================================ */
+
+.request-journey {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem;
+    background: var(--vz-light);
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.journey-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex: 1;
+    position: relative;
+}
+
+.journey-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background: var(--vz-border-color);
+    z-index: 0;
+}
+
+.journey-step.active:not(:last-child)::after {
+    background: var(--vz-success);
+}
+
+.journey-step-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--vz-light);
+    border: 2px solid var(--vz-border-color);
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.journey-step.active .journey-step-icon {
+    background: var(--vz-success);
+    border-color: var(--vz-success);
+    color: white;
+}
+
+.journey-step.completed .journey-step-icon {
+    background: var(--vz-success);
+    border-color: var(--vz-success);
+    color: white;
+}
+
+.journey-step-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--vz-secondary-color);
+}
+
+.journey-step.active .journey-step-label,
+.journey-step.completed .journey-step-label {
+    color: var(--vz-body-color);
+    font-weight: 600;
+}
+
+/* ============================================
+   Request Cards (Mobile-friendly alternative)
+   ============================================ */
+
+.request-card {
+    border: 1px solid var(--vz-border-color);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: var(--vz-card-bg);
+    transition: all 0.2s ease;
+}
+
+.request-card:hover {
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+}
+
+.request-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.request-card-reference {
+    font-weight: 600;
+    color: var(--vz-primary);
+    font-size: 1rem;
+    margin-right: auto;
+}
+
+.request-card-body {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.request-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.25rem 0;
+}
+
+.request-card-label {
+    font-size: 0.875rem;
+    color: var(--vz-secondary-color);
+    font-weight: 400;
+}
+
+.request-card-value {
+    font-size: 0.875rem;
+    color: var(--vz-body-color);
+    font-weight: 500;
+    text-align: right;
+}
+
+.request-card-footer {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--vz-border-color);
+}
+
+/* ============================================
+   Mobile Responsive Overrides
+   ============================================ */
+
+@media (max-width: 767.98px) {
+    .partner-page-header .d-sm-flex {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+
+    .partner-page-breadcrumb {
+        width: 100%;
+    }
+
+    .partner-page-breadcrumb .breadcrumb {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+    /* Card header toolbars wrap on mobile */
+    .card-header .d-flex {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .card-header .btn-sm {
+        flex-shrink: 0;
+    }
+
+    /* Status cards stay horizontal on mobile */
+    .partner-status-card .card-body .d-flex {
+        align-items: center !important;
+    }
+
+    .partner-status-card .avatar-sm {
+        margin-top: 0;
+    }
+
+    /* Form buttons stack on mobile */
+    .text-end .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    .text-end .btn:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Journey timeline becomes vertical on mobile */
+    .request-journey {
+        flex-direction: column;
+        padding: 1rem;
+    }
+
+    .journey-step {
+        width: 100%;
+        flex-direction: row;
+        justify-content: flex-start;
+        text-align: left;
+        padding: 0.75rem 0;
+    }
+
+    .journey-step:not(:last-child)::after {
+        display: none;
+    }
+
+    .journey-step-icon {
+        margin-right: 1rem;
+        margin-bottom: 0;
+    }
+
+    /* Welcome card spacing */
+    .partner-welcome-card .card-body {
+        padding: 1.5rem;
+    }
+
+    /* Request method cards */
+    .request-method-card .card-body {
+        padding: 1.5rem;
+    }
+
+    /* Crew forms */
+    .crew-item {
+        padding: 1rem !important;
+    }
+
+    .crew-item-header {
+        margin: -1rem -1rem 1rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    /* Even tighter spacing on small phones */
+    .page-content {
+        padding: 1rem 0;
+    }
+
+    .card-body {
+        padding: 1rem;
+    }
+
+    .partner-welcome-card .card-body {
+        padding: 1.25rem;
+    }
+
+    /* Breadcrumbs can wrap */
+    .breadcrumb {
+        flex-wrap: wrap;
+    }
+}
+
+/* ============================================
+   Dark Mode Compatibility
+   ============================================ */
+
+[data-layout-mode="dark"] .crew-item {
+    background: var(--vz-card-bg);
+}
+
+[data-layout-mode="dark"] .request-journey {
+    background: var(--vz-body-bg);
+}
+
+[data-layout-mode="dark"] .request-card {
+    background: var(--vz-card-bg);
+    border-color: var(--vz-border-color);
+}
+
+[data-layout-mode="dark"] .partner-welcome-card {
+    background: linear-gradient(135deg, var(--vz-primary) 0%, #2c3860 100%);
+}
+
+[data-layout-mode="dark"] .partner-portal-content .page-content {
+    background-color: var(--vz-body-bg);
+}
+
+[data-layout-mode="dark"] .partner-page-card {
+    box-shadow: 0 0.125rem 0.375rem rgba(0, 0, 0, 0.2);
+}
+
+[data-layout-mode="dark"] .partner-crew-detail-card,
+[data-layout-mode="dark"] .partner-image-preview-wrap {
+    background: var(--vz-body-bg);
+    border-color: var(--vz-border-color);
+}
+
+[data-layout-mode="dark"] .partner-empty-state-icon {
+    background: rgba(var(--vz-primary-rgb), 0.15);
+}
+
+[data-layout-mode="dark"] #dropZone {
+    background: var(--vz-body-bg);
+}
+
+[data-layout-mode="dark"] .request-method-card {
+    background: var(--vz-card-bg);
+    border-color: var(--vz-border-color);
+}
+
+/* ============================================
+   Accessibility & Focus States
+   ============================================ */
+
+.btn:focus,
+.form-control:focus,
+.form-select:focus {
+    box-shadow: 0 0 0 0.2rem rgba(var(--vz-primary-rgb), 0.25);
+}
+
+/* Ensure interactive elements have visible focus */
+a:focus,
+button:focus {
+    outline: 2px solid var(--vz-primary);
+    outline-offset: 2px;
+}
+
+/* Skip to visible focus for keyboard navigation */
+.request-method-card:focus,
+.partner-status-card:focus {
+    outline: 3px solid var(--vz-primary);
+    outline-offset: 3px;
+}
+
+/* ============================================
+   Print Styles
+   ============================================ */
+
+@media print {
+    .app-menu,
+    .page-topbar,
+    .footer,
+    .btn,
+    .breadcrumb,
+    .dropdown {
+        display: none !important;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+        padding-top: 0 !important;
+    }
+
+    .card {
+        border: 1px solid #ddd;
+        box-shadow: none;
+    }
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+
+/* Safe text wrapping for long references */
+.text-break-safe {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+}
+
+/* Consistent min-width for flex items with text */
+.flex-text-safe {
+    min-width: 0;
+}
+
+/* Touch-friendly button sizing */
+.btn-touch {
+    min-height: 44px;
+    padding: 0.75rem 1.5rem;
+}
+
+/* Empty state */
+.partner-empty-state-icon {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto;
+    border-radius: 50%;
+    background: var(--vz-primary-bg-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.partner-empty-state-icon i {
+    font-size: 2rem;
+    color: var(--vz-primary);
+}
+
+.partner-empty-state h5 {
+    font-weight: 600;
+    color: var(--vz-heading-color);
+}

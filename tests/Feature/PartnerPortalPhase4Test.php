@@ -195,7 +195,7 @@ class PartnerPortalPhase4Test extends TestCase
         $this->actingAs($user, 'partner')
             ->get(route('partner.requests.new'))
             ->assertOk()
-            ->assertSee('Enter Manually')
+            ->assertSee('Manual Request')
             ->assertSee('Upload Schedule Image');
     }
 

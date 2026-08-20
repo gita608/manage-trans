@@ -34,21 +34,32 @@ Completed:
 - Phase 2 — Partner authentication and user management
 - Phase 3 — Manual Partner requests
 - Phase 4 — Image/Textract Partner requests
-- Phase 5 — Internal review + approval + REQ→TRP conversion
-- Phase 6 — Operational integration
+- Phase 5 — Internal review + approval decision (REQ intake)
+- Phase 6 — Operational integration (Trip creation from approved REQ)
+- Phase 7 — Complete UI/UX improvement ✅
 
 Remaining:
 
-- Phase 7 — Complete UI/UX improvement
 - Phase 8 — Final QA and release
 
 `main` remains production-oriented and must not be modified/merged until final
 release authorization.
 
-Current automated baseline after Phase 6:
+Current automated baseline after Phase 7:
 
-- 243 passed
-- 660 assertions
+- 253 passed
+- 774 assertions
+
+Phase 7 summary:
+
+- Partner-facing portal UI polished (login, dashboard, requests, mobile journey)
+- Internal Partner Requests inbox and read-only review detail
+- Approve/Decline decision workflow; operational conversion via normal Trip create
+- Trip create prefill from approved REQ; duplicate conversion guards
+- Responsive patterns at 375 px / 768 px / 1440 px; dark-mode CSS variables
+- Architecture correction preserved: approval does not create Trips
+
+Architecture (Phase 7):
 
 Automated tests:
 
@@ -88,9 +99,11 @@ Partner
         └── TripCrews
 ```
 
-PartnerRequest is submission/review history.
+PartnerRequest is submission/decision history.
 
 Trip is live operational state.
+
+Approved PartnerRequest with zero Trips is a valid intermediate state.
 
 Do NOT synchronize later operational Trip edits back into
 PartnerRequestItem after approval.
@@ -297,9 +310,10 @@ Existing Trip permissions are reused:
 
 | Action | Permissions |
 | :--- | :--- |
-| View | `view_trips` |
-| Save Review / Decline | `edit_trips` |
-| Approve | `edit_trips` + `create_trips` |
+| View inbox/detail | `view_trips` |
+| Decline | `edit_trips` |
+| Approve | `create_trips` |
+| Create Trip from approved REQ | `create_trips` |
 
 Admin permission bypass remains unchanged.
 
@@ -315,93 +329,93 @@ Inbox supports:
 
 plus method / Partner / REQ search filters.
 
-## Internal Review
+## Internal Review (Read-Only Decision)
 
-Pending request review can edit operational fields:
+Pending Partner Request detail is **read-only** for internal staff.
 
-- `trip_date`
-- `pick_up_time`
-- `name`
-- `phone`
-- `phone_2`
-- `address`
-- `from_location`
-- `to_location`
-- `flight_number`
-- `remarks`
-- `sub_remark`
-- `vessel_id`
-- `driver_id`
+Display:
 
-`vessel_name_raw`: read-only OCR/source evidence
+- REQ reference, Partner, Submitted By/At, Method, Status
+- Partner-submitted crew/details (PartnerRequestItems as submission snapshot)
+- source image for Image REQ (secure streaming endpoint)
+- extraction status where useful internally
 
-Internal staff may:
+Actions on Pending:
 
-- add crew item
-- remove crew item
-- save incomplete review
+- Back to Queue
+- Approve
+- Decline
 
-Save Review:
+Do **not** show editable operational fields on the REQ page:
 
-- stays Pending
-- creates zero Trips
+- no Save Review
+- no Driver/Vessel selectors
+- no pickup-time editor
+- no add/remove crew
+- no Select2 operational editor
 
 Approved / Declined / Withdrawn: read-only internally.
 
-## Approval Validation
+Approved with zero Trips shows **Approved — Awaiting Trip Creation** and a
+**Create Trip** action (requires `create_trips`).
 
-Every PartnerRequestItem must contain before approval:
+Approved with linked Trips shows TRP references and operational summary; no
+Create Trip action.
 
-- `trip_date`
-- `pick_up_time`
-- `name`
-- `from_location`
-- `to_location`
-- `vessel_id`
+## Approval (Decision Only)
 
-`driver_id` remains optional.
+`PartnerRequestApprovalService::approve()` performs decision/state work only:
 
-| Driver | Trip status |
-| :--- | :--- |
-| selected | `assigned` |
-| null | `unassigned` |
+- `DB::transaction()` + `lockForUpdate()`
+- re-check Pending
+- stale `request_version` check via `PartnerRequestReviewVersion`
+- ensure no linked Trips yet
+- set `status = approved`, `approved_at`, `approved_by`
 
-Approval never creates Drivers or Vessels.
+Approval does **not**:
 
-## REQ → TRP Conversion
+- validate operational crew completeness
+- require pickup time / vessel / from-to
+- group by Driver + Date
+- create Trips or TripCrews
+- send Driver notifications
 
-Approval is atomic.
+On success, controller redirects to:
 
-PartnerRequestItems group by:
+`GET /trips/create/from-partner-request/{partnerRequest}`
 
-`driver_id` + `trip_date`
+Approval can succeed even when PartnerRequestItems lack operational fields or
+when Image extraction produced zero rows.
 
-Each group creates one Trip.
+## REQ → TRP Conversion (Normal Trip Workflow)
 
-Trip fields include:
+Trip creation from an approved REQ uses the **same** internal Trip create/store
+path as normal Trips.
 
-- `driver_id`
-- `partner_id` = `PartnerRequest.partner_id`
-- `partner_request_id` = `PartnerRequest.id`
-- `trip_date`
-- generated title
-- assigned/unassigned status
+Route:
 
-Trip model generates:
+`GET /trips/create/from-partner-request/{partnerRequest}`
 
-`TRP-XXXXXX`
+Reuses `resources/views/trips/create.blade.php` with:
 
-Each grouped PartnerRequestItem becomes TripCrew using operational crew fields.
+- hidden `partner_request_id`
+- Partner locked to REQ partner (server-side; do not trust posted partner_id)
+- source banner: Source Request `REQ-XXXXXX` with link back
+- crew rows prefilled from PartnerRequestItems
+- Image REQ: View Source Schedule link (secure; no filesystem paths)
+- zero extracted rows: one empty crew row
 
-Only after all Trips/TripCrews succeed:
+POST flows through existing `TripController::store()`:
 
-PartnerRequest:
+- optional `partner_request_id`
+- inside transaction: lock REQ, re-check approved + `trips()->doesntExist()`
+- force `partner_id = PartnerRequest.partner_id`
+- existing Driver+Date grouping creates one Trip per group
+- every generated Trip receives same `partner_request_id`
+- duplicate conversion attempt returns friendly error; creates zero extra Trips
+- assignment notifications only after commit via `TripAssignmentNotificationService`
 
-- `status` = approved
-- `approved_at`
-- `approved_by`
-
-Failure: entire DB transaction rolls back. No partial approval.
+When `partner_request_id` is absent, normal internal Trip behavior is unchanged.
 
 ## Decline
 
@@ -429,16 +443,23 @@ Protected paths:
 
 - Partner manual edit
 - Partner withdraw
-- internal Save Review
 - approve
 - decline
+- Trip store from approved REQ (duplicate conversion guard)
 
 Approval guards:
 
 - `status == pending`
-- `trips()->exists() == false`
+- stale review fingerprint
+- `trips()->exists() == false` (at approval time)
 
-Double approval: 0 duplicate Trips, 0 duplicate TripCrews.
+Trip store from REQ guards:
+
+- REQ approved
+- lock REQ inside transaction
+- `trips()->doesntExist()` before creating
+
+Double approval: no duplicate Trips. Double conversion: blocked with friendly message.
 
 ## Review Fingerprint
 
@@ -581,7 +602,7 @@ Used by:
 - bulk Trip creation
 - Trip assignment
 - applicable Trip split/update assignments
-- Partner Request approval
+- Trip store from approved Partner Request
 
 IMPORTANT TRANSACTION RULE:
 
@@ -590,10 +611,13 @@ Never send FCM before Trip DB transaction commits.
 | Flow | Pattern |
 | :--- | :--- |
 | Store / update / bulk | collect Trip IDs inside transaction → commit → notify |
-| Partner approval | approval service transaction commits → controller sends assignment notifications |
+| Partner REQ approval | **zero** assignment notifications (no Trip yet) |
+| Trip store from approved REQ | collect Trip IDs inside transaction → commit → notify |
 | `assignDriver` | successful autocommit Trip update → notify |
 
-Firebase failure must NOT roll back operational Trip/REQ creation.
+Firebase failure must NOT roll back operational Trip creation or REQ approval.
+
+Approved REQ with zero Trips sends zero Driver notifications.
 
 | Trip state | Notifications |
 | :--- | :--- |
@@ -615,6 +639,10 @@ Approved Partner Trips participate normally in:
 
 Pending/Declined/Withdrawn PartnerRequests create no Trip rows and therefore
 must not appear in operational reporting/APIs/counts.
+
+Approved PartnerRequests with zero linked Trips also must not appear in Driver
+API, Trip reports, dashboard counts, expenses, issues, or Trip lifecycle until
+actual Trip rows are created.
 
 ## Lifecycle
 
@@ -641,35 +669,21 @@ REQ stays Approved if linked TRP becomes:
 - reassigned
 - split
 
-## Phase 7 — UI/UX
+## Phase 7 — UI/UX ✅
 
-Phase 7 is a dedicated presentation/usability improvement across everything
-implemented in Phases 1–6.
+Phase 7 presentation/usability improvement is complete across Phases 1–6.
 
-Primary areas:
+Partner Request detail is read-only intake/decision. Operational conversion uses
+the normal Trip create workflow after approval.
 
-**Partner:**
+Primary areas delivered:
 
-- login
-- dashboard
-- New Request
-- manual request
-- image upload
-- My Requests
-- request detail/statuses
-- mobile experience
+**Partner:** login, dashboard, New Request, manual/image flows, My Requests,
+request detail with mobile status journey
 
-**Internal:**
-
-- Partner management
-- PartnerUsers
-- Partner Requests inbox
-- review workflow
-- image review
-- crew editor
-- approval/decline
-- REQ/TRP source display
-- Trip integration
+**Internal:** Partner management, PartnerUsers, Partner Requests inbox,
+read-only review, Approve/Decline, approved-awaiting-trip state, Trip create
+prefill from approved REQ, REQ/TRP source display
 
 Focus:
 

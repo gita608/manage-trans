@@ -50,7 +50,7 @@ Route::middleware(['guest'])->group(function () {
 });
 
 // Dashboard Routes (Protected)
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth:web'])->group(function () {
     // Dashboard
     Route::middleware(['permission:view_dashboard'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -141,6 +141,7 @@ Route::middleware(['auth'])->group(function () {
     
     Route::middleware(['permission:create_trips'])->group(function () {
         Route::get('/trips/create', [TripController::class, 'create'])->name('trips.create');
+        Route::get('/trips/create/from-partner-request/{partnerRequest}', [TripController::class, 'createFromPartnerRequest'])->name('trips.create-from-partner-request');
         Route::post('/trips', [TripController::class, 'store'])->name('trips.store');
         Route::post('/trips/extract-from-image', [TripController::class, 'extractFromImage'])->name('trips.extract-from-image');
         Route::post('/trips/bulk-store', [TripController::class, 'storeBulk'])->name('trips.store-bulk');
@@ -170,11 +171,10 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::middleware(['permission:edit_trips'])->group(function () {
-        Route::put('/partner-requests/{partnerRequest}', [PartnerRequestReviewController::class, 'update'])->name('partner-requests.update');
         Route::post('/partner-requests/{partnerRequest}/decline', [PartnerRequestReviewController::class, 'decline'])->name('partner-requests.decline');
     });
 
-    Route::middleware(['permission:edit_trips', 'permission:create_trips'])->group(function () {
+    Route::middleware(['permission:create_trips'])->group(function () {
         Route::post('/partner-requests/{partnerRequest}/approve', [PartnerRequestReviewController::class, 'approve'])->name('partner-requests.approve');
     });
 

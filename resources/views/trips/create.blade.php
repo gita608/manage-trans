@@ -42,25 +42,55 @@
 
                 <form method="POST" action="{{ route('trips.store') }}">
                     @csrf
+                    @if(isset($sourcePartnerRequest))
+                        <input type="hidden" name="partner_request_id" value="{{ $sourcePartnerRequest->id }}">
+                    @endif
+
+                    @if(isset($sourcePartnerRequest))
+                        <div class="alert alert-info border-0 shadow-sm rounded-3 mb-4 d-flex flex-wrap align-items-start justify-content-between gap-3" role="status">
+                            <div class="d-flex align-items-start gap-3">
+                                <i class="ri-file-list-3-line fs-22 text-info mt-1"></i>
+                                <div>
+                                    <h6 class="alert-heading fw-bold mb-1">Source Request: {{ $sourcePartnerRequest->request_reference }}</h6>
+                                    <p class="mb-0 small text-muted">Partner is locked to this request. Complete operational details below using the normal trip workflow.</p>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="{{ route('partner-requests.show', $sourcePartnerRequest) }}" class="btn btn-sm btn-soft-primary">
+                                    <i class="ri-arrow-left-line me-1"></i> Back to Request
+                                </a>
+                                @if($sourcePartnerRequest->isImage())
+                                    <a href="{{ route('partner-requests.image', $sourcePartnerRequest) }}" target="_blank" class="btn btn-sm btn-soft-secondary">
+                                        <i class="ri-image-line me-1"></i> View Source Schedule
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
 
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="partner_id" class="form-label fw-semibold">Partner</label>
-                                <select class="form-select @error('partner_id') is-invalid @enderror" id="partner_id" name="partner_id">
-                                    <option value="">Select Partner</option>
-                                    @foreach($partners as $partner)
-                                        <option value="{{ $partner->id }}" {{ old('partner_id', $defaultPartner->id ?? '') == $partner->id ? 'selected' : '' }}>
-                                            {{ $partner->title }}
-                                            @if($partner->is_default)
-                                                (Default)
-                                            @endif
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('partner_id')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                @if(isset($sourcePartnerRequest))
+                                    <input type="hidden" name="partner_id" value="{{ $sourcePartnerRequest->partner_id }}">
+                                    <input type="text" class="form-control" value="{{ $sourcePartnerRequest->partner->title }}" readonly>
+                                @else
+                                    <select class="form-select @error('partner_id') is-invalid @enderror" id="partner_id" name="partner_id">
+                                        <option value="">Select Partner</option>
+                                        @foreach($partners as $partner)
+                                            <option value="{{ $partner->id }}" {{ old('partner_id', $defaultPartner->id ?? '') == $partner->id ? 'selected' : '' }}>
+                                                {{ $partner->title }}
+                                                @if($partner->is_default)
+                                                    (Default)
+                                                @endif
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('partner_id')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -113,7 +143,21 @@
                                 @php
                                     $crews = old('crews', []);
                                     if (empty($crews)) {
-                                        $crews = [['name' => '', 'driver_id' => '', 'trip_date' => date('Y-m-d'), 'vessel_id' => '', 'pick_up_time' => '', 'from_location' => '', 'to_location' => '', 'phone' => '', 'phone_2' => '', 'remarks' => '', 'sub_remark' => '', 'address' => '']];
+                                        $crews = $prefillCrews ?? [[
+                                            'name' => '',
+                                            'driver_id' => '',
+                                            'trip_date' => date('Y-m-d'),
+                                            'vessel_id' => '',
+                                            'pick_up_time' => '',
+                                            'from_location' => '',
+                                            'to_location' => '',
+                                            'phone' => '',
+                                            'phone_2' => '',
+                                            'remarks' => '',
+                                            'sub_remark' => '',
+                                            'address' => '',
+                                            'flight_number' => '',
+                                        ]];
                                     }
                                 @endphp
                                 @foreach($crews as $index => $crew)
