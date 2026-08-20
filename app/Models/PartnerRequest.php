@@ -166,11 +166,27 @@ class PartnerRequest extends Model
     }
 
     /**
+     * Check if the request was submitted via image upload.
+     */
+    public function isImage(): bool
+    {
+        return $this->submission_method === self::METHOD_IMAGE;
+    }
+
+    /**
+     * Check if the request was submitted manually.
+     */
+    public function isManual(): bool
+    {
+        return $this->submission_method === self::METHOD_MANUAL;
+    }
+
+    /**
      * Check if the partner can edit this request.
      */
     public function canPartnerEdit(): bool
     {
-        return $this->isPending();
+        return $this->isPending() && $this->isManual();
     }
 
     /**

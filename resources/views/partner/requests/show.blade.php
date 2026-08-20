@@ -36,6 +36,8 @@
                             <a href="{{ route('partner.requests.edit', $partnerRequest) }}" class="btn btn-sm btn-primary">
                                 <i class="ri-pencil-line align-middle me-1"></i> Edit
                             </a>
+                        @endif
+                        @if($partnerRequest->isPending())
                             <form action="{{ route('partner.requests.withdraw', $partnerRequest) }}" method="POST" onsubmit="return confirm('Are you sure you want to withdraw this request? This action cannot be undone.');">
                                 @csrf
                                 @method('PATCH')
@@ -115,43 +117,57 @@
                     </div>
                 @endif
 
-                <!-- Crew Items -->
-                <h5 class="mb-3">Crew Details ({{ $partnerRequest->items->count() }} items)</h5>
-                
-                @foreach($partnerRequest->items as $index => $item)
-                    <div class="border rounded p-3 mb-3">
-                        <h6 class="mb-3">Crew #{{ $index + 1 }}</h6>
-                        
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <p class="text-muted mb-1">Trip Date</p>
-                                <p class="fw-medium mb-0">{{ $item->trip_date ? \Carbon\Carbon::parse($item->trip_date)->format('M d, Y') : 'N/A' }}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <p class="text-muted mb-1">Name</p>
-                                <p class="fw-medium mb-0">{{ $item->name ?? 'N/A' }}</p>
-                            </div>
-                            @if($item->phone)
+                @if($partnerRequest->isImage())
+                    <div class="alert alert-info mb-4">
+                        Your schedule has been submitted. Manage Trans will review the transportation details.
+                    </div>
+
+                    <h5 class="mb-3">Uploaded Schedule</h5>
+                    <div class="border rounded p-3 mb-4">
+                        <img src="{{ route('partner.requests.image', $partnerRequest) }}"
+                             alt="Uploaded schedule for {{ $partnerRequest->request_reference }}"
+                             class="img-fluid rounded"
+                             style="max-height: 480px;">
+                    </div>
+                @else
+                    <!-- Manual crew items -->
+                    <h5 class="mb-3">Crew Details ({{ $partnerRequest->items->count() }} items)</h5>
+
+                    @foreach($partnerRequest->items as $index => $item)
+                        <div class="border rounded p-3 mb-3">
+                            <h6 class="mb-3">Crew #{{ $index + 1 }}</h6>
+
+                            <div class="row g-3">
                                 <div class="col-md-6">
-                                    <p class="text-muted mb-1">Phone</p>
-                                    <p class="fw-medium mb-0">{{ $item->phone }}</p>
+                                    <p class="text-muted mb-1">Trip Date</p>
+                                    <p class="fw-medium mb-0">{{ $item->trip_date ? \Carbon\Carbon::parse($item->trip_date)->format('M d, Y') : 'N/A' }}</p>
                                 </div>
-                            @endif
-                            <div class="col-md-6">
-                                <p class="text-muted mb-1">Vessel</p>
-                                <p class="fw-medium mb-0">{{ $item->vessel ? $item->vessel->name : 'Not specified' }}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <p class="text-muted mb-1">From Location</p>
-                                <p class="fw-medium mb-0">{{ $item->from_location ?? 'N/A' }}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <p class="text-muted mb-1">To Location</p>
-                                <p class="fw-medium mb-0">{{ $item->to_location ?? 'N/A' }}</p>
+                                <div class="col-md-6">
+                                    <p class="text-muted mb-1">Name</p>
+                                    <p class="fw-medium mb-0">{{ $item->name ?? 'N/A' }}</p>
+                                </div>
+                                @if($item->phone)
+                                    <div class="col-md-6">
+                                        <p class="text-muted mb-1">Phone</p>
+                                        <p class="fw-medium mb-0">{{ $item->phone }}</p>
+                                    </div>
+                                @endif
+                                <div class="col-md-6">
+                                    <p class="text-muted mb-1">Vessel</p>
+                                    <p class="fw-medium mb-0">{{ $item->vessel ? $item->vessel->name : 'Not specified' }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="text-muted mb-1">From Location</p>
+                                    <p class="fw-medium mb-0">{{ $item->from_location ?? 'N/A' }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="text-muted mb-1">To Location</p>
+                                    <p class="fw-medium mb-0">{{ $item->to_location ?? 'N/A' }}</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                @endforeach
+                    @endforeach
+                @endif
 
                 <div class="mt-4">
                     <a href="{{ route('partner.requests.index') }}" class="btn btn-light">

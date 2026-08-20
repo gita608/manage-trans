@@ -461,6 +461,14 @@ class PartnerPortalPhase1Test extends TestCase
         $this->assertTrue($pendingRequest->canPartnerEdit());
         $this->assertFalse($approvedRequest->canPartnerEdit());
         $this->assertFalse($declinedRequest->canPartnerEdit());
+
+        $imagePendingRequest = PartnerRequest::create([
+            'partner_id' => $partner->id,
+            'submission_method' => PartnerRequest::METHOD_IMAGE,
+            'status' => PartnerRequest::STATUS_PENDING,
+        ]);
+
+        $this->assertFalse($imagePendingRequest->canPartnerEdit());
     }
 
     public function test_partner_submission_settings_cast_correctly_as_booleans(): void

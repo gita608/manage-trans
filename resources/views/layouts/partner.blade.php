@@ -124,16 +124,21 @@
                             </a>
                         </li>
 
-                        @if(Auth::guard('partner')->user()->partner->allow_manual_submission)
+                        @php
+                            $partnerNav = Auth::guard('partner')->user()->partner;
+                            $canSubmitRequests = $partnerNav->allow_manual_submission || $partnerNav->allow_image_submission;
+                        @endphp
+
+                        @if($canSubmitRequests)
                             <li class="nav-item">
-                                <a class="nav-link menu-link {{ request()->routeIs('partner.requests.create') ? 'active' : '' }}" href="{{ route('partner.requests.create') }}">
+                                <a class="nav-link menu-link {{ request()->routeIs('partner.requests.new') || request()->routeIs('partner.requests.create') || request()->routeIs('partner.requests.image.create') ? 'active' : '' }}" href="{{ route('partner.requests.new') }}">
                                     <i class="ri-add-circle-line"></i> <span>New Request</span>
                                 </a>
                             </li>
                         @endif
 
                         <li class="nav-item">
-                            <a class="nav-link menu-link {{ request()->routeIs('partner.requests.*') && !request()->routeIs('partner.requests.create') ? 'active' : '' }}" href="{{ route('partner.requests.index') }}">
+                            <a class="nav-link menu-link {{ request()->routeIs('partner.requests.*') && !request()->routeIs('partner.requests.new') && !request()->routeIs('partner.requests.create') && !request()->routeIs('partner.requests.image.create') ? 'active' : '' }}" href="{{ route('partner.requests.index') }}">
                                 <i class="ri-file-list-3-line"></i> <span>My Requests</span>
                             </a>
                         </li>

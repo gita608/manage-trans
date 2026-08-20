@@ -28,9 +28,13 @@
                         <h4 class="mb-2">Welcome, {{ $partnerUser->name }}</h4>
                         <p class="text-muted mb-0">{{ $partner->title }}</p>
                     </div>
-                    @if($partner->allow_manual_submission)
+                    @php
+                        $partnerNav = Auth::guard('partner')->user()->partner;
+                        $canSubmitRequests = $partnerNav->allow_manual_submission || $partnerNav->allow_image_submission;
+                    @endphp
+                    @if($canSubmitRequests)
                         <div class="flex-shrink-0">
-                            <a href="{{ route('partner.requests.create') }}" class="btn btn-primary">
+                            <a href="{{ route('partner.requests.new') }}" class="btn btn-primary">
                                 <i class="ri-add-line align-middle me-1"></i> Create New Request
                             </a>
                         </div>
@@ -217,9 +221,9 @@
                             <i class="ri-file-list-3-line display-4 text-muted"></i>
                         </div>
                         <h5 class="mb-3">No requests submitted yet</h5>
-                        @if($partner->allow_manual_submission)
+                        @if($partner->allow_manual_submission || $partner->allow_image_submission)
                             <p class="text-muted mb-3">Get started by creating your first transportation request.</p>
-                            <a href="{{ route('partner.requests.create') }}" class="btn btn-primary">
+                            <a href="{{ route('partner.requests.new') }}" class="btn btn-primary">
                                 <i class="ri-add-line align-middle me-1"></i> Create Your First Request
                             </a>
                         @else

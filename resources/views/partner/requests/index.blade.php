@@ -24,8 +24,12 @@
         <div class="card">
             <div class="card-header d-flex flex-wrap align-items-center gap-2 justify-content-between">
                 <h5 class="card-title mb-0">Request List</h5>
-                @if(Auth::guard('partner')->user()->partner->allow_manual_submission)
-                    <a href="{{ route('partner.requests.create') }}" class="btn btn-sm btn-primary">
+                @php
+                    $partnerNav = Auth::guard('partner')->user()->partner;
+                    $canSubmitRequests = $partnerNav->allow_manual_submission || $partnerNav->allow_image_submission;
+                @endphp
+                @if($canSubmitRequests)
+                    <a href="{{ route('partner.requests.new') }}" class="btn btn-sm btn-primary">
                         <i class="ri-add-line align-middle me-1"></i> New Request
                     </a>
                 @endif
@@ -125,6 +129,8 @@
                                                                 <i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit
                                                             </a>
                                                         </li>
+                                                    @endif
+                                                    @if($request->isPending())
                                                         <li>
                                                             <form action="{{ route('partner.requests.withdraw', $request) }}" method="POST" onsubmit="return confirm('Are you sure you want to withdraw this request? This action cannot be undone.');">
                                                                 @csrf
@@ -156,9 +162,9 @@
                         </div>
                         <h5 class="mb-3">No requests found</h5>
                         @if(!request('status') || request('status') === 'all')
-                            @if(Auth::guard('partner')->user()->partner->allow_manual_submission)
+                            @if($canSubmitRequests)
                                 <p class="text-muted mb-3">Get started by creating your first request.</p>
-                                <a href="{{ route('partner.requests.create') }}" class="btn btn-primary">
+                                <a href="{{ route('partner.requests.new') }}" class="btn btn-primary">
                                     <i class="ri-add-line align-middle me-1"></i> Create Request
                                 </a>
                             @else

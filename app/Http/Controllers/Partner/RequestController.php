@@ -3,13 +3,15 @@
 namespace App\Http\Controllers\Partner;
 
 use App\Http\Controllers\Controller;
-use App\Models\Partner;
 use App\Models\PartnerRequest;
 use App\Models\PartnerRequestItem;
 use App\Models\Vessel;
+use App\Services\PartnerRequestImageExtractionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class RequestController extends Controller
 {
@@ -32,6 +34,139 @@ class RequestController extends Controller
         $requests = $query->latest()->paginate(15)->appends($request->query());
 
         return view('partner.requests.index', compact('requests'));
+    }
+
+    /**
+     * Show the new request method selector or redirect to the only enabled method.
+     */
+    public function newRequest()
+    {
+        $partner = Auth::guard('partner')->user()->partner;
+
+        if ($partner->allow_manual_submission && $partner->allow_image_submission) {
+            return view('partner.requests.new');
+        }
+
+        if ($partner->allow_manual_submission) {
+            return redirect()->route('partner.requests.create');
+        }
+
+        if ($partner->allow_image_submission) {
+            return redirect()->route('partner.requests.image.create');
+        }
+
+        return redirect()->route('partner.requests.index')
+            ->with('info', 'Request submission is not currently enabled for your account.');
+    }
+
+    /**
+     * Show the image upload form.
+     */
+    public function createImage()
+    {
+        if (!$this->imageSubmissionEnabled()) {
+            return redirect()->route('partner.dashboard')
+                ->with('error', 'Image request submission is not enabled for your account.');
+        }
+
+        return view('partner.requests.upload');
+    }
+
+    /**
+     * Store an image-based partner request.
+     */
+    public function storeImage(Request $request, PartnerRequestImageExtractionService $extractionService)
+    {
+        if (!$this->imageSubmissionEnabled()) {
+            return redirect()->route('partner.dashboard')
+                ->with('error', 'Image request submission is not enabled for your account.');
+        }
+
+        $request->validate([
+            'image' => ['required', 'image', 'mimes:jpeg,jpg,png', 'max:10240'],
+        ]);
+
+        $partnerUser = Auth::guard('partner')->user();
+        $storedPath = null;
+        $partnerRequest = null;
+
+        try {
+            $uploadedFile = $request->file('image');
+            $extension = $uploadedFile->guessExtension() ?: 'jpg';
+            $filename = Str::uuid()->toString() . '.' . $extension;
+            $storedPath = $uploadedFile->storeAs(
+                'partner-requests/' . $partnerUser->partner_id,
+                $filename,
+                'local'
+            );
+
+            if (!$storedPath || !Storage::disk('local')->exists($storedPath)) {
+                throw new \RuntimeException('Image storage failed.');
+            }
+
+            $fullPath = Storage::disk('local')->path($storedPath);
+
+            $partnerRequest = PartnerRequest::create([
+                'partner_id' => $partnerUser->partner_id,
+                'partner_user_id' => $partnerUser->id,
+                'submission_method' => PartnerRequest::METHOD_IMAGE,
+                'status' => PartnerRequest::STATUS_PENDING,
+                'submitted_at' => now(),
+                'source_image_path' => $storedPath,
+                'extraction_status' => PartnerRequest::EXTRACTION_PROCESSING,
+            ]);
+
+            $extractionResult = $extractionService->extractFromStoredImage(
+                $fullPath,
+                $partnerRequest->request_reference
+            );
+
+            foreach ($extractionResult['items'] as $itemData) {
+                $partnerRequest->items()->create($itemData);
+            }
+
+            $partnerRequest->update([
+                'extraction_status' => $extractionResult['status'],
+            ]);
+
+            return redirect()->route('partner.requests.show', $partnerRequest)
+                ->with('success', "Request {$partnerRequest->request_reference} submitted successfully.");
+        } catch (\Exception $e) {
+            if ($storedPath && !$partnerRequest) {
+                Storage::disk('local')->delete($storedPath);
+            }
+
+            return back()
+                ->withInput()
+                ->with('error', 'Your image could not be uploaded. Please try again.');
+        }
+    }
+
+    /**
+     * Securely stream the uploaded schedule image for a partner request.
+     */
+    public function image(PartnerRequest $partnerRequest)
+    {
+        $this->ensurePartnerOwnsRequest($partnerRequest);
+
+        if (!$partnerRequest->isImage() || empty($partnerRequest->source_image_path)) {
+            abort(404);
+        }
+
+        $storedPath = $partnerRequest->source_image_path;
+
+        if (!$this->isValidPartnerRequestImagePath($storedPath, $partnerRequest->partner_id)) {
+            abort(404);
+        }
+
+        if (!Storage::disk('local')->exists($storedPath)) {
+            abort(404);
+        }
+
+        return response()->file(
+            Storage::disk('local')->path($storedPath),
+            ['Content-Type' => Storage::disk('local')->mimeType($storedPath)]
+        );
     }
 
     /**
@@ -290,5 +425,28 @@ class RequestController extends Controller
 
         return redirect()->route('partner.requests.show', $partnerRequest)
             ->with('success', 'Request withdrawn successfully.');
+    }
+
+    protected function imageSubmissionEnabled(): bool
+    {
+        return (bool) Auth::guard('partner')->user()->partner->allow_image_submission;
+    }
+
+    protected function ensurePartnerOwnsRequest(PartnerRequest $partnerRequest): void
+    {
+        if ($partnerRequest->partner_id !== Auth::guard('partner')->user()->partner_id) {
+            abort(404);
+        }
+    }
+
+    protected function isValidPartnerRequestImagePath(string $storedPath, int $partnerId): bool
+    {
+        if (str_contains($storedPath, '..')) {
+            return false;
+        }
+
+        $expectedPrefix = 'partner-requests/' . $partnerId . '/';
+
+        return str_starts_with($storedPath, $expectedPrefix);
     }
 }

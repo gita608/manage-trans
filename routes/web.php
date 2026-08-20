@@ -322,9 +322,13 @@ Route::middleware(['auth:partner', 'partner.active'])->prefix('partner')->name('
     
     // Partner Request Routes
     Route::get('/requests', [PartnerRequestController::class, 'index'])->name('requests.index');
+    Route::get('/requests/new', [PartnerRequestController::class, 'newRequest'])->name('requests.new');
     Route::get('/requests/create', [PartnerRequestController::class, 'create'])->name('requests.create');
     Route::post('/requests', [PartnerRequestController::class, 'store'])->name('requests.store');
+    Route::get('/requests/upload', [PartnerRequestController::class, 'createImage'])->name('requests.image.create');
+    Route::post('/requests/upload', [PartnerRequestController::class, 'storeImage'])->name('requests.image.store');
     Route::get('/requests/{partnerRequest}', [PartnerRequestController::class, 'show'])->name('requests.show');
+    Route::get('/requests/{partnerRequest}/image', [PartnerRequestController::class, 'image'])->name('requests.image');
     Route::get('/requests/{partnerRequest}/edit', [PartnerRequestController::class, 'edit'])->name('requests.edit');
     Route::put('/requests/{partnerRequest}', [PartnerRequestController::class, 'update'])->name('requests.update');
     Route::patch('/requests/{partnerRequest}/withdraw', [PartnerRequestController::class, 'withdraw'])->name('requests.withdraw');
