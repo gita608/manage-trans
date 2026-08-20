@@ -3,6 +3,8 @@
 Welcome AI Agent (Cursor, Copilot, Claude, GPT, etc.)!
 This file defines mandatory workspace conventions for modifying or extending **ManageTrans**.
 
+For Partner Portal work, read [PARTNER_PORTAL.md](./PARTNER_PORTAL.md) first.
+
 For full architecture, ER diagrams, permissions list, and API tables, see [PROJECT.md](./PROJECT.md).
 
 ---
@@ -12,7 +14,7 @@ For full architecture, ER diagrams, permissions list, and API tables, see [PROJE
 * **Framework**: Laravel 12 (PHP 8.2+)
 * **Database**: SQLite (default local), MySQL/PostgreSQL (prod)
 * **Frontend**: Blade + Bootstrap (Velzon in `public/assets/`), Vite + Tailwind 4 (minimal)
-* **Auth**: Session (`User` Admin/Staff) for web; Sanctum Bearer tokens (`Driver`) for mobile API
+* **Auth**: Session (`User` Admin/Staff) via `web` guard; Partner portal via `partner` guard; Sanctum Bearer tokens (`Driver`) for mobile API
 * **Integrations**: AWS Textract (OCR), Firebase Cloud Messaging (`kreait/firebase-php`)
 * **Install**: Installable web app — manifest route + `public/sw.js` + generated icons
 * **Helpers**: `getSetting()`, `updateSetting()`, `getAppTimezone()`, `formatDate()`, `brandingUrl()`, `assetVersioned()` in `app/helpers.php`
@@ -69,7 +71,8 @@ Load `tripExpenses.expenseType` / `tripIssues.issueType` when those are rendered
 * Full permission list is in PROJECT.md.
 
 ### 3.5 Files & OCR
-* Textract temp images: `Storage::disk('local')` under `temp/`; **delete after parse**.
+* **Internal Trip OCR**: temporary `local` image under `temp/`; **delete after parse**.
+* **Partner Request OCR**: private `local` source image retained with the request as historical evidence; serve only through authenticated streaming endpoints.
 * Public media (expenses, daily activities, photos): `public` disk → `asset('storage/...')`.
 
 ### 3.6 Notifications
@@ -88,6 +91,7 @@ Load `tripExpenses.expenseType` / `tripIssues.issueType` when those are rendered
 * Match existing patterns (Velzon Blade, controller style, validation).
 * Do not invent unrelated refactors or docs the user did not ask for.
 * Do not commit unless the user explicitly requests a commit.
+* Do not recursively inspect the repository when PARTNER_PORTAL.md already documents the required Partner Portal architecture.
 
 ---
 

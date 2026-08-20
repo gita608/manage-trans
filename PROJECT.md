@@ -2,7 +2,7 @@
 
 ManageTrans is a **Transportation & Fleet Management System** built with **Laravel 12 (PHP 8.2+)**. It provides a **Web Admin Panel** for dispatchers/managers and a **RESTful Mobile API** for field drivers (Laravel Sanctum), with AWS Textract OCR and Firebase Cloud Messaging (FCM).
 
-*Last verified against the codebase: July 27, 2026*
+*Core project guide last broadly verified: July 27, 2026. Partner Portal supplement verified: August 20, 2026. See [PARTNER_PORTAL.md](./PARTNER_PORTAL.md) for current Partner Portal architecture/contracts.*
 
 ---
 
@@ -164,6 +164,14 @@ erDiagram
 
 ### 4. Partners
 * CRUD at `/partners`. Seeded examples include ZMI (default), OMS, TUV, etc. Optional on trips and OCR bulk import.
+
+### 4.1 Partner Portal
+* `Partner` → `PartnerUsers` → `PartnerRequests` → `PartnerRequestItems` → operational `Trips` / `TripCrews`.
+* Dedicated `partner` guard; manual and image submission; private retained image source; internal review/approval.
+* Identity: `REQ-XXXXXX` (submission/review history) and `TRP-XXXXXX` (live operational Trip).
+* Approval groups items by Driver + date; `trips.partner_request_id` nullable (null for internal trips).
+* One REQ may produce one or many TRPs. Trip is live operational state; PartnerRequest is historical submission/review state.
+* Phase 6 operational integration complete (driver API, notifications, reports, lineage). Full contracts: [PARTNER_PORTAL.md](./PARTNER_PORTAL.md).
 
 ### 5. RBAC
 * Middleware: `permission:{name}` → `CheckPermission`.
