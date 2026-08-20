@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\PartnerRequest;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -29,5 +31,17 @@ class AppServiceProvider extends ServiceProvider
         } catch (\Exception $e) {
             // Fallback to default timezone if settings table doesn't exist
         }
+
+        View::composer('partials.sidebar', function ($view) {
+            $pendingPartnerRequestCount = 0;
+
+            if (auth()->check() && auth()->user()?->hasPermission('view_trips')) {
+                $pendingPartnerRequestCount = PartnerRequest::query()
+                    ->where('status', PartnerRequest::STATUS_PENDING)
+                    ->count();
+            }
+
+            $view->with('pendingPartnerRequestCount', $pendingPartnerRequestCount);
+        });
     }
 }

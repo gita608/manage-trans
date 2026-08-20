@@ -56,6 +56,16 @@
                         <i class="ri-road-map-line"></i> <span>Trips</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('partner-requests.*') ? 'active' : '' }}"
+                        href="{{ route('partner-requests.index') }}">
+                        <i class="ri-file-list-3-line"></i>
+                        <span>Partner Requests</span>
+                        @if(($pendingPartnerRequestCount ?? 0) > 0)
+                            <span class="badge rounded-pill bg-warning ms-1">{{ $pendingPartnerRequestCount }}</span>
+                        @endif
+                    </a>
+                </li>
                 @endif
 
                 @if(auth()->check() && auth()->user() && auth()->user()->hasPermission('view_drivers'))

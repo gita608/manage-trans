@@ -21,6 +21,7 @@ use App\Http\Controllers\DriverCheckInController;
 use App\Http\Controllers\PublicPagesController;
 use App\Http\Controllers\PartnerController;
 use App\Http\Controllers\PartnerUserController;
+use App\Http\Controllers\PartnerRequestReviewController;
 use App\Http\Controllers\PwaController;
 
 // Root route - show login for guests, redirect to dashboard if authenticated
@@ -159,6 +160,22 @@ Route::middleware(['auth'])->group(function () {
     
     Route::middleware(['permission:delete_trips'])->group(function () {
         Route::delete('/trips/{trip}', [TripController::class, 'destroy'])->name('trips.destroy');
+    });
+
+    // Partner Request Review Routes (internal operational workflow)
+    Route::middleware(['permission:view_trips'])->group(function () {
+        Route::get('/partner-requests', [PartnerRequestReviewController::class, 'index'])->name('partner-requests.index');
+        Route::get('/partner-requests/{partnerRequest}', [PartnerRequestReviewController::class, 'show'])->name('partner-requests.show');
+        Route::get('/partner-requests/{partnerRequest}/image', [PartnerRequestReviewController::class, 'image'])->name('partner-requests.image');
+    });
+
+    Route::middleware(['permission:edit_trips'])->group(function () {
+        Route::put('/partner-requests/{partnerRequest}', [PartnerRequestReviewController::class, 'update'])->name('partner-requests.update');
+        Route::post('/partner-requests/{partnerRequest}/decline', [PartnerRequestReviewController::class, 'decline'])->name('partner-requests.decline');
+    });
+
+    Route::middleware(['permission:edit_trips', 'permission:create_trips'])->group(function () {
+        Route::post('/partner-requests/{partnerRequest}/approve', [PartnerRequestReviewController::class, 'approve'])->name('partner-requests.approve');
     });
 
     // Trip Issue Type Routes

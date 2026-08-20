@@ -331,71 +331,73 @@ class RequestController extends Controller
         ]);
 
         try {
-            DB::beginTransaction();
+            return DB::transaction(function () use ($validated, $partnerRequest, $partnerUser) {
+                $lockedRequest = PartnerRequest::query()
+                    ->whereKey($partnerRequest->id)
+                    ->lockForUpdate()
+                    ->first();
 
-            $submittedItemIds = [];
+                if (!$lockedRequest || $lockedRequest->partner_id !== $partnerUser->partner_id) {
+                    abort(404);
+                }
 
-            foreach ($validated['items'] as $itemData) {
-                if (!empty($itemData['id'])) {
-                    // Update existing item
-                    $item = PartnerRequestItem::find($itemData['id']);
+                if (!$lockedRequest->canPartnerEdit()) {
+                    return redirect()->route('partner.requests.show', $partnerRequest)
+                        ->with('error', 'This request cannot be edited.');
+                }
 
-                    // Security: verify item belongs to this request
-                    if ($item && $item->partner_request_id === $partnerRequest->id) {
-                        // Update ONLY Partner-editable fields
-                        // Preserve all internal fields: pick_up_time, phone_2, address, 
-                        // flight_number, remarks, sub_remark, driver_id, vessel_name_raw
-                        $item->update([
+                $submittedItemIds = [];
+
+                foreach ($validated['items'] as $itemData) {
+                    if (!empty($itemData['id'])) {
+                        $item = PartnerRequestItem::find($itemData['id']);
+
+                        if ($item && $item->partner_request_id === $lockedRequest->id) {
+                            $item->update([
+                                'trip_date' => $itemData['trip_date'],
+                                'name' => $itemData['name'],
+                                'phone' => $itemData['phone'] ?? null,
+                                'from_location' => $itemData['from_location'],
+                                'to_location' => $itemData['to_location'],
+                                'vessel_id' => $itemData['vessel_id'] ?? null,
+                            ]);
+
+                            $submittedItemIds[] = $item->id;
+                        }
+                    } else {
+                        $newItem = $lockedRequest->items()->create([
                             'trip_date' => $itemData['trip_date'],
                             'name' => $itemData['name'],
                             'phone' => $itemData['phone'] ?? null,
                             'from_location' => $itemData['from_location'],
                             'to_location' => $itemData['to_location'],
                             'vessel_id' => $itemData['vessel_id'] ?? null,
+                            'pick_up_time' => null,
+                            'phone_2' => null,
+                            'address' => null,
+                            'flight_number' => null,
+                            'remarks' => null,
+                            'sub_remark' => null,
+                            'vessel_name_raw' => null,
+                            'driver_id' => null,
                         ]);
 
-                        $submittedItemIds[] = $item->id;
+                        $submittedItemIds[] = $newItem->id;
                     }
-                } else {
-                    // Create new item - only Partner-editable fields
-                    $newItem = $partnerRequest->items()->create([
-                        'trip_date' => $itemData['trip_date'],
-                        'name' => $itemData['name'],
-                        'phone' => $itemData['phone'] ?? null,
-                        'from_location' => $itemData['from_location'],
-                        'to_location' => $itemData['to_location'],
-                        'vessel_id' => $itemData['vessel_id'] ?? null,
-                        // Internal fields remain null
-                        'pick_up_time' => null,
-                        'phone_2' => null,
-                        'address' => null,
-                        'flight_number' => null,
-                        'remarks' => null,
-                        'sub_remark' => null,
-                        'vessel_name_raw' => null,
-                        'driver_id' => null,
-                    ]);
-
-                    $submittedItemIds[] = $newItem->id;
                 }
-            }
 
-            // Delete items that were removed (only from this request)
-            $partnerRequest->items()
-                ->whereNotIn('id', $submittedItemIds)
-                ->delete();
+                $lockedRequest->items()
+                    ->whereNotIn('id', $submittedItemIds)
+                    ->delete();
 
-            // Update partner_updated_at timestamp
-            $partnerRequest->update([
-                'partner_updated_at' => now(),
-            ]);
+                $lockedRequest->update([
+                    'partner_updated_at' => now(),
+                ]);
 
-            DB::commit();
-
-            return redirect()->route('partner.requests.show', $partnerRequest)
-                ->with('success', 'Request updated successfully.');
+                return redirect()->route('partner.requests.show', $lockedRequest)
+                    ->with('success', 'Request updated successfully.');
+            });
         } catch (\Exception $e) {
-            DB::rollBack();
             return back()->withInput()->with('error', 'An error occurred while updating your request. Please try again.');
         }
     }
@@ -418,13 +420,34 @@ class RequestController extends Controller
                 ->with('error', 'Only pending requests can be withdrawn.');
         }
 
-        $partnerRequest->update([
-            'status' => PartnerRequest::STATUS_WITHDRAWN,
-            'withdrawn_at' => now(),
-        ]);
+        try {
+            return DB::transaction(function () use ($partnerRequest, $partnerUser) {
+                $lockedRequest = PartnerRequest::query()
+                    ->whereKey($partnerRequest->id)
+                    ->lockForUpdate()
+                    ->first();
 
-        return redirect()->route('partner.requests.show', $partnerRequest)
-            ->with('success', 'Request withdrawn successfully.');
+                if (!$lockedRequest || $lockedRequest->partner_id !== $partnerUser->partner_id) {
+                    abort(404);
+                }
+
+                if (!$lockedRequest->isPending()) {
+                    return redirect()->route('partner.requests.show', $partnerRequest)
+                        ->with('error', 'Only pending requests can be withdrawn.');
+                }
+
+                $lockedRequest->update([
+                    'status' => PartnerRequest::STATUS_WITHDRAWN,
+                    'withdrawn_at' => now(),
+                ]);
+
+                return redirect()->route('partner.requests.show', $lockedRequest)
+                    ->with('success', 'Request withdrawn successfully.');
+            });
+        } catch (\Exception $e) {
+            return redirect()->route('partner.requests.show', $partnerRequest)
+                ->with('error', 'Unable to withdraw this request. Please try again.');
+        }
     }
 
     protected function imageSubmissionEnabled(): bool
