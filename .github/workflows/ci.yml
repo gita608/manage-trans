@@ -37,6 +37,9 @@ jobs:
             'SESSION_DRIVER=array' \
             'QUEUE_CONNECTION=sync' \
             'MAIL_MAILER=array' \
+            'AWS_ACCESS_KEY_ID=testing' \
+            'AWS_SECRET_ACCESS_KEY=testing' \
+            'AWS_DEFAULT_REGION=us-east-1' \
             > .env
 
       - name: Install Composer dependencies
