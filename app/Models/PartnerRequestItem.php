@@ -62,7 +62,8 @@ class PartnerRequestItem extends Model
 
     /**
      * Get the vessel selected for this item.
-     * Partners may set vessel_id on manual requests; Manage Trans may also adjust it during review.
+     * Partners may set vessel_id on manual requests.
+     * Internal REQ review is read-only; vessel changes happen during Trip creation.
      */
     public function vessel()
     {

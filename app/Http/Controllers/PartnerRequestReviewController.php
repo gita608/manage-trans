@@ -42,14 +42,18 @@ class PartnerRequestReviewController extends Controller
         ]);
 
         $canDecide = $partnerRequest->isPending();
+        $canApprove = $canDecide && Auth::guard('web')->user()->hasPermission('create_trips');
+        $canDecline = $canDecide && Auth::guard('web')->user()->hasPermission('edit_trips');
         $canCreateTrip = $partnerRequest->isApproved()
             && $partnerRequest->trips->isEmpty()
-            && Auth::user()->hasPermission('create_trips');
+            && Auth::guard('web')->user()->hasPermission('create_trips');
         $requestVersion = PartnerRequestReviewVersion::make($partnerRequest);
 
         return view('partner-requests.show', compact(
             'partnerRequest',
             'canDecide',
+            'canApprove',
+            'canDecline',
             'canCreateTrip',
             'requestVersion'
         ));

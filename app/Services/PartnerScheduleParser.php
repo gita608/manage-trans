@@ -20,7 +20,11 @@ class PartnerScheduleParser
     public function parseTableRows(array $tableRows, ?string $defaultDate = null): array
     {
         $parsedItems = [];
-        $tripDate = $defaultDate ? Carbon::parse($defaultDate) : Carbon::today();
+        $tripDate = null;
+
+        if ($defaultDate) {
+            $tripDate = Carbon::parse($defaultDate);
+        }
 
         if (empty($tableRows)) {
             return [];
@@ -34,7 +38,7 @@ class PartnerScheduleParser
                 try {
                     $tripDate = Carbon::createFromFormat('d F Y', $matches[1] . ' ' . $matches[2] . ' ' . $matches[3]);
                 } catch (\Exception $e) {
-                    // Keep default date.
+                    // Keep existing trip date (may still be null).
                 }
             }
         }
@@ -73,7 +77,7 @@ class PartnerScheduleParser
             $vesselMatch = $this->matchVessel($vesselName);
 
             $parsedItems[] = [
-                'trip_date' => $tripDate->format('Y-m-d'),
+                'trip_date' => $tripDate?->format('Y-m-d'),
                 'pick_up_time' => $this->parsePickUpTime($pickUpTime),
                 'name' => $crewName !== '' ? $crewName : null,
                 'phone' => $crewPhone !== '' ? $crewPhone : null,

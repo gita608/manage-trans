@@ -184,7 +184,8 @@
     </div>
 @endif
 
-@if($canDecide)
+@if($canApprove || $canDecline)
+    @if($canApprove)
     <div class="modal fade modal-approve" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -212,7 +213,9 @@
             </div>
         </div>
     </div>
+    @endif
 
+    @if($canDecline)
     <div class="modal fade modal-decline" id="declineModal" tabindex="-1" aria-labelledby="declineModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -241,14 +244,16 @@
             </div>
         </div>
     </div>
+    @endif
 @endif
 </div>
 @endsection
 
 @push('scripts')
-@if($canDecide)
+@if($canApprove || $canDecline)
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    @if($canApprove)
     const approveBtn = document.getElementById('approveBtn');
     const approveForm = document.getElementById('approveForm');
     approveBtn?.addEventListener('click', function() {
@@ -256,7 +261,9 @@ document.addEventListener('DOMContentLoaded', function () {
         approveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Approving...';
         approveForm.submit();
     });
+    @endif
 
+    @if($canDecline)
     const declineTextarea = document.getElementById('decline_reason');
     const declineBtn = document.getElementById('declineBtn');
     const declineForm = document.getElementById('declineForm');
@@ -276,6 +283,7 @@ document.addEventListener('DOMContentLoaded', function () {
         declineBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Declining...';
         declineForm.submit();
     });
+    @endif
 });
 </script>
 @endif

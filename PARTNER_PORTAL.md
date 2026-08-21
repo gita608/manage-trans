@@ -20,13 +20,22 @@ If code contradicts this document:
 
 ## Current Branch / State
 
-Development branch:
+Partner Portal is **merged to production branch `main`**.
 
-`feature/partner-portal`
+Merge:
 
-Latest completed Partner Portal commit:
+- PR #1
+- Merge commit: `9c2f40eaf8b53c3603787656e740df8a071f0822`
 
-`9850bb4` feat: enhance partner request review with live updates and pending count functionality
+Status:
+
+- Code merged: **YES**
+- Production deployment: **NOT CONFIRMED** (unverified by repository inspection)
+- Production migrations: **NOT CONFIRMED** (unverified by repository inspection)
+
+Post-merge hardening:
+
+Branch `fix/partner-portal-post-merge-hardening` addresses final correctness/security/UX issues discovered during repository audit.
 
 Completed:
 
@@ -39,12 +48,7 @@ Completed:
 - Phase 7 — Complete UI/UX improvement
 - Phase 8 — Final QA and release ✅
 
-Partner Portal implementation is **READY FOR RELEASE REVIEW**.
-
-It is not merged to `main` and not deployed. `main` remains unchanged until
-explicit merge authorization.
-
-Current automated baseline:
+Automated test baseline (post-merge):
 
 - 264 passed
 - 816 assertions
