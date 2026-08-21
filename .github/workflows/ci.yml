@@ -23,19 +23,27 @@ jobs:
           extensions: pdo_sqlite, sqlite3, mbstring
           coverage: none
 
-      - name: Copy .env
-        run: cp .env.example .env
+      - name: Prepare CI environment
+        run: |
+          printf '%s\n' \
+            'APP_NAME=ManageTrans' \
+            'APP_ENV=testing' \
+            'APP_KEY=' \
+            'APP_DEBUG=true' \
+            'APP_URL=http://localhost' \
+            'DB_CONNECTION=sqlite' \
+            'DB_DATABASE=:memory:' \
+            'CACHE_STORE=array' \
+            'SESSION_DRIVER=array' \
+            'QUEUE_CONNECTION=sync' \
+            'MAIL_MAILER=array' \
+            > .env
 
       - name: Install Composer dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
       - name: Generate application key
-        run: php artisan key:generate
-
-      - name: Set test environment
-        run: |
-          echo "DB_CONNECTION=sqlite" >> .env
-          echo "DB_DATABASE=:memory:" >> .env
+        run: php artisan key:generate --force
 
       - name: Run tests
         run: php artisan test
