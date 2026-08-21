@@ -14,7 +14,7 @@
     ]
 ])
 
-<form action="{{ route('partner.requests.update', $partnerRequest) }}" method="POST" id="requestForm" novalidate>
+<form action="{{ route('partner.requests.update', $partnerRequest) }}" method="POST" id="requestForm">
     @csrf
     @method('PUT')
 
@@ -97,9 +97,7 @@
                        required
                        aria-required="true">
                 <small class="form-text-helper">When does this crew member need transportation?</small>
-                @error('items.0.trip_date')
-                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                @enderror
+                <div class="invalid-feedback"></div>
             </div>
 
             <div class="col-md-6">
@@ -113,9 +111,7 @@
                        placeholder="Full name"
                        required
                        aria-required="true">
-                @error('items.0.name')
-                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                @enderror
+                <div class="invalid-feedback"></div>
             </div>
 
             <div class="col-md-6">
@@ -128,9 +124,7 @@
                        name="items[0][phone]"
                        placeholder="+123 456 7890">
                 <small class="form-text-helper">Contact number for this crew member</small>
-                @error('items.0.phone')
-                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                @enderror
+                <div class="invalid-feedback"></div>
             </div>
 
             <div class="col-md-6">
@@ -144,9 +138,7 @@
                     @endforeach
                 </select>
                 <small class="form-text-helper">Leave blank if unsure</small>
-                @error('items.0.vessel_id')
-                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                @enderror
+                <div class="invalid-feedback"></div>
             </div>
 
             <div class="col-md-6">
@@ -161,9 +153,7 @@
                        required
                        aria-required="true">
                 <small class="form-text-helper">Where should we pick up?</small>
-                @error('items.0.from_location')
-                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                @enderror
+                <div class="invalid-feedback"></div>
             </div>
 
             <div class="col-md-6">
@@ -178,9 +168,7 @@
                        required
                        aria-required="true">
                 <small class="form-text-helper">Where should we drop off?</small>
-                @error('items.0.to_location')
-                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                @enderror
+                <div class="invalid-feedback"></div>
             </div>
         </div>
     </div>
@@ -294,6 +282,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Preserve values on validation error
     @if(old('items'))
         const oldItems = @json(old('items'));
+        const errors = @json($errors->messages());
+
         // Clear default items
         container.innerHTML = '';
         crewIndex = 0;
@@ -301,6 +291,24 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add items from old input
         oldItems.forEach((item, index) => {
             addCrewItem(item);
+        });
+
+        // Map server validation errors to correct fields
+        Object.keys(errors).forEach(key => {
+            const match = key.match(/^items\.(\d+)\.(.+)$/);
+            if (match) {
+                const idx = parseInt(match[1]);
+                const field = match[2];
+                const input = container.querySelector(`[name="items[${idx}][${field}]"]`);
+                if (input) {
+                    input.classList.add('is-invalid');
+                    const feedback = input.parentElement.querySelector('.invalid-feedback');
+                    if (feedback) {
+                        feedback.textContent = errors[key][0];
+                        feedback.style.display = 'block';
+                    }
+                }
+            }
         });
     @endif
 });

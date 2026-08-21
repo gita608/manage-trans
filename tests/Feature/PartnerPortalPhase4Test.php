@@ -1011,6 +1011,56 @@ class PartnerPortalPhase4Test extends TestCase
             ->assertNotFound();
     }
 
+    // --- Post-REQ item persistence failure ---
+
+    public function test_image_item_persistence_failure_preserves_req_and_marks_extraction_failed(): void
+    {
+        Storage::fake('local');
+        $this->mockTextractRows([
+            ['Crew Name', 'Driver Name', 'Vessel Name', 'Pick-up Time', 'From', 'To'],
+            ['John Smith', 'Driver A', 'Test Vessel', '0300PM', 'Port A', 'Airport B'],
+        ]);
+
+        $user = $this->createPartnerUser();
+
+        // Force PartnerRequestItem persistence to throw AFTER REQ creation
+        PartnerRequestItem::creating(function () {
+            throw new \RuntimeException('Simulated item persistence failure XYZ-SECRET');
+        });
+
+        try {
+            $response = $this->actingAs($user, 'partner')
+                ->post(route('partner.requests.image.store'), [
+                    'image' => $this->validImage(),
+                ]);
+
+            $response->assertRedirect();
+            $response->assertSessionHas('success');
+            $response->assertSessionMissing('error');
+
+            $successMessage = (string) session('success');
+            $this->assertStringContainsString('submitted successfully', $successMessage);
+            $this->assertStringNotContainsString('XYZ-SECRET', $successMessage);
+            $this->assertStringNotContainsString('Simulated item persistence', $successMessage);
+            $this->assertStringNotContainsString('SQL', $successMessage);
+            $this->assertStringNotContainsString('partner-requests/', $successMessage);
+
+            $this->assertSame(1, PartnerRequest::count());
+            $this->assertSame(0, PartnerRequestItem::count());
+            $this->assertSame(0, Trip::count());
+
+            $request = PartnerRequest::first();
+            $this->assertSame(PartnerRequest::EXTRACTION_FAILED, $request->extraction_status);
+            $this->assertNotEmpty($request->source_image_path);
+            Storage::disk('local')->assertExists($request->source_image_path);
+        } finally {
+            // Remove only the creating listener; LogsActivity uses created/updated/deleted
+            if ($dispatcher = PartnerRequestItem::getEventDispatcher()) {
+                $dispatcher->forget('eloquent.creating: '.PartnerRequestItem::class);
+            }
+        }
+    }
+
     protected function tearDown(): void
     {
         Mockery::close();

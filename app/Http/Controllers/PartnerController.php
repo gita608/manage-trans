@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Partner;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class PartnerController extends Controller
@@ -40,14 +41,16 @@ class PartnerController extends Controller
         $validated['allow_manual_submission'] = $request->boolean('allow_manual_submission');
         $validated['allow_image_submission'] = $request->boolean('allow_image_submission');
 
-        // If this partner is set as default, unset all other defaults
-        if ($validated['is_default']) {
-            Partner::where('is_default', true)->update(['is_default' => false]);
-        }
+        return DB::transaction(function () use ($validated) {
+            // If this partner is set as default, unset all other defaults
+            if ($validated['is_default']) {
+                Partner::where('is_default', true)->update(['is_default' => false]);
+            }
 
-        Partner::create($validated);
+            $partner = Partner::create($validated);
 
-        return redirect()->route('partners.index')->with('success', 'Partner created successfully!');
+            return redirect()->route('partners.index')->with('success', 'Partner created successfully!');
+        });
     }
 
     /**
@@ -73,22 +76,24 @@ class PartnerController extends Controller
         $validated['allow_manual_submission'] = $request->boolean('allow_manual_submission');
         $validated['allow_image_submission'] = $request->boolean('allow_image_submission');
 
-        // If this partner is set as default, unset all other defaults
-        if ($validated['is_default']) {
-            Partner::where('is_default', true)->where('id', '!=', $partner->id)->update(['is_default' => false]);
-        } else {
-            // If unsetting default, ensure at least one partner remains default
-            if ($partner->is_default) {
-                $otherPartner = Partner::where('id', '!=', $partner->id)->first();
-                if ($otherPartner) {
-                    $otherPartner->update(['is_default' => true]);
+        return DB::transaction(function () use ($validated, $partner) {
+            // If this partner is set as default, unset all other defaults
+            if ($validated['is_default']) {
+                Partner::where('is_default', true)->where('id', '!=', $partner->id)->update(['is_default' => false]);
+            } else {
+                // If unsetting default, ensure at least one partner remains default
+                if ($partner->is_default) {
+                    $otherPartner = Partner::where('id', '!=', $partner->id)->first();
+                    if ($otherPartner) {
+                        $otherPartner->update(['is_default' => true]);
+                    }
                 }
             }
-        }
 
-        $partner->update($validated);
+            $partner->update($validated);
 
-        return redirect()->route('partners.index')->with('success', 'Partner updated successfully!');
+            return redirect()->route('partners.index')->with('success', 'Partner updated successfully!');
+        });
     }
 
     /**
@@ -97,17 +102,19 @@ class PartnerController extends Controller
     public function destroy(Partner $partner)
     {
         try {
-            // If deleting the default partner, set another one as default first
-            if ($partner->is_default) {
-                $otherPartner = Partner::where('id', '!=', $partner->id)->first();
-                if ($otherPartner) {
-                    $otherPartner->update(['is_default' => true]);
+            return DB::transaction(function () use ($partner) {
+                // If deleting the default partner, set another one as default first
+                if ($partner->is_default) {
+                    $otherPartner = Partner::where('id', '!=', $partner->id)->first();
+                    if ($otherPartner) {
+                        $otherPartner->update(['is_default' => true]);
+                    }
                 }
-            }
 
-            $partner->delete();
+                $partner->delete();
 
-            return redirect()->route('partners.index')->with('success', 'Partner deleted successfully!');
+                return redirect()->route('partners.index')->with('success', 'Partner deleted successfully!');
+            });
         } catch (\Illuminate\Database\QueryException $e) {
             // Check if deletion failed due to RESTRICT constraint (existing requests)
             if ($e->getCode() == '23000' || str_contains($e->getMessage(), 'RESTRICT') || str_contains($e->getMessage(), 'foreign key constraint')) {

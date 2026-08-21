@@ -996,7 +996,7 @@ class TripController extends Controller
             return [[
                 'name' => '',
                 'driver_id' => '',
-                'trip_date' => date('Y-m-d'),
+                'trip_date' => '',
                 'vessel_id' => '',
                 'pick_up_time' => '',
                 'from_location' => '',
@@ -1012,7 +1012,7 @@ class TripController extends Controller
 
         return $partnerRequest->items->map(function ($item) use ($partnerRequest) {
             $crew = [
-                'trip_date' => $item->trip_date?->format('Y-m-d') ?? date('Y-m-d'),
+                'trip_date' => $item->trip_date?->format('Y-m-d') ?? '',
                 'name' => $item->name ?? '',
                 'phone' => $item->phone ?? '',
                 'from_location' => $item->from_location ?? '',

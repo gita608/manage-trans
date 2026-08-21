@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class RequestController extends Controller
 {
@@ -116,22 +117,38 @@ class RequestController extends Controller
                 'extraction_status' => PartnerRequest::EXTRACTION_PROCESSING,
             ]);
 
-            $extractionResult = $extractionService->extractFromStoredImage(
-                $fullPath,
-                $partnerRequest->request_reference
-            );
+            // Extract and persist items in a transaction
+            try {
+                DB::transaction(function () use ($partnerRequest, $fullPath, $extractionService) {
+                    $extractionResult = $extractionService->extractFromStoredImage(
+                        $fullPath,
+                        $partnerRequest->request_reference
+                    );
 
-            foreach ($extractionResult['items'] as $itemData) {
-                $partnerRequest->items()->create($itemData);
+                    foreach ($extractionResult['items'] as $itemData) {
+                        $partnerRequest->items()->create($itemData);
+                    }
+
+                    $partnerRequest->update([
+                        'extraction_status' => $extractionResult['status'],
+                    ]);
+                });
+            } catch (\Throwable $e) {
+                // Extraction or item persistence failed after REQ exists
+                // Mark extraction as failed and preserve the REQ/image
+                $partnerRequest->update(['extraction_status' => PartnerRequest::EXTRACTION_FAILED]);
+
+                \Illuminate\Support\Facades\Log::error('Partner request extraction persistence failed', [
+                    'request_id' => $partnerRequest->id,
+                    'request_reference' => $partnerRequest->request_reference,
+                    'error' => $e->getMessage(),
+                ]);
             }
-
-            $partnerRequest->update([
-                'extraction_status' => $extractionResult['status'],
-            ]);
 
             return redirect()->route('partner.requests.show', $partnerRequest)
                 ->with('success', "Request {$partnerRequest->request_reference} submitted successfully.");
         } catch (\Exception $e) {
+            // Image or REQ creation failed
             if ($storedPath && !$partnerRequest) {
                 Storage::disk('local')->delete($storedPath);
             }
@@ -321,7 +338,12 @@ class RequestController extends Controller
 
         $validated = $request->validate([
             'items' => ['required', 'array', 'min:1'],
-            'items.*.id' => ['nullable', 'integer', 'exists:partner_request_items,id'],
+            'items.*.id' => [
+                'nullable',
+                'integer',
+                Rule::exists('partner_request_items', 'id')
+                    ->where('partner_request_id', $partnerRequest->id),
+            ],
             'items.*.trip_date' => ['required', 'date'],
             'items.*.name' => ['required', 'string', 'max:255'],
             'items.*.phone' => ['nullable', 'string', 'max:255'],

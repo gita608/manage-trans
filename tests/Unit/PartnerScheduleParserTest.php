@@ -126,4 +126,51 @@ class PartnerScheduleParserTest extends TestCase
         $this->assertNull($items[0]['vessel_id']);
         $this->assertSame('UNKNOWN VESSEL', $items[0]['vessel_name_raw']);
     }
+
+    // Post-merge hardening: OCR unknown-date regression tests
+
+    public function test_parser_with_no_default_and_no_ocr_date_returns_null_trip_date(): void
+    {
+        $parser = new PartnerScheduleParser();
+
+        $rows = [
+            ['Crew Name', 'Vessel Name', 'From', 'To'],
+            ['John Smith', 'Vessel A', 'Port A', 'Port B'],
+        ];
+
+        $items = $parser->parseTableRows($rows, null);
+
+        $this->assertCount(1, $items);
+        $this->assertNull($items[0]['trip_date'], 'Unknown date must remain null, not Carbon::today()');
+    }
+
+    public function test_parser_with_explicit_default_date_uses_it(): void
+    {
+        $parser = new PartnerScheduleParser();
+
+        $rows = [
+            ['Crew Name', 'Vessel Name', 'From', 'To'],
+            ['John Smith', 'Vessel A', 'Port A', 'Port B'],
+        ];
+
+        $items = $parser->parseTableRows($rows, '2026-12-25');
+
+        $this->assertSame('2026-12-25', $items[0]['trip_date']);
+    }
+
+    public function test_parser_with_valid_ocr_date_extracts_it(): void
+    {
+        $parser = new PartnerScheduleParser();
+
+        // First row contains extractable date
+        $rows = [
+            ['25 December 2026'],
+            ['Crew Name', 'Vessel Name', 'From', 'To'],
+            ['John Smith', 'Vessel A', 'Port A', 'Port B'],
+        ];
+
+        $items = $parser->parseTableRows($rows, null);
+
+        $this->assertSame('2026-12-25', $items[0]['trip_date']);
+    }
 }
