@@ -22,6 +22,10 @@ yarn-error.log
 .env.*.local
 .env.production
 
+# Firebase credentials (never commit real or disposable test keys)
+/storage/app/firebase-service-account.json
+/storage/framework/testing/firebase-service-account.json
+
 # Operating System files
 .DS_Store
 .DS_Store?
