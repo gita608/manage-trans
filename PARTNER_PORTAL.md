@@ -210,6 +210,14 @@ Optional:
 - `phone`
 - `vessel_id`
 
+Manual Create supports:
+- Individual Entry
+- Group / Bulk Entry
+
+Group mode is UI convenience only.
+Both serialize into the existing PartnerRequest `items[]` contract.
+No new REQ type or database structure.
+
 Do NOT expose as Partner inputs:
 
 - `pick_up_time`

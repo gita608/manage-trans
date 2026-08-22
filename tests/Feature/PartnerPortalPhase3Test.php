@@ -148,7 +148,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_partner_with_manual_submission_enabled_can_access_create_page()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $response = $this->actingAs($partnerUser, 'partner')
             ->get(route('partner.requests.create'));
 
@@ -159,7 +159,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_partner_with_manual_submission_disabled_cannot_access_create_page()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(false);
-        
+
         $response = $this->actingAs($partnerUser, 'partner')
             ->get(route('partner.requests.create'));
 
@@ -171,7 +171,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_partner_with_manual_submission_disabled_cannot_post_manually()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(false);
-        
+
         $response = $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -194,7 +194,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_manual_store_creates_one_partner_request()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $response = $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -216,7 +216,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_request_automatically_receives_req_reference()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -239,7 +239,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_created_request_status_is_pending()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -261,7 +261,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_submission_method_is_manual()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -283,7 +283,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_partner_id_comes_from_authenticated_user()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -306,7 +306,7 @@ class PartnerPortalPhase3Test extends TestCase
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
         $otherPartner = Partner::create(['title' => 'Other Partner']);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'partner_id' => $otherPartner->id, // Malicious attempt
@@ -330,7 +330,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_partner_user_id_records_authenticated_submitter()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -352,7 +352,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_submitted_at_is_populated()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -374,7 +374,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_multiple_request_items_can_be_submitted()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -403,7 +403,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_minimum_one_item_required()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $response = $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => []
@@ -417,7 +417,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_core_required_manual_fields_validated()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $response = $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -439,7 +439,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_partner_cannot_submit_driver_id()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -462,7 +462,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_partner_cannot_submit_vessel_id()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         // Now vessel_id IS allowed, but must exist
         $response = $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
@@ -486,7 +486,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_partner_cannot_submit_status_approved()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'status' => PartnerRequest::STATUS_APPROVED, // Malicious attempt
@@ -509,7 +509,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_partner_a_cannot_view_partner_b_req()
     {
         [$partnerA, $userA] = $this->createPartnerWithUser(true);
-        
+
         $partnerB = Partner::create(['title' => 'Partner B', 'allow_manual_submission' => true]);
         $userB = PartnerUser::create([
             'partner_id' => $partnerB->id,
@@ -546,7 +546,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_partner_a_cannot_edit_partner_b_req()
     {
         [$partnerA, $userA] = $this->createPartnerWithUser(true);
-        
+
         $partnerB = Partner::create(['title' => 'Partner B', 'allow_manual_submission' => true]);
         $userB = PartnerUser::create([
             'partner_id' => $partnerB->id,
@@ -583,7 +583,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_partner_a_cannot_update_partner_b_req()
     {
         [$partnerA, $userA] = $this->createPartnerWithUser(true);
-        
+
         $partnerB = Partner::create(['title' => 'Partner B', 'allow_manual_submission' => true]);
         $userB = PartnerUser::create([
             'partner_id' => $partnerB->id,
@@ -632,7 +632,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_partner_a_cannot_withdraw_partner_b_req()
     {
         [$partnerA, $userA] = $this->createPartnerWithUser(true);
-        
+
         $partnerB = Partner::create(['title' => 'Partner B', 'allow_manual_submission' => true]);
         $userB = PartnerUser::create([
             'partner_id' => $partnerB->id,
@@ -669,7 +669,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_another_user_under_same_partner_can_view_company_req()
     {
         [$partner, $user1] = $this->createPartnerWithUser(true);
-        
+
         $user2 = PartnerUser::create([
             'partner_id' => $partner->id,
             'name' => 'Jane Doe',
@@ -705,7 +705,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_another_user_under_same_partner_can_edit_pending_company_req()
     {
         [$partner, $user1] = $this->createPartnerWithUser(true);
-        
+
         $user2 = PartnerUser::create([
             'partner_id' => $partner->id,
             'name' => 'Jane Doe',
@@ -741,7 +741,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_pending_request_can_be_edited()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -768,7 +768,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_editing_changes_partner_updated_at()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -810,7 +810,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_editing_does_not_change_submitted_at()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -852,7 +852,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_editing_does_not_change_original_partner_user_id()
     {
         [$partner, $user1] = $this->createPartnerWithUser(true);
-        
+
         $user2 = PartnerUser::create([
             'partner_id' => $partner->id,
             'name' => 'Jane Doe',
@@ -902,7 +902,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_editing_existing_item_preserves_driver_id()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -944,10 +944,10 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_editing_existing_item_preserves_vessel_id()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         // Create vessel
         $vessel = Vessel::create(['name' => 'Test Vessel']);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -987,7 +987,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_new_rows_can_be_added_during_edit()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1035,7 +1035,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_explicitly_removed_rows_are_removed_only_from_that_request()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1083,7 +1083,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_item_id_belonging_to_another_req_cannot_be_injected_into_update()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         // Create two requests
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
@@ -1140,7 +1140,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_approved_request_cannot_be_edited()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1170,7 +1170,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_declined_request_cannot_be_edited()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1200,7 +1200,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_withdrawn_request_cannot_be_edited()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1230,7 +1230,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_pending_request_can_be_withdrawn()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1259,7 +1259,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_withdrawal_preserves_req_and_items()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1288,7 +1288,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_withdrawn_at_populated()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1316,7 +1316,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_withdrawn_request_cannot_be_withdrawn_again()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1349,7 +1349,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_my_requests_contains_only_authenticated_partner_company_reqs()
     {
         [$partnerA, $userA] = $this->createPartnerWithUser(true);
-        
+
         $partnerB = Partner::create(['title' => 'Partner B', 'allow_manual_submission' => true]);
         $userB = PartnerUser::create([
             'partner_id' => $partnerB->id,
@@ -1404,7 +1404,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_status_filter_works()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         // Create pending request
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
@@ -1462,7 +1462,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_my_requests_is_paginated()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         // Create 20 requests
         for ($i = 1; $i <= 20; $i++) {
             $this->actingAs($partnerUser, 'partner')
@@ -1491,7 +1491,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_request_detail_displays_linked_trp_references_if_relationship_exists()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1525,7 +1525,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_creating_partner_req_creates_zero_trip_records()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->assertEquals(0, Trip::count());
 
         $this->actingAs($partnerUser, 'partner')
@@ -1549,7 +1549,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_updating_partner_req_creates_zero_trip_records()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1591,7 +1591,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_pickup_time_is_no_longer_required()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $response = $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1613,7 +1613,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_manual_request_can_be_submitted_without_pickup_time()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1634,7 +1634,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_vessel_is_optional()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $response = $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1656,7 +1656,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_request_with_no_vessel_saves_vessel_id_null()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1678,7 +1678,7 @@ class PartnerPortalPhase3Test extends TestCase
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
         $vessel = Vessel::create(['name' => 'Test Vessel']);
-        
+
         $response = $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1701,7 +1701,7 @@ class PartnerPortalPhase3Test extends TestCase
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
         $vessel = Vessel::create(['name' => 'Test Vessel']);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1723,7 +1723,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_invalid_vessel_id_is_rejected()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $response = $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1745,7 +1745,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_partner_cannot_submit_pick_up_time_via_crafted_request()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1767,7 +1767,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_partner_cannot_submit_phone_2_via_crafted_request()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1789,7 +1789,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_partner_cannot_submit_address_via_crafted_request()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1811,7 +1811,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_partner_cannot_submit_flight_number_via_crafted_request()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1833,7 +1833,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_partner_cannot_submit_remarks_via_crafted_request()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1855,7 +1855,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_partner_cannot_submit_sub_remark_via_crafted_request()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1877,7 +1877,7 @@ class PartnerPortalPhase3Test extends TestCase
     public function test_editing_partner_fields_preserves_existing_internal_fields()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1923,7 +1923,7 @@ class PartnerPortalPhase3Test extends TestCase
         // Partner editable fields should be updated
         $this->assertEquals('2026-08-26', $item->trip_date->format('Y-m-d'));
         $this->assertEquals('Modified Crew', $item->name);
-        
+
         // Internal fields should be preserved
         $this->assertEquals('10:00:00', $item->pick_up_time);
         $this->assertEquals('9876543210', $item->phone_2);
@@ -1941,7 +1941,7 @@ class PartnerPortalPhase3Test extends TestCase
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
         $vessel1 = Vessel::create(['name' => 'Vessel 1']);
         $vessel2 = Vessel::create(['name' => 'Vessel 2']);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -1977,5 +1977,94 @@ class PartnerPortalPhase3Test extends TestCase
         $item->refresh();
         $this->assertEquals($vessel2->id, $item->vessel_id);
     }
-}
 
+    /** @test */
+    public function test_manual_create_page_contains_group_entry_modes_and_buttons()
+    {
+        [$partner, $partnerUser] = $this->createPartnerWithUser(true);
+
+        $response = $this->actingAs($partnerUser, 'partner')
+            ->get(route('partner.requests.create'));
+
+        $response->assertOk();
+        $response->assertSee('Individual Entry');
+        $response->assertSee('Group / Bulk Entry');
+        $response->assertSee('Add Row');
+        $response->assertSee('Add 5 Rows');
+    }
+
+    /** @test */
+    public function test_group_submission_with_10_items_creates_one_req_and_ten_items()
+    {
+        [$partner, $partnerUser] = $this->createPartnerWithUser(true);
+        $vessel = Vessel::create(['name' => 'Bulk Vessel']);
+
+        $items = [];
+        for ($i = 0; $i < 10; $i++) {
+            $items[] = [
+                'trip_date' => '2026-09-01',
+                'name' => "Crew Member {$i}",
+                'phone' => "123456789{$i}",
+                'from_location' => 'Bulk Location A',
+                'to_location' => 'Bulk Location B',
+                'vessel_id' => $vessel->id,
+            ];
+        }
+
+        $response = $this->actingAs($partnerUser, 'partner')
+            ->post(route('partner.requests.store'), [
+                'entry_mode' => 'group',
+                'items' => $items,
+            ]);
+
+        $this->assertEquals(1, PartnerRequest::count());
+        $request = PartnerRequest::first();
+        $this->assertEquals(10, $request->items()->count());
+        $response->assertRedirect(route('partner.requests.show', $request));
+
+        // Verify common details persisted correctly to all items
+        foreach ($request->items as $item) {
+            $this->assertEquals('2026-09-01', $item->trip_date->format('Y-m-d'));
+            $this->assertEquals('Bulk Location A', $item->from_location);
+            $this->assertEquals('Bulk Location B', $item->to_location);
+            $this->assertEquals($vessel->id, $item->vessel_id);
+
+            // Name/Phone remain per crew
+            $this->assertStringStartsWith('Crew Member ', $item->name);
+        }
+
+        // No trips are created from Group Manual submission
+        $this->assertEquals(0, Trip::count());
+    }
+
+    /** @test */
+    public function test_group_submission_records_partner_and_cannot_inject_spoofed_fields()
+    {
+        [$partner, $partnerUser] = $this->createPartnerWithUser(true);
+
+        $response = $this->actingAs($partnerUser, 'partner')
+            ->post(route('partner.requests.store'), [
+                'entry_mode' => 'group',
+                'partner_id' => 999, // Malicious
+                'status' => 'approved', // Malicious
+                'items' => [
+                    [
+                        'trip_date' => '2026-09-01',
+                        'name' => 'Crew 1',
+                        'from_location' => 'Loc A',
+                        'to_location' => 'Loc B',
+                        'driver_id' => 888, // Malicious
+                        'pick_up_time' => '10:00', // Malicious
+                    ]
+                ]
+            ]);
+
+        $request = PartnerRequest::first();
+        $this->assertEquals($partner->id, $request->partner_id);
+        $this->assertEquals(PartnerRequest::STATUS_PENDING, $request->status);
+
+        $item = $request->items()->first();
+        $this->assertNull($item->driver_id);
+        $this->assertNull($item->pick_up_time);
+    }
+}

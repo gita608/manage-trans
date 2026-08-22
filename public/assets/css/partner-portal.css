@@ -797,9 +797,9 @@ body.partner-auth-login .alert-success {
 }
 
 @media (max-width: 575.98px) {
-    /* Even tighter spacing on small phones */
+    /* Maintain navbar clearance while tightening spacing on small phones */
     .page-content {
-        padding: 1rem 0;
+        padding: calc(70px + 1rem) calc(1.5rem * 0.5) 60px calc(1.5rem * 0.5);
     }
 
     .card-body {
