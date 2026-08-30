@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class SettingsController extends Controller
 {
@@ -18,51 +17,47 @@ class SettingsController extends Controller
         $settings = [
             'app_name' => (object) [
                 'key' => 'app_name',
-                'value' => getSetting('app_name', config('app.name'))
+                'value' => getSetting('app_name', config('app.name')),
             ],
             'app_logo' => (object) [
                 'key' => 'app_logo',
-                'value' => getSetting('app_logo', '')
+                'value' => getSetting('app_logo', ''),
             ],
             'favicon' => (object) [
                 'key' => 'favicon',
-                'value' => getSetting('favicon', '')
+                'value' => getSetting('favicon', ''),
             ],
             'app_timezone' => (object) [
                 'key' => 'app_timezone',
-                'value' => getSetting('app_timezone', config('app.timezone', 'Asia/Dubai'))
-            ],
-            'enable_signup' => (object) [
-                'key' => 'enable_signup',
-                'value' => getSetting('enable_signup', 'true')
+                'value' => getSetting('app_timezone', config('app.timezone', 'Asia/Dubai')),
             ],
             'enable_forgot_password' => (object) [
                 'key' => 'enable_forgot_password',
-                'value' => getSetting('enable_forgot_password', 'true')
+                'value' => getSetting('enable_forgot_password', 'true'),
             ],
             'android_version' => (object) [
                 'key' => 'android_version',
-                'value' => getSetting('android_version', '1.0.0')
+                'value' => getSetting('android_version', '1.0.0'),
             ],
             'ios_version' => (object) [
                 'key' => 'ios_version',
-                'value' => getSetting('ios_version', '1.0.0')
+                'value' => getSetting('ios_version', '1.0.0'),
             ],
             'force_android_version' => (object) [
                 'key' => 'force_android_version',
-                'value' => getSetting('force_android_version', '1.0.0')
+                'value' => getSetting('force_android_version', '1.0.0'),
             ],
             'force_ios_version' => (object) [
                 'key' => 'force_ios_version',
-                'value' => getSetting('force_ios_version', '1.0.0')
+                'value' => getSetting('force_ios_version', '1.0.0'),
             ],
             'location_sync_intervel' => (object) [
                 'key' => 'location_sync_intervel',
-                'value' => getSetting('location_sync_intervel', '30')
+                'value' => getSetting('location_sync_intervel', '30'),
             ],
             'check_in_auto_checkout_hours' => (object) [
                 'key' => 'check_in_auto_checkout_hours',
-                'value' => getSetting('check_in_auto_checkout_hours', '12')
+                'value' => getSetting('check_in_auto_checkout_hours', '12'),
             ],
         ];
 
@@ -72,7 +67,7 @@ class SettingsController extends Controller
         foreach ($timezones as $timezone) {
             $parts = explode('/', $timezone);
             $region = $parts[0];
-            if (!isset($timezoneGroups[$region])) {
+            if (! isset($timezoneGroups[$region])) {
                 $timezoneGroups[$region] = [];
             }
             $timezoneGroups[$region][] = $timezone;
@@ -90,12 +85,10 @@ class SettingsController extends Controller
 
         // Convert checkbox values to boolean before validation
         $request->merge([
-            'enable_signup' => $request->has('enable_signup') ? true : false,
-            'enable_forgot_password' => $request->has('enable_forgot_password') ? true : false
+            'enable_forgot_password' => $request->has('enable_forgot_password') ? true : false,
         ]);
 
         $request->validate([
-            'enable_signup' => 'nullable|boolean',
             'app_name' => 'nullable|string|max:255',
             'app_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'favicon' => 'nullable|image|mimes:ico,png|max:1024',
@@ -114,7 +107,6 @@ class SettingsController extends Controller
         $oldLogo = getSetting('app_logo', '');
         $oldFavicon = getSetting('favicon', '');
         $oldTimezone = getSetting('app_timezone', config('app.timezone', 'Asia/Dubai'));
-        $oldEnableSignup = getSetting('enable_signup', 'true');
         $oldEnableForgotPassword = getSetting('enable_forgot_password', 'true');
         $oldAndroidVersion = getSetting('android_version', '1.0.0');
         $oldIosVersion = getSetting('ios_version', '1.0.0');
@@ -122,10 +114,6 @@ class SettingsController extends Controller
         $oldForceIosVersion = getSetting('force_ios_version', '1.0.0');
         $oldLocationSyncIntervel = getSetting('location_sync_intervel', '30');
         $oldCheckInAutoCheckoutHours = getSetting('check_in_auto_checkout_hours', '12');
-
-        // Update enable_signup setting
-        $enableSignup = $request->has('enable_signup') ? 'true' : 'false';
-        updateSetting('enable_signup', $enableSignup);
 
         // Update app_name setting
         if ($request->filled('app_name')) {
@@ -146,7 +134,7 @@ class SettingsController extends Controller
             if ($oldLogo && \Illuminate\Support\Facades\Storage::disk('public')->exists($oldLogo)) {
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($oldLogo);
             }
-            
+
             // Store new logo
             $logoPath = $request->file('app_logo')->store('logos', 'public');
             updateSetting('app_logo', $logoPath);
@@ -159,7 +147,7 @@ class SettingsController extends Controller
             if ($oldFavicon && \Illuminate\Support\Facades\Storage::disk('public')->exists($oldFavicon)) {
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($oldFavicon);
             }
-            
+
             // Store new favicon
             $faviconPath = $request->file('favicon')->store('favicons', 'public');
             updateSetting('favicon', $faviconPath);
@@ -192,7 +180,7 @@ class SettingsController extends Controller
         $changes = [];
         $oldValues = [];
         $newValues = [];
-        
+
         if ($request->filled('app_name') && $request->app_name !== $oldAppName) {
             $oldValues['app_name'] = $oldAppName;
             $newValues['app_name'] = $request->app_name;
@@ -212,11 +200,6 @@ class SettingsController extends Controller
             $oldValues['favicon'] = $oldFavicon;
             $newValues['favicon'] = $faviconPath;
             $changes[] = 'favicon';
-        }
-        if ($enableSignup !== $oldEnableSignup) {
-            $oldValues['enable_signup'] = $oldEnableSignup;
-            $newValues['enable_signup'] = $enableSignup;
-            $changes[] = 'enable_signup';
         }
         if ($enableForgotPassword !== $oldEnableForgotPassword) {
             $oldValues['enable_forgot_password'] = $oldEnableForgotPassword;
@@ -241,8 +224,8 @@ class SettingsController extends Controller
             }
         }
 
-        if (!empty($changes)) {
-            $description = 'Settings updated: ' . implode(', ', $changes);
+        if (! empty($changes)) {
+            $description = 'Settings updated: '.implode(', ', $changes);
             ActivityLog::create([
                 'loggable_type' => 'App\Models\Setting',
                 'loggable_id' => 0,

@@ -89,12 +89,6 @@
         <a href="{{ route('partner.login') }}" class="fw-medium">Sign in to Partner Portal</a>
     </p>
 </div>
-
-@if(isset($enableSignup) && $enableSignup)
-<div class="auth-footer">
-    <p>Don't have an account? <a href="{{ route('register') }}">Sign up</a></p>
-</div>
-@endif
 @endsection
 
 @push('scripts')

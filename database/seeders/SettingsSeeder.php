@@ -27,7 +27,7 @@ class SettingsSeeder extends Seeder
             ],
             [
                 'key' => 'enable_signup',
-                'value' => 'true',
+                'value' => 'false',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],

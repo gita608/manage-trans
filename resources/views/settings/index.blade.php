@@ -142,31 +142,15 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="mb-4">
-                        <div class="d-flex align-items-start">
-                            <div class="flex-grow-1">
-                                <h6 class="mb-1">User Registration</h6>
-                                <p class="text-muted mb-0 small">Allow new users to create accounts</p>
-                            </div>
-                            <div class="form-check form-switch form-switch-lg">
-                                <input class="form-check-input" type="checkbox" 
-                                       name="enable_signup" id="enable_signup" 
-                                       {{ $settings['enable_signup']->value == 'true' ? 'checked' : '' }}>
-                            </div>
+                    <div class="d-flex align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">Password Recovery</h6>
+                            <p class="text-muted mb-0 small">Enable forgot password functionality</p>
                         </div>
-                    </div>
-
-                    <div class="border-top pt-4">
-                        <div class="d-flex align-items-start">
-                            <div class="flex-grow-1">
-                                <h6 class="mb-1">Password Recovery</h6>
-                                <p class="text-muted mb-0 small">Enable forgot password functionality</p>
-                            </div>
-                            <div class="form-check form-switch form-switch-lg">
-                                <input class="form-check-input" type="checkbox" 
-                                       name="enable_forgot_password" id="enable_forgot_password" 
-                                       {{ $settings['enable_forgot_password']->value == 'true' ? 'checked' : '' }}>
-                            </div>
+                        <div class="form-check form-switch form-switch-lg">
+                            <input class="form-check-input" type="checkbox"
+                                   name="enable_forgot_password" id="enable_forgot_password"
+                                   {{ $settings['enable_forgot_password']->value == 'true' ? 'checked' : '' }}>
                         </div>
                     </div>
                 </div>
