@@ -74,7 +74,7 @@
                             <label class="form-label" for="common-vessel">
                                 Vessel
                             </label>
-                            <select class="form-select" id="common-vessel" name="_common[vessel_id]">
+                            <select class="form-select vessel-select2" id="common-vessel" name="_common[vessel_id]" data-placeholder="Select vessel (optional)">
                                 <option value="">Select vessel (optional)</option>
                                 @foreach($vessels as $vessel)
                                     <option value="{{ $vessel->id }}">{{ $vessel->name }}</option>
@@ -240,7 +240,7 @@
                 <label class="form-label" for="crew-vessel-0">
                     Vessel
                 </label>
-                <select class="form-select" id="crew-vessel-0" name="items[0][vessel_id]">
+                <select class="form-select vessel-select2" id="crew-vessel-0" name="items[0][vessel_id]" data-placeholder="Select vessel (optional)">
                     <option value="">Select vessel (optional)</option>
                     @foreach($vessels as $vessel)
                         <option value="{{ $vessel->id }}">{{ $vessel->name }}</option>
@@ -303,6 +303,7 @@
 @endsection
 
 @push('styles')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <style>
 /* Custom styling for Entry Mode Selector Cards */
 .mode-selector-card {
@@ -352,6 +353,42 @@
 }
 .mode-selector-input:focus-visible + .mode-selector-label {
     box-shadow: 0 0 0 0.25rem rgba(var(--vz-primary-rgb), 0.25);
+}
+
+.vessel-select2 + .select2-container {
+    width: 100% !important;
+}
+.vessel-select2 + .select2-container .select2-selection--single {
+    height: calc(1.5em + 0.94rem + 2px);
+    padding: 0.47rem 0.75rem;
+    border: 1px solid var(--vz-input-border, #ced4da);
+    border-radius: var(--vz-border-radius, 0.25rem);
+    background-color: var(--vz-input-bg, #fff);
+}
+.vessel-select2 + .select2-container .select2-selection--single .select2-selection__rendered {
+    line-height: 1.5;
+    padding-left: 0;
+    color: var(--vz-body-color, #212529);
+}
+.vessel-select2 + .select2-container .select2-selection--single .select2-selection__arrow {
+    height: 100%;
+    right: 0.5rem;
+}
+.vessel-select2 + .select2-container .select2-selection--single .select2-selection__placeholder {
+    color: var(--vz-secondary-color, #878a99);
+}
+.vessel-select2 + .select2-container.select2-container--open .select2-selection--single,
+.vessel-select2 + .select2-container.select2-container--focus .select2-selection--single {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: var(--vz-primary, #405189);
+}
+.select2-dropdown {
+    border-color: var(--vz-border-color, #e9ebec);
+    background-color: var(--vz-secondary-bg, #fff);
+    z-index: 1056;
 }
 
 /* Make table responsive on mobile, converting to stacked cards */
@@ -418,6 +455,8 @@
 @endpush
 
 @push('scripts')
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Shared State
@@ -453,6 +492,43 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitBtn = document.getElementById('submitBtn');
     const form = document.getElementById('requestForm');
 
+    function bindVesselSelect2(selectEl) {
+        if (typeof jQuery === 'undefined' || !jQuery.fn.select2 || !selectEl) {
+            return;
+        }
+        const $select = jQuery(selectEl);
+        if ($select.hasClass('select2-hidden-accessible')) {
+            return;
+        }
+        $select.select2({
+            placeholder: $select.data('placeholder') || 'Select vessel (optional)',
+            allowClear: true,
+            width: '100%',
+        });
+    }
+
+    function destroyVesselSelect2(scope) {
+        if (typeof jQuery === 'undefined' || !jQuery.fn.select2) {
+            return;
+        }
+        jQuery(scope).find('.vessel-select2').addBack('.vessel-select2').each(function() {
+            const $select = jQuery(this);
+            if ($select.hasClass('select2-hidden-accessible')) {
+                $select.select2('destroy');
+            }
+        });
+    }
+
+    function setVesselSelectValue(selectEl, value) {
+        if (!selectEl) {
+            return;
+        }
+        selectEl.value = value || '';
+        if (typeof jQuery !== 'undefined' && jQuery.fn.select2 && jQuery(selectEl).hasClass('select2-hidden-accessible')) {
+            jQuery(selectEl).val(value || null).trigger('change');
+        }
+    }
+
     // Initialize Mode based on old input if exists
     @if(old('entry_mode') === 'group')
         setMode('group');
@@ -460,6 +536,8 @@ document.addEventListener('DOMContentLoaded', function() {
     @else
         setMode('individual');
     @endif
+
+    bindVesselSelect2(commonVessel);
 
     // Add first crew items on load
     addCrewItem();
@@ -509,6 +587,7 @@ document.addEventListener('DOMContentLoaded', function() {
             groupActions.classList.add('d-flex');
 
             enableRequiredFields('group');
+            bindVesselSelect2(commonVessel);
         }
     }
 
@@ -549,12 +628,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function clearData(modeToClear) {
         if (modeToClear === 'individual') {
+            destroyVesselSelect2(container);
             container.innerHTML = '';
             crewIndex = 0;
             addCrewItem();
         } else {
             commonTripDate.value = '';
-            commonVessel.value = '';
+            setVesselSelectValue(commonVessel, '');
             commonFrom.value = '';
             commonTo.value = '';
 
@@ -590,6 +670,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.target.closest('.remove-crew-btn')) {
             const crewItem = e.target.closest('.crew-item');
             if (container.querySelectorAll('.crew-item').length > 1) {
+                destroyVesselSelect2(crewItem);
                 crewItem.remove();
                 updateCrewNumbers();
             } else {
@@ -624,6 +705,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         container.appendChild(clone);
+        const addedItem = container.querySelector(`[data-index="${crewIndex}"]`);
+        if (addedItem) {
+            bindVesselSelect2(addedItem.querySelector('.vessel-select2'));
+        }
         crewIndex++;
         updateCrewNumbers();
 
@@ -748,6 +833,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const oldMode = "{{ old('entry_mode', 'individual') }}";
 
         if (oldMode === 'individual') {
+            destroyVesselSelect2(container);
             container.innerHTML = '';
             crewIndex = 0;
 
@@ -762,7 +848,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         Object.keys(item).forEach(key => {
                             const input = crewDiv.querySelector(`[name="items[${index}][${key}]"]`);
                             if (input && item[key] !== null) {
-                                input.value = item[key];
+                                if (key === 'vessel_id') {
+                                    setVesselSelectValue(input, item[key]);
+                                } else {
+                                    input.value = item[key];
+                                }
                             }
                         });
                     }
@@ -774,7 +864,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             // Group Mode Restoration
             if (oldCommon.trip_date) commonTripDate.value = oldCommon.trip_date;
-            if (oldCommon.vessel_id) commonVessel.value = oldCommon.vessel_id;
+            if (oldCommon.vessel_id) setVesselSelectValue(commonVessel, oldCommon.vessel_id);
             if (oldCommon.from_location) commonFrom.value = oldCommon.from_location;
             if (oldCommon.to_location) commonTo.value = oldCommon.to_location;
 
