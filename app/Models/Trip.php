@@ -46,6 +46,14 @@ class Trip extends Model
     }
 
     /**
+     * Genuine crew removals (not delete/recreate during normal trip edits).
+     */
+    public function crewRemovals()
+    {
+        return $this->hasMany(TripCrewRemoval::class)->latest('removed_at');
+    }
+
+    /**
      * Get all available statuses
      */
     public static function getStatuses(): array
@@ -78,8 +86,6 @@ class Trip extends Model
 
     /**
      * Check if the trip is completed
-     *
-     * @return bool
      */
     public function isCompleted(): bool
     {
@@ -88,8 +94,6 @@ class Trip extends Model
 
     /**
      * Check if the trip is cancelled
-     *
-     * @return bool
      */
     public function isCancelled(): bool
     {
@@ -100,20 +104,17 @@ class Trip extends Model
 
     /**
      * Get status badge color class (without 'bg-' prefix)
-     *
-     * @return string
      */
     public function getStatusBadge(): string
     {
         $badgeClass = $this->getStatusBadgeClass();
+
         // Remove 'bg-' prefix if present
         return str_replace('bg-', '', $badgeClass);
     }
 
     /**
      * Get human-readable status text
-     *
-     * @return string
      */
     public function getStatusText(): string
     {
@@ -188,11 +189,10 @@ class Trip extends Model
     /**
      * Generate trip title based on driver and date
      * Format: "Trip 1", "Trip 2", etc. for each driver per day
-     * 
-     * @param int $driverId
-     * @param string|Carbon $tripDate
-     * @param int|null $excludeTripId Trip ID to exclude from count (for updates)
-     * @return string
+     *
+     * @param  int  $driverId
+     * @param  string|Carbon  $tripDate
+     * @param  int|null  $excludeTripId  Trip ID to exclude from count (for updates)
      */
     public static function generateTripTitle($driverId, $tripDate, $excludeTripId = null): string
     {
@@ -217,11 +217,6 @@ class Trip extends Model
     /**
      * Get a custom human-readable description of the activity.
      * This method is called by the LogsActivity trait for complex cases.
-     *
-     * @param string $action
-     * @param array|null $oldValues
-     * @param array|null $newValues
-     * @return string
      */
     protected function getCustomActivityDescription(string $action, ?array $oldValues, ?array $newValues): string
     {
@@ -232,12 +227,13 @@ class Trip extends Model
             if ($driverId) {
                 $driver = Driver::find($driverId);
                 $driverName = $driver->name ?? 'Unknown';
+
                 return "Schedule created for driver '{$driverName}'";
             }
 
             return 'Schedule created — awaiting driver assignment';
         }
-        
+
         if ($action === 'updated') {
             $changes = [];
             if (isset($newValues['status'])) {
@@ -255,23 +251,24 @@ class Trip extends Model
                 $newDriver = Driver::find($newValues['driver_id']);
                 $oldDriverName = $oldDriver->name ?? 'Unassigned';
                 $newDriverName = $newDriver->name ?? 'Unassigned';
-                if (empty($oldValues['driver_id']) && !empty($newValues['driver_id'])) {
+                if (empty($oldValues['driver_id']) && ! empty($newValues['driver_id'])) {
                     $changes[] = "driver assigned ({$newDriverName})";
                 } else {
                     $changes[] = "driver changed ({$oldDriverName} → {$newDriverName})";
                 }
             }
-            
-            if (!empty($changes)) {
-                return 'Schedule updated: ' . implode(', ', $changes);
+
+            if (! empty($changes)) {
+                return 'Schedule updated: '.implode(', ', $changes);
             }
+
             return 'Schedule updated';
         }
-        
+
         if ($action === 'deleted') {
             return 'Trip deleted';
         }
-        
+
         return "Trip action: {$action}";
     }
 }

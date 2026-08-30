@@ -76,6 +76,14 @@
                             @endif
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#removedCrew" role="tab" aria-selected="false">
+                            <i class="ri-user-unfollow-line me-1 align-middle"></i> Removed Crew
+                            @if($trip->crewRemovals->count() > 0)
+                                <span class="badge bg-secondary rounded-pill ms-1">{{ $trip->crewRemovals->count() }}</span>
+                            @endif
+                        </a>
+                    </li>
                 </ul>
 
                 <!-- Tab Content -->
@@ -615,6 +623,122 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Removed Crew Tab -->
+                    <div class="tab-pane fade" id="removedCrew" role="tabpanel">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                            <h5 class="mb-0">Removed Crew History</h5>
+                        </div>
+
+                        @if($trip->crewRemovals->count() > 0)
+                            <div class="table-responsive">
+                                <table class="table table-nowrap align-middle mb-0 table-hover table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th scope="col">Crew Name</th>
+                                            <th scope="col">Contact</th>
+                                            <th scope="col">Vessel</th>
+                                            <th scope="col">Pickup Time</th>
+                                            <th scope="col">Route</th>
+                                            <th scope="col">Flight No.</th>
+                                            <th scope="col">Assigned Driver</th>
+                                            <th scope="col">Removed By</th>
+                                            <th scope="col">Removed On</th>
+                                            <th scope="col">Removal Remark</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($trip->crewRemovals as $removal)
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center min-width-0">
+                                                        <div class="avatar-xs me-2 flex-shrink-0">
+                                                            <div class="avatar-title rounded-circle bg-light text-danger">
+                                                                {{ strtoupper(substr($removal->crew_name, 0, 2)) }}
+                                                            </div>
+                                                        </div>
+                                                        <div class="min-width-0">
+                                                            <h6 class="mb-0 text-truncate" title="{{ $removal->crew_name }}">{{ $removal->crew_name }}</h6>
+                                                            @if($removal->address || $removal->remarks || $removal->sub_remark)
+                                                                <button type="button"
+                                                                        class="btn btn-sm btn-link text-decoration-none p-0 fs-12"
+                                                                        data-bs-toggle="collapse"
+                                                                        data-bs-target="#removalDetails{{ $removal->id }}"
+                                                                        aria-expanded="false">
+                                                                    More details
+                                                                </button>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                    @if($removal->address || $removal->remarks || $removal->sub_remark)
+                                                        <div class="collapse mt-2" id="removalDetails{{ $removal->id }}">
+                                                            <div class="bg-light-subtle border rounded p-2 small text-muted">
+                                                                @if($removal->address)
+                                                                    <div><span class="fw-medium text-body">Address:</span> {{ $removal->address }}</div>
+                                                                @endif
+                                                                @if($removal->remarks)
+                                                                    <div><span class="fw-medium text-body">Remarks:</span> {{ $removal->remarks }}</div>
+                                                                @endif
+                                                                @if($removal->sub_remark)
+                                                                    <div><span class="fw-medium text-body">Sub Remark:</span> {{ $removal->sub_remark }}</div>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                    @endif
+                                                </td>
+                                                <td class="min-width-0">
+                                                    @if($removal->phone)
+                                                        <a href="tel:{{ $removal->phone }}" class="text-body d-block">{{ $removal->phone }}</a>
+                                                    @else
+                                                        <span class="text-muted">-</span>
+                                                    @endif
+                                                    @if($removal->phone_2)
+                                                        <small class="text-muted d-block">{{ $removal->phone_2 }}</small>
+                                                    @endif
+                                                </td>
+                                                <td>{{ $removal->vessel_name ?? '—' }}</td>
+                                                <td>
+                                                    @if($removal->pick_up_time)
+                                                        {{ \Carbon\Carbon::parse($removal->pick_up_time)->format('h:i A') }}
+                                                    @else
+                                                        —
+                                                    @endif
+                                                </td>
+                                                <td class="min-width-0">
+                                                    <div class="d-flex flex-column" style="max-width: 180px;">
+                                                        <span class="text-truncate" title="{{ $removal->from_location }}">{{ $removal->from_location ?? '—' }}</span>
+                                                        <small class="text-muted">→</small>
+                                                        <span class="text-truncate" title="{{ $removal->to_location }}">{{ $removal->to_location ?? '—' }}</span>
+                                                    </div>
+                                                </td>
+                                                <td>{{ $removal->flight_number ?? '—' }}</td>
+                                                <td>{{ $removal->driver_name ?? 'Unassigned' }}</td>
+                                                <td>{{ $removal->removedByUser->name ?? '—' }}</td>
+                                                <td>{{ formatDate($removal->removed_at) }}</td>
+                                                <td class="min-width-0" style="max-width: 200px;">
+                                                    @if($removal->removal_remark)
+                                                        <span class="text-break" title="{{ $removal->removal_remark }}">{{ $removal->removal_remark }}</span>
+                                                    @else
+                                                        <span class="text-muted">—</span>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <div class="text-center py-5">
+                                <div class="avatar-sm mx-auto mb-3">
+                                    <span class="avatar-title bg-light text-secondary rounded-circle fs-3">
+                                        <i class="ri-user-unfollow-line"></i>
+                                    </span>
+                                </div>
+                                <h5 class="text-muted">No Removed Crew</h5>
+                                <p class="text-muted mb-0">No crew members have been removed from this trip.</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>

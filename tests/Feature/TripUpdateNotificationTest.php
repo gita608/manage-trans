@@ -320,7 +320,7 @@ class TripUpdateNotificationTest extends TestCase
         Schema::disableForeignKeyConstraints();
         foreach ([
             'personal_access_tokens', 'trip_expenses', 'trip_expense_types',
-            'trip_issues', 'trip_issue_types', 'trip_crews', 'trips',
+            'trip_issues', 'trip_issue_types', 'trip_crew_removals', 'trip_crews', 'trips',
             'partners', 'vessels', 'drivers', 'activity_logs',
             'user_permissions', 'role_permissions', 'permissions',
             'notifications', 'users',
@@ -423,6 +423,30 @@ class TripUpdateNotificationTest extends TestCase
             $table->string('flight_number')->nullable();
             $table->text('remarks')->nullable();
             $table->string('sub_remark')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('trip_crew_removals', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('trip_id');
+            $table->unsignedBigInteger('trip_crew_id')->nullable();
+            $table->string('crew_name');
+            $table->string('phone')->nullable();
+            $table->string('phone_2')->nullable();
+            $table->text('address')->nullable();
+            $table->foreignId('vessel_id')->nullable();
+            $table->string('vessel_name')->nullable();
+            $table->time('pick_up_time')->nullable();
+            $table->string('from_location')->nullable();
+            $table->string('to_location')->nullable();
+            $table->string('flight_number')->nullable();
+            $table->text('remarks')->nullable();
+            $table->string('sub_remark')->nullable();
+            $table->foreignId('driver_id')->nullable();
+            $table->string('driver_name')->nullable();
+            $table->foreignId('removed_by')->nullable();
+            $table->timestamp('removed_at');
+            $table->text('removal_remark')->nullable();
             $table->timestamps();
         });
 

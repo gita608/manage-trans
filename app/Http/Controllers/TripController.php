@@ -2,27 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Trip;
-use App\Models\TripCrew;
 use App\Models\Driver;
-use App\Models\Vessel;
 use App\Models\Partner;
 use App\Models\PartnerRequest;
+use App\Models\Trip;
+use App\Models\TripCrew;
+use App\Models\TripCrewRemoval;
+use App\Models\Vessel;
 use App\Services\TextractService;
 use App\Services\TripAssignmentNotificationService;
 use App\Services\TripLifecyclePresenter;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 
 class TripController extends Controller
 {
     public function __construct(
         protected TripAssignmentNotificationService $tripAssignmentNotificationService
-    ) {
-    }
+    ) {}
 
     /**
      * Display a listing of the resource.
@@ -34,9 +34,9 @@ class TripController extends Controller
         $search = trim((string) $request->input('search', ''));
         if ($search !== '') {
             $query->where(function ($builder) use ($search) {
-                $builder->where('trip_reference', 'like', '%' . $search . '%')
+                $builder->where('trip_reference', 'like', '%'.$search.'%')
                     ->orWhereHas('partnerRequest', function ($partnerRequestQuery) use ($search) {
-                        $partnerRequestQuery->where('request_reference', 'like', '%' . $search . '%');
+                        $partnerRequestQuery->where('request_reference', 'like', '%'.$search.'%');
                     });
             });
         }
@@ -81,7 +81,7 @@ class TripController extends Controller
             $query->whereDate('trip_date', $request->date);
         } else {
             // Default to today if no specific date filter
-            if (!$dateFrom && !$dateTo && !$request->has('date')) {
+            if (! $dateFrom && ! $dateTo && ! $request->has('date')) {
                 $query->whereDate('trip_date', today());
             }
         }
@@ -110,14 +110,14 @@ class TripController extends Controller
         $trips = $trips->map(function ($trip) {
             $totalJobs = $trip->crews->count();
             $isCompleted = $trip->isCompleted();
-            
+
             $trip->tripStatus = [
                 'totalJobs' => $totalJobs,
                 'isCompleted' => $isCompleted,
                 'statusBadge' => $trip->getStatusBadge(),
                 'statusText' => $trip->getStatusText(),
             ];
-            
+
             return $trip;
         });
 
@@ -126,12 +126,12 @@ class TripController extends Controller
 
         // Calculate statistics for overview cards based on the filtered trips
         $tripIds = $trips->pluck('id');
-        
+
         // Count trips in progress (trips with at least one crew in progress but not all completed)
         $tripsInProgress = $trips->filter(function ($trip) {
             return $trip->status === TripCrew::STATUS_IN_PROGRESS;
         })->count();
-        
+
         // Count completed trips
         $tripsCompleted = $trips->filter(function ($trip) {
             return $trip->isCompleted();
@@ -141,7 +141,7 @@ class TripController extends Controller
         $tripsCancelled = $trips->filter(function ($trip) {
             return $trip->isCancelled();
         })->count();
-        
+
         $stats = [
             'total_trips' => $trips->count(),
             'total_jobs' => $tripIds->isEmpty() ? 0 : TripCrew::whereIn('trip_id', $tripIds)->count(),
@@ -168,7 +168,7 @@ class TripController extends Controller
 
     public function createFromPartnerRequest(PartnerRequest $partnerRequest)
     {
-        if (!$partnerRequest->isApproved()) {
+        if (! $partnerRequest->isApproved()) {
             abort(404);
         }
 
@@ -236,7 +236,7 @@ class TripController extends Controller
 
         if ($partnerRequestId) {
             $sourcePartnerRequest = PartnerRequest::query()->find($partnerRequestId);
-            if (!$sourcePartnerRequest || !$sourcePartnerRequest->isApproved()) {
+            if (! $sourcePartnerRequest || ! $sourcePartnerRequest->isApproved()) {
                 return back()->withInput()->with('error', 'The source partner request is not approved.');
             }
         }
@@ -263,7 +263,7 @@ class TripController extends Controller
                         ->lockForUpdate()
                         ->first();
 
-                    if (!$lockedRequest || !$lockedRequest->isApproved()) {
+                    if (! $lockedRequest || ! $lockedRequest->isApproved()) {
                         throw new \RuntimeException('source_not_approved');
                     }
 
@@ -324,12 +324,24 @@ class TripController extends Controller
      */
     public function show(Trip $trip)
     {
-        $trip->load(['driver', 'crews.vessel', 'partner', 'partnerRequest', 'activityLogs.user', 'activityLogs.driver', 'tripIssues.issueType', 'tripIssues.driver', 'tripExpenses.expenseType', 'tripExpenses.driver']);
-        
+        $trip->load([
+            'driver',
+            'crews.vessel',
+            'partner',
+            'partnerRequest',
+            'activityLogs.user',
+            'activityLogs.driver',
+            'tripIssues.issueType',
+            'tripIssues.driver',
+            'tripExpenses.expenseType',
+            'tripExpenses.driver',
+            'crewRemovals.removedByUser',
+        ]);
+
         // Calculate trip status data
         $totalJobs = $trip->crews->count();
         $isCompleted = $trip->isCompleted();
-        
+
         $tripStatus = [
             'totalJobs' => $totalJobs,
             'isCompleted' => $isCompleted,
@@ -338,7 +350,7 @@ class TripController extends Controller
         ];
 
         $lifecycle = app(TripLifecyclePresenter::class)->present($trip);
-        
+
         return view('trips.show', compact('trip', 'tripStatus', 'lifecycle'));
     }
 
@@ -365,6 +377,7 @@ class TripController extends Controller
             'partner_id' => ['nullable', 'exists:partners,id'],
             'title' => ['nullable', 'string', 'max:255'],
             'crews' => ['required', 'array', 'min:1'],
+            'crews.*.id' => ['nullable', 'integer'],
             'crews.*.driver_id' => ['nullable', 'exists:drivers,id'],
             'crews.*.trip_date' => ['required', 'date'],
             'crews.*.vessel_id' => ['required', 'exists:vessels,id'],
@@ -378,6 +391,8 @@ class TripController extends Controller
             'crews.*.phone' => ['nullable', 'string', 'max:255'],
             'crews.*.phone_2' => ['nullable', 'string', 'max:255'],
             'crews.*.address' => ['nullable', 'string'],
+            'removed_crews' => ['nullable', 'array'],
+            'removed_crews.*.removal_remark' => ['nullable', 'string', 'max:2000'],
         ], [
             'crews.required' => 'At least one crew member row is required.',
             'crews.*.trip_date.required' => 'A trip date is required for every crew row.',
@@ -397,8 +412,55 @@ class TripController extends Controller
         $partnerRequestId = $trip->partner_request_id;
         $tripIdsToNotifyAssignment = [];
         $tripIdsToNotifyUpdate = [];
+        $removedCrewRemarks = collect($request->input('removed_crews', []))
+            ->mapWithKeys(function ($data, $crewId) {
+                $remark = is_array($data) ? ($data['removal_remark'] ?? null) : null;
 
-        DB::transaction(function () use ($groupedTrips, $resolvedPartnerId, $partnerRequestId, $trip, &$tripIdsToNotifyAssignment, &$tripIdsToNotifyUpdate) {
+                return [(int) $crewId => $remark];
+            });
+
+        DB::transaction(function () use (
+            $groupedTrips,
+            $resolvedPartnerId,
+            $partnerRequestId,
+            $trip,
+            $request,
+            $removedCrewRemarks,
+            &$tripIdsToNotifyAssignment,
+            &$tripIdsToNotifyUpdate
+        ) {
+            $originalCrews = $trip->crews()->with('vessel')->get()->keyBy('id');
+            $submittedCrewIds = collect($request->input('crews', []))
+                ->pluck('id')
+                ->filter(fn ($id) => filled($id))
+                ->map(fn ($id) => (int) $id)
+                ->unique();
+
+            // Only distinguish genuine removals when the edit form supplies stable crew IDs
+            // and/or explicit removed_crews entries. Legacy updates with no IDs still
+            // delete/recreate crews and must not create false removal history.
+            $tracksCrewIdentity = $submittedCrewIds->isNotEmpty() || $removedCrewRemarks->isNotEmpty();
+            $genuinelyRemovedIds = $tracksCrewIdentity
+                ? $originalCrews->keys()->diff($submittedCrewIds)->values()
+                : collect();
+
+            $trip->loadMissing('driver');
+
+            foreach ($genuinelyRemovedIds as $removedCrewId) {
+                $crew = $originalCrews->get($removedCrewId);
+                if (! $crew) {
+                    continue;
+                }
+
+                $remark = $removedCrewRemarks->get((int) $removedCrewId);
+                TripCrewRemoval::create(TripCrewRemoval::snapshotFromCrew(
+                    $crew,
+                    $trip,
+                    Auth::id(),
+                    is_string($remark) ? $remark : null
+                ));
+            }
+
             $isFirst = true;
             foreach ($groupedTrips as $group) {
                 $driverId = $group['driver_id'];
@@ -407,7 +469,7 @@ class TripController extends Controller
                 if ($isFirst) {
                     $oldDriverId = $trip->driver_id;
                     $driverChanged = $oldDriverId != $driverId;
-                    $driverNewlyAssigned = !$oldDriverId && $driverId;
+                    $driverNewlyAssigned = ! $oldDriverId && $driverId;
 
                     $tripDateFormatted = $trip->trip_date instanceof \Carbon\Carbon
                         ? $trip->trip_date->format('Y-m-d')
@@ -428,7 +490,7 @@ class TripController extends Controller
 
                     if ($driverNewlyAssigned && $trip->status === TripCrew::STATUS_UNASSIGNED) {
                         $updateData['status'] = TripCrew::STATUS_ASSIGNED;
-                    } elseif (!$driverId && $trip->status === TripCrew::STATUS_ASSIGNED) {
+                    } elseif (! $driverId && $trip->status === TripCrew::STATUS_ASSIGNED) {
                         $updateData['status'] = TripCrew::STATUS_UNASSIGNED;
                     }
 
@@ -491,7 +553,7 @@ class TripController extends Controller
 
         $driverId = $validated['driver_id'];
         $oldDriverId = $trip->driver_id;
-        $driverNewlyAssigned = !$oldDriverId;
+        $driverNewlyAssigned = ! $oldDriverId;
         $driverChanged = $oldDriverId != $driverId;
 
         $tripTitle = Trip::generateTripTitle($driverId, $trip->trip_date, $trip->id);
@@ -590,18 +652,18 @@ class TripController extends Controller
             // Store the uploaded image temporarily
             $uploadedFile = $request->file('image');
             $imagePath = $uploadedFile->store('temp', 'local');
-            
+
             // Get the full absolute path using Storage
             $fullPath = Storage::disk('local')->path($imagePath);
 
             // Verify file exists
-            if (!file_exists($fullPath)) {
+            if (! file_exists($fullPath)) {
                 throw new \Exception('Uploaded file could not be saved. Please try again.');
             }
 
             // Initialize Textract service
-            $textractService = new TextractService();
-            
+            $textractService = new TextractService;
+
             // Extract table data from image
             $tableRows = $textractService->extractTableFromImage($fullPath);
 
@@ -631,7 +693,7 @@ class TripController extends Controller
 
         } catch (\Exception $e) {
             return redirect()->route('trips.index')
-                ->with('error', 'Failed to extract data from image: ' . $e->getMessage());
+                ->with('error', 'Failed to extract data from image: '.$e->getMessage());
         }
     }
 
@@ -672,14 +734,14 @@ class TripController extends Controller
         $groupedTrips = [];
 
         foreach ($request->trips as $index => $tripData) {
-            if (!isset($tripData['selected'])) {
+            if (! isset($tripData['selected'])) {
                 continue;
             }
 
             $driverId = $tripData['driver_id'] ?? null;
 
             $vesselId = null;
-            if (!empty($tripData['vessel_id'])) {
+            if (! empty($tripData['vessel_id'])) {
                 if (str_starts_with($tripData['vessel_id'], 'new:')) {
                     continue;
                 } else {
@@ -695,13 +757,13 @@ class TripController extends Controller
             }
 
             $date = $tripData['trip_date'];
-            $key = ($driverId ?: 'unassigned') . '|' . $date;
+            $key = ($driverId ?: 'unassigned').'|'.$date;
 
-            if (!isset($groupedTrips[$key])) {
+            if (! isset($groupedTrips[$key])) {
                 $groupedTrips[$key] = [
                     'driver_id' => $driverId,
                     'trip_date' => $date,
-                    'crews' => []
+                    'crews' => [],
                 ];
             }
 
@@ -775,11 +837,11 @@ class TripController extends Controller
         $groupedTrips = [];
 
         foreach ($crews as $crewData) {
-            $driverId = !empty($crewData['driver_id']) ? $crewData['driver_id'] : $rootDriverId;
+            $driverId = ! empty($crewData['driver_id']) ? $crewData['driver_id'] : $rootDriverId;
             $tripDate = $crewData['trip_date'];
-            $key = ($driverId ?: 'unassigned') . '|' . $tripDate;
+            $key = ($driverId ?: 'unassigned').'|'.$tripDate;
 
-            if (!isset($groupedTrips[$key])) {
+            if (! isset($groupedTrips[$key])) {
                 $groupedTrips[$key] = [
                     'driver_id' => $driverId ?: null,
                     'trip_date' => $tripDate,
@@ -787,7 +849,7 @@ class TripController extends Controller
                 ];
             }
 
-            unset($crewData['driver_id'], $crewData['trip_date']);
+            unset($crewData['driver_id'], $crewData['trip_date'], $crewData['id']);
             $groupedTrips[$key]['crews'][] = $crewData;
         }
 
@@ -809,12 +871,12 @@ class TripController extends Controller
         // Try to identify header row and date
         $headerRowIndex = 0;
         $dataStartIndex = 1;
-        
-        if (!empty($tableRows[0])) {
+
+        if (! empty($tableRows[0])) {
             $firstRowText = implode(' ', array_map('trim', $tableRows[0]));
             if (preg_match('/(\d{1,2})\s+(\w+)\s+(\d{4})/', $firstRowText, $matches)) {
                 try {
-                    $parsedDate = Carbon::createFromFormat('d F Y', $matches[1] . ' ' . $matches[2] . ' ' . $matches[3]);
+                    $parsedDate = Carbon::createFromFormat('d F Y', $matches[1].' '.$matches[2].' '.$matches[3]);
                     $tripDate = $parsedDate;
                     $headerRowIndex = 0;
                     $dataStartIndex = 1;
@@ -826,8 +888,10 @@ class TripController extends Controller
 
         for ($i = $dataStartIndex; $i < count($tableRows); $i++) {
             $row = $tableRows[$i];
-            
-            if (count($row) < 3) continue;
+
+            if (count($row) < 3) {
+                continue;
+            }
 
             $crewName = trim($row[0] ?? '');
             // $driverName = trim($row[1] ?? ''); // Driver is now manually selected
@@ -838,12 +902,16 @@ class TripController extends Controller
             $followUp = trim($row[6] ?? '');
             $crewPhone = trim($row[7] ?? ''); // Extract phone from column 7
 
-            if ($this->isHeaderRow($row)) continue;
+            if ($this->isHeaderRow($row)) {
+                continue;
+            }
             // if (empty($crewName) && empty($driverName) && empty($vesselName)) continue;
-            if (empty($crewName) && empty($vesselName)) continue;
+            if (empty($crewName) && empty($vesselName)) {
+                continue;
+            }
 
             // Try to extract phone from crew name if it contains "Mobile no." or similar patterns
-            if (empty($crewPhone) && !empty($crewName)) {
+            if (empty($crewPhone) && ! empty($crewName)) {
                 // Pattern: "Name - Mobile no.- 0505592732" or "Name Mobile: 0505592732"
                 if (preg_match('/(?:Mobile\s*(?:no\.?|number)?[:\-]?\s*)(\d+)/i', $crewName, $matches)) {
                     $crewPhone = $matches[1];
@@ -857,8 +925,8 @@ class TripController extends Controller
             // Do NOT auto-create vessels, only match existing ones
             $vessel = Vessel::whereRaw('LOWER(name) = ?', [strtolower($vesselName)])->first();
             // If no exact match, try partial match
-            if (!$vessel) {
-                $vessel = Vessel::whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($vesselName) . '%'])->first();
+            if (! $vessel) {
+                $vessel = Vessel::whereRaw('LOWER(name) LIKE ?', ['%'.strtolower($vesselName).'%'])->first();
             }
 
             $parsedTime = $this->parsePickUpTime($pickUpTime);
@@ -885,9 +953,6 @@ class TripController extends Controller
 
     /**
      * Check if a row is a header row by looking for common header patterns
-     *
-     * @param array $row
-     * @return bool
      */
     protected function isHeaderRow(array $row): bool
     {
@@ -955,29 +1020,31 @@ class TripController extends Controller
     protected function parsePickUpTime($timeString)
     {
         $timeString = trim($timeString);
-        
+
         // Format: "0300PM" or "0300 PM"
         if (preg_match('/(\d{1,2})(\d{2})(AM|PM)/i', $timeString, $matches)) {
-            $hour = (int)$matches[1];
-            $minute = (int)$matches[2];
+            $hour = (int) $matches[1];
+            $minute = (int) $matches[2];
             $meridian = strtoupper($matches[3]);
-            
+
             if ($meridian === 'PM' && $hour < 12) {
                 $hour += 12;
             } elseif ($meridian === 'AM' && $hour === 12) {
                 $hour = 0;
             }
-            
+
             return sprintf('%02d:%02d', $hour, $minute);
         }
-        
+
         // Format: "3:00 PM" or "15:00"
         try {
             $carbon = Carbon::createFromFormat('g:i A', $timeString);
+
             return $carbon->format('H:i');
         } catch (\Exception $e) {
             try {
                 $carbon = Carbon::createFromFormat('H:i', $timeString);
+
                 return $carbon->format('H:i');
             } catch (\Exception $e2) {
                 // Default to current time if parsing fails
@@ -1070,4 +1137,3 @@ class TripController extends Controller
         }
     }
 }
-

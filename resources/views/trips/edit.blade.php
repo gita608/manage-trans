@@ -125,8 +125,21 @@
                             }
                         @endphp
                         @foreach($crews as $index => $crew)
-                                    <tr class="crew-row" data-index="{{ $index }}">
-                                        <td class="text-center fw-semibold">{{ $index + 1 }}</td>
+                                    @php
+                                        $crewId = is_array($crew) ? ($crew['id'] ?? null) : ($crew->id ?? null);
+                                        $crewName = is_array($crew) ? ($crew['name'] ?? '') : ($crew->name ?? '');
+                                        $pickUpTime = is_array($crew) ? ($crew['pick_up_time'] ?? '') : ($crew->pick_up_time ?? '');
+                                        if (is_string($pickUpTime) && strlen($pickUpTime) >= 5) {
+                                            $pickUpTime = substr($pickUpTime, 0, 5);
+                                        }
+                                    @endphp
+                                    <tr class="crew-row" data-index="{{ $index }}" @if($crewId) data-crew-id="{{ $crewId }}" data-crew-name="{{ e($crewName) }}" @endif>
+                                        <td class="text-center fw-semibold">
+                                            {{ $index + 1 }}
+                                            @if($crewId)
+                                                <input type="hidden" name="crews[{{ $index }}][id]" value="{{ $crewId }}">
+                                            @endif
+                                        </td>
                                         <td>
                                             <input type="date" class="form-control form-control-sm @error('crews.'.$index.'.trip_date') is-invalid @enderror"
                                                    name="crews[{{ $index }}][trip_date]"
@@ -165,7 +178,7 @@
                                         <td>
                                             <input type="time" class="form-control form-control-sm @error('crews.'.$index.'.pick_up_time') is-invalid @enderror" 
                                                    name="crews[{{ $index }}][pick_up_time]" 
-                                                   value="{{ is_array($crew) ? ($crew['pick_up_time'] ?? '') : $crew->pick_up_time }}" required>
+                                                   value="{{ $pickUpTime }}" required>
                                             @error('crews.'.$index.'.pick_up_time')
                                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                                             @enderror
@@ -180,9 +193,9 @@
                                             @enderror
                                         </td>
                                         <td>
-                                            <input type="text" class="form-control form-control-sm @error('crews.'.$index.'.name') is-invalid @enderror" 
+                                            <input type="text" class="form-control form-control-sm crew-name-input @error('crews.'.$index.'.name') is-invalid @enderror" 
                                                    name="crews[{{ $index }}][name]" 
-                                                   value="{{ is_array($crew) ? ($crew['name'] ?? '') : $crew->name }}" 
+                                                   value="{{ $crewName }}" 
                                                    placeholder="Enter name" required>
                                             @error('crews.'.$index.'.name')
                                                 <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -253,11 +266,43 @@
                         </table>
                     </div>
 
+                    <div id="removed-crews-container">
+                        @foreach(old('removed_crews', []) as $removedId => $removedData)
+                            <input type="hidden"
+                                   name="removed_crews[{{ $removedId }}][removal_remark]"
+                                   value="{{ is_array($removedData) ? ($removedData['removal_remark'] ?? '') : '' }}"
+                                   data-removed-crew-id="{{ $removedId }}">
+                        @endforeach
+                    </div>
+
                     <div class="mt-4">
                         <button class="btn btn-success" type="submit">Update Trip</button>
                         <a href="{{ route('trips.index') }}" class="btn btn-secondary">Cancel</a>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Remove Crew Confirmation Modal -->
+<div class="modal fade" id="removeCrewModal" tabindex="-1" aria-labelledby="removeCrewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="removeCrewModalLabel">Remove Crew Member</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3" id="removeCrewModalMessage">Are you sure you want to remove this crew member from this trip?</p>
+                <div class="mb-0">
+                    <label for="removal_remark_input" class="form-label">Removal Remark <span class="text-muted">(Optional)</span></label>
+                    <textarea class="form-control" id="removal_remark_input" rows="3" placeholder="Enter reason for removal..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirm-remove-crew-btn">Remove Crew</button>
             </div>
         </div>
     </div>
@@ -319,6 +364,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         const addCrewBtn = document.getElementById('add-crew-row-btn');
         const crewsContainer = document.getElementById('crews-container');
+        const removedCrewsContainer = document.getElementById('removed-crews-container');
         const defaultTripDate = '{{ $trip->trip_date->format('Y-m-d') }}';
         const driverOptions = `
             <option value="">Assign Later</option>
@@ -333,16 +379,25 @@
             @endforeach
         `;
 
+        const removeCrewModalEl = document.getElementById('removeCrewModal');
+        const removeCrewModal = removeCrewModalEl ? new bootstrap.Modal(removeCrewModalEl) : null;
+        const removeCrewModalMessage = document.getElementById('removeCrewModalMessage');
+        const removalRemarkInput = document.getElementById('removal_remark_input');
+        const confirmRemoveCrewBtn = document.getElementById('confirm-remove-crew-btn');
+        let pendingRemoveRow = null;
+
         function updateRowNumbers() {
             const rows = crewsContainer.querySelectorAll('.crew-row');
             rows.forEach((row, index) => {
                 const numberCell = row.querySelector('td:first-child');
                 if (numberCell) {
-                    numberCell.textContent = index + 1;
+                    const hiddenId = numberCell.querySelector('input[type="hidden"]');
+                    numberCell.textContent = String(index + 1);
+                    if (hiddenId) {
+                        numberCell.appendChild(hiddenId);
+                    }
                 }
-                // Update data-index
                 row.setAttribute('data-index', index);
-                // Update input names
                 const inputs = row.querySelectorAll('input, select');
                 inputs.forEach(input => {
                     const name = input.getAttribute('name');
@@ -360,6 +415,29 @@
             removeButtons.forEach(btn => {
                 btn.disabled = rows.length <= 1;
             });
+        }
+
+        function removeCrewRow(row) {
+            row.remove();
+            updateRowNumbers();
+            updateRemoveButtons();
+        }
+
+        function registerRemovedCrew(crewId, remark) {
+            if (!removedCrewsContainer || !crewId) {
+                return;
+            }
+            const existing = removedCrewsContainer.querySelector(`[data-removed-crew-id="${crewId}"]`);
+            if (existing) {
+                existing.value = remark || '';
+                return;
+            }
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = `removed_crews[${crewId}][removal_remark]`;
+            input.value = remark || '';
+            input.setAttribute('data-removed-crew-id', crewId);
+            removedCrewsContainer.appendChild(input);
         }
 
         function createCrewRow(index) {
@@ -388,7 +466,7 @@
                     <input type="text" class="form-control form-control-sm" name="crews[${index}][flight_number]" placeholder="Flight number">
                 </td>
                 <td>
-                    <input type="text" class="form-control form-control-sm" name="crews[${index}][name]" placeholder="Enter name" required>
+                    <input type="text" class="form-control form-control-sm crew-name-input" name="crews[${index}][name]" placeholder="Enter name" required>
                 </td>
                 <td>
                     <input type="text" class="form-control form-control-sm" name="crews[${index}][phone]" placeholder="Contact number">
@@ -417,7 +495,6 @@
             return row;
         }
 
-        // Handle add crew row button
         if (addCrewBtn) {
             addCrewBtn.addEventListener('click', function() {
                 const currentRows = crewsContainer.querySelectorAll('.crew-row');
@@ -429,23 +506,67 @@
             });
         }
 
-        // Handle remove row button
         crewsContainer.addEventListener('click', function(e) {
-            if (e.target.closest('.remove-row-btn')) {
-                const btn = e.target.closest('.remove-row-btn');
-                if (!btn.disabled) {
-                    const row = btn.closest('.crew-row');
-                    const currentCount = crewsContainer.querySelectorAll('.crew-row').length;
-                    if (currentCount > 1) {
-                        row.remove();
-                        updateRowNumbers();
-                    updateRemoveButtons();
-                    }
-                }
+            if (!e.target.closest('.remove-row-btn')) {
+                return;
+            }
+            const btn = e.target.closest('.remove-row-btn');
+            if (btn.disabled) {
+                return;
+            }
+            const row = btn.closest('.crew-row');
+            const currentCount = crewsContainer.querySelectorAll('.crew-row').length;
+            if (currentCount <= 1) {
+                return;
+            }
+
+            const existingCrewId = row.getAttribute('data-crew-id');
+            if (!existingCrewId) {
+                removeCrewRow(row);
+                return;
+            }
+
+            pendingRemoveRow = row;
+            const nameInput = row.querySelector('.crew-name-input');
+            const crewName = (nameInput && nameInput.value.trim())
+                || row.getAttribute('data-crew-name')
+                || 'this crew member';
+            if (removeCrewModalMessage) {
+                removeCrewModalMessage.textContent = `Are you sure you want to remove "${crewName}" from this trip?`;
+            }
+            if (removalRemarkInput) {
+                removalRemarkInput.value = '';
+            }
+            if (removeCrewModal) {
+                removeCrewModal.show();
             }
         });
 
-        // Initialize
+        if (confirmRemoveCrewBtn) {
+            confirmRemoveCrewBtn.addEventListener('click', function() {
+                if (!pendingRemoveRow) {
+                    return;
+                }
+                const crewId = pendingRemoveRow.getAttribute('data-crew-id');
+                const remark = removalRemarkInput ? removalRemarkInput.value.trim() : '';
+                registerRemovedCrew(crewId, remark);
+                removeCrewRow(pendingRemoveRow);
+                pendingRemoveRow = null;
+                if (removeCrewModal) {
+                    removeCrewModal.hide();
+                }
+            });
+        }
+
+        if (removeCrewModalEl) {
+            removeCrewModalEl.addEventListener('hidden.bs.modal', function() {
+                pendingRemoveRow = null;
+                if (removalRemarkInput) {
+                    removalRemarkInput.value = '';
+                }
+            });
+        }
+
         updateRemoveButtons();
     });
 </script>
