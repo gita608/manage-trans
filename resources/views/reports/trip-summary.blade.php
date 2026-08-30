@@ -142,7 +142,7 @@
                                 $commentsVal = $commentsList->isNotEmpty() ? $commentsList->implode(' | ') : '-';
                             @endphp
                             <tr>
-                                <td data-order="{{ $trip->trip_date->timestamp }}">{{ $trip->trip_date->format('M d, Y') }}</td>
+                                <td data-order="{{ $trip->trip_date->timestamp }}">{{ $trip->trip_date->format('d/m/Y') }}</td>
                                 <td><strong>{{ $crew->name ?? '-' }}</strong></td>
                                 <td>{{ $crew->vessel ? $crew->vessel->name : '-' }}</td>
                                 <td>{{ $crew->pick_up_time ? \Carbon\Carbon::parse($crew->pick_up_time)->format('h:i A') : '-' }}</td>

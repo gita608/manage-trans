@@ -395,9 +395,10 @@ class TripController extends Controller
         $groupedTrips = $this->groupCrewsByDriverAndDate($request->crews, $rootDriverId);
         $resolvedPartnerId = $this->resolvePartnerIdForTrip($trip, $partnerId);
         $partnerRequestId = $trip->partner_request_id;
-        $tripIdsToNotify = [];
+        $tripIdsToNotifyAssignment = [];
+        $tripIdsToNotifyUpdate = [];
 
-        DB::transaction(function () use ($groupedTrips, $resolvedPartnerId, $partnerRequestId, $trip, &$tripIdsToNotify) {
+        DB::transaction(function () use ($groupedTrips, $resolvedPartnerId, $partnerRequestId, $trip, &$tripIdsToNotifyAssignment, &$tripIdsToNotifyUpdate) {
             $isFirst = true;
             foreach ($groupedTrips as $group) {
                 $driverId = $group['driver_id'];
@@ -438,8 +439,12 @@ class TripController extends Controller
                         $trip->crews()->create($crewData);
                     }
 
-                    if ($driverNewlyAssigned) {
-                        $tripIdsToNotify[] = $trip->id;
+                    if ($driverId) {
+                        if ($driverNewlyAssigned || $driverChanged) {
+                            $tripIdsToNotifyAssignment[] = $trip->id;
+                        } else {
+                            $tripIdsToNotifyUpdate[] = $trip->id;
+                        }
                     }
 
                     $isFirst = false;
@@ -461,14 +466,18 @@ class TripController extends Controller
                     }
 
                     if ($driverId) {
-                        $tripIdsToNotify[] = $newTrip->id;
+                        $tripIdsToNotifyAssignment[] = $newTrip->id;
                     }
                 }
             }
         });
 
-        foreach ($tripIdsToNotify as $tripId) {
+        foreach (array_unique($tripIdsToNotifyAssignment) as $tripId) {
             $this->notifyTripAssignment($tripId);
+        }
+
+        foreach (array_unique($tripIdsToNotifyUpdate) as $tripId) {
+            $this->notifyTripUpdated($tripId);
         }
 
         return redirect()->route('trips.index')->with('success', 'Trip updated successfully!');
@@ -483,6 +492,7 @@ class TripController extends Controller
         $driverId = $validated['driver_id'];
         $oldDriverId = $trip->driver_id;
         $driverNewlyAssigned = !$oldDriverId;
+        $driverChanged = $oldDriverId != $driverId;
 
         $tripTitle = Trip::generateTripTitle($driverId, $trip->trip_date, $trip->id);
         $trip->update([
@@ -493,7 +503,7 @@ class TripController extends Controller
                 : $trip->status,
         ]);
 
-        if ($driverNewlyAssigned) {
+        if ($driverNewlyAssigned || $driverChanged) {
             $this->notifyTripAssignment($trip->id);
         }
 
@@ -1048,6 +1058,15 @@ class TripController extends Controller
 
         if ($trip) {
             $this->tripAssignmentNotificationService->notifyDriverAssigned($trip, Auth::id());
+        }
+    }
+
+    protected function notifyTripUpdated(int $tripId): void
+    {
+        $trip = Trip::with(['driver', 'crews'])->find($tripId);
+
+        if ($trip) {
+            $this->tripAssignmentNotificationService->notifyDriverTripUpdated($trip, Auth::id());
         }
     }
 }

@@ -120,7 +120,7 @@
                             @foreach($driverStats as $index => $stat)
                             <tr>
                                 <td>{{ $index + 1 }}</td>
-                                <td>
+                                <td data-export="{{ $stat['driver']->name }}">
                                     <div class="d-flex align-items-center">
                                         @if($stat['driver']->photo)
                                             <img src="{{ asset('storage/' . $stat['driver']->photo) }}" alt="{{ $stat['driver']->name }}" class="rounded-circle avatar-xs me-2">
@@ -129,7 +129,7 @@
                                                 <span class="text-primary small">{{ substr($stat['driver']->name, 0, 1) }}</span>
                                             </div>
                                         @endif
-                                        <span class="fw-medium">{{ $stat['driver']->name }}</span>
+                                        <span class="fw-medium" data-export-name>{{ $stat['driver']->name }}</span>
                                     </div>
                                 </td>
                                 <td>
@@ -216,6 +216,26 @@
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
 <script>
+    function driverPerformanceExportValue(data, node) {
+        if (node && node.hasAttribute && node.hasAttribute('data-export')) {
+            return node.getAttribute('data-export');
+        }
+
+        if (node && node.querySelector) {
+            var named = node.querySelector('[data-export-name]');
+            if (named) {
+                return (named.textContent || '').trim();
+            }
+        }
+
+        if (typeof data === 'string' && data.indexOf('<') === -1) {
+            return data.trim();
+        }
+
+        var text = $('<div>').html(data).text().trim();
+        return text || data;
+    }
+
     $(document).ready(function() {
         $('#driverPerformanceTable').DataTable({
             dom: "<'row mb-3 align-items-center'<'col-sm-12 col-md-6 d-flex align-items-center gap-2'B><'col-sm-12 col-md-6 d-flex justify-content-md-end justify-content-start mt-2 mt-md-0'f>>" +
@@ -236,8 +256,7 @@
                         },
                         format: {
                             body: function(data, row, column, node) {
-                                var text = $(data).text().trim();
-                                return text || data;
+                                return driverPerformanceExportValue(data, node);
                             }
                         }
                     },
@@ -258,8 +277,7 @@
                         },
                         format: {
                             body: function(data, row, column, node) {
-                                var text = $(data).text().trim();
-                                return text || data;
+                                return driverPerformanceExportValue(data, node);
                             }
                         }
                     },
