@@ -107,18 +107,18 @@
             <div class="navbar-brand-box">
                 <a href="{{ route('partner.dashboard') }}" class="logo logo-dark" aria-label="Partner Portal Home">
                     <span class="logo-sm">
-                        <img src="{{ brandingUrl('app_logo', 'assets/images/logo-sm.png') }}" alt="{{ getSetting('app_name', config('app.name')) }} Logo" height="28">
+                        <img src="{{ brandingUrl('app_logo', 'assets/images/logo-sm.png') }}" alt="{{ getSetting('app_name', config('app.name')) }} Logo" height="35">
                     </span>
                     <span class="logo-lg">
-                        <img src="{{ brandingUrl('app_logo', 'assets/images/logo-dark.png') }}" alt="{{ getSetting('app_name', config('app.name')) }}" height="20">
+                        <img src="{{ brandingUrl('app_logo', 'assets/images/logo-dark.png') }}" alt="{{ getSetting('app_name', config('app.name')) }}">
                     </span>
                 </a>
                 <a href="{{ route('partner.dashboard') }}" class="logo logo-light" aria-label="Partner Portal Home">
                     <span class="logo-sm">
-                        <img src="{{ brandingUrl('app_logo', 'assets/images/logo-sm.png') }}" alt="{{ getSetting('app_name', config('app.name')) }} Logo" height="28">
+                        <img src="{{ brandingUrl('app_logo', 'assets/images/logo-sm.png') }}" alt="{{ getSetting('app_name', config('app.name')) }} Logo" height="35">
                     </span>
                     <span class="logo-lg">
-                        <img src="{{ brandingUrl('app_logo', 'assets/images/logo-light.png') }}" alt="{{ getSetting('app_name', config('app.name')) }}" height="20">
+                        <img src="{{ brandingUrl('app_logo', 'assets/images/logo-light.png') }}" alt="{{ getSetting('app_name', config('app.name')) }}">
                     </span>
                 </a>
                 <button type="button" class="btn btn-sm p-0 fs-20 header-item float-end btn-vertical-sm-hover" id="vertical-hover" aria-label="Toggle sidebar hover mode">

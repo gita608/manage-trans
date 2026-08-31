@@ -7,11 +7,7 @@
    Partner Layout & Navigation
    ============================================ */
 
-/* Improve sidebar logo sizing */
-.app-menu .navbar-brand-box .logo img {
-    max-height: 32px;
-    width: auto;
-}
+/* Sidebar logo sizing inherits from custom.css (same as admin portal) */
 
 /* Better sidebar spacing */
 .app-menu .navbar-nav {
