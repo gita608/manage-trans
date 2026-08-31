@@ -244,9 +244,16 @@
             <div class="card-header border-bottom py-3">
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                     <h5 class="card-title mb-0">{{ $listTitle }}</h5>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#filterSection">
-                        <i class="ri-filter-3-line me-1"></i> Filters
-                    </button>
+                    <div class="d-flex align-items-center flex-wrap gap-2 trips-list-toolbar">
+                        <label class="visually-hidden" for="filter-search">Search Trips</label>
+                        <div class="input-group input-group-sm trips-list-search">
+                            <span class="input-group-text"><i class="ri-search-line"></i></span>
+                            <input type="text" id="filter-search" class="form-control" placeholder="Search ref, crew, phone, route, vessel..." value="{{ request('search') }}" autocomplete="off">
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary flex-shrink-0" data-bs-toggle="collapse" data-bs-target="#filterSection">
+                            <i class="ri-filter-3-line me-1"></i> Filters
+                        </button>
+                    </div>
                 </div>
             </div>
             <div class="card-body py-4">
@@ -287,12 +294,6 @@
                                 <option value="completed">Completed</option>
                                 <option value="cancelled">Cancelled</option>
                             </select>
-                        </div>
-                        <div class="col-sm-6 col-xxl-2">
-                            <label class="form-label fw-semibold" for="filter-search">
-                                <i class="ri-search-line me-1"></i>Search Trips
-                            </label>
-                            <input type="text" id="filter-search" class="form-control" placeholder="Search ref, crew, phone, route, vessel..." value="{{ request('search') }}" autocomplete="off">
                         </div>
                         <div class="col-sm-6 col-xxl-2">
                             <label class="form-label fw-semibold" for="filter-date-range">

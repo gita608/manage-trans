@@ -375,6 +375,33 @@
     background: var(--vz-secondary-bg, #fff);
 }
 
+.trips-list-card .card-title {
+    min-width: 0;
+}
+
+.trips-list-toolbar {
+    min-width: 0;
+    flex: 1 1 auto;
+    justify-content: flex-end;
+}
+
+.trips-list-search {
+    min-width: 0;
+    width: min(100%, 22rem);
+    flex: 1 1 16rem;
+}
+
+@media (max-width: 575.98px) {
+    .trips-list-toolbar {
+        width: 100%;
+    }
+
+    .trips-list-search {
+        width: 100%;
+        flex: 1 1 100%;
+    }
+}
+
 .trips-list-card .card-body {
     background: #f8fafc;
 }
