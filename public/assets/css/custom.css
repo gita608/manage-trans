@@ -379,29 +379,6 @@
     min-width: 0;
 }
 
-.trips-list-toolbar {
-    min-width: 0;
-    flex: 1 1 auto;
-    justify-content: flex-end;
-}
-
-.trips-list-search {
-    min-width: 0;
-    width: min(100%, 22rem);
-    flex: 1 1 16rem;
-}
-
-@media (max-width: 575.98px) {
-    .trips-list-toolbar {
-        width: 100%;
-    }
-
-    .trips-list-search {
-        width: 100%;
-        flex: 1 1 100%;
-    }
-}
-
 .trips-list-card .card-body {
     background: #f8fafc;
 }
@@ -412,8 +389,103 @@
     border-radius: 10px;
 }
 
-.filter-bar > [class*="col-"] {
+.filter-bar > [class*="col-"],
+.filter-bar .row > [class*="col-"] {
     min-width: 0;
+}
+
+.filter-field.is-active,
+.filter-field.is-active:focus {
+    border-color: var(--vz-primary, #405189);
+    background-color: rgba(64, 81, 137, 0.04);
+    box-shadow: 0 0 0 0.15rem rgba(64, 81, 137, 0.12);
+}
+
+.filter-field.is-active + .form-text,
+.input-group:has(.filter-field.is-active) .input-group-text {
+    border-color: var(--vz-primary, #405189);
+    background-color: rgba(64, 81, 137, 0.08);
+    color: var(--vz-primary, #405189);
+}
+
+.active-filters-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+    padding: 0.75rem 1rem;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+}
+
+.active-filters-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #64748b;
+    flex-shrink: 0;
+}
+
+.active-filters-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    max-width: 100%;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.8125rem;
+    line-height: 1.2;
+    color: var(--vz-primary, #405189);
+    background: rgba(64, 81, 137, 0.08);
+    border: 1px solid rgba(64, 81, 137, 0.2);
+    border-radius: 999px;
+    transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.filter-chip:hover {
+    background: rgba(64, 81, 137, 0.14);
+    border-color: rgba(64, 81, 137, 0.35);
+}
+
+.filter-chip:active {
+    transform: scale(0.98);
+}
+
+.filter-chip-label {
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.filter-chip-value {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.filter-chip-remove {
+    flex-shrink: 0;
+    font-size: 0.95rem;
+    opacity: 0.75;
+}
+
+.filter-chip-clear-all {
+    color: #64748b;
+    background: transparent;
+    border-color: #cbd5e1;
+    font-weight: 500;
+}
+
+.filter-chip-clear-all:hover {
+    color: #334155;
+    background: #f1f5f9;
+    border-color: #94a3b8;
 }
 
 /* Trip card / crew table mobile */

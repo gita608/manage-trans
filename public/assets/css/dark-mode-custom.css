@@ -794,6 +794,51 @@
     border-color: rgba(255, 255, 255, 0.1);
 }
 
+[data-bs-theme="dark"] .filter-field.is-active,
+[data-bs-theme="dark"] .filter-field.is-active:focus {
+    border-color: rgba(106, 132, 252, 0.75);
+    background-color: rgba(106, 132, 252, 0.08);
+    box-shadow: 0 0 0 0.15rem rgba(106, 132, 252, 0.15);
+}
+
+[data-bs-theme="dark"] .input-group:has(.filter-field.is-active) .input-group-text {
+    border-color: rgba(106, 132, 252, 0.75);
+    background-color: rgba(106, 132, 252, 0.12);
+    color: #a5b4fc;
+}
+
+[data-bs-theme="dark"] .active-filters-bar {
+    background: #212529;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-bs-theme="dark"] .active-filters-label {
+    color: #94a3b8;
+}
+
+[data-bs-theme="dark"] .filter-chip {
+    color: #a5b4fc;
+    background: rgba(106, 132, 252, 0.12);
+    border-color: rgba(106, 132, 252, 0.25);
+}
+
+[data-bs-theme="dark"] .filter-chip:hover {
+    background: rgba(106, 132, 252, 0.2);
+    border-color: rgba(106, 132, 252, 0.4);
+}
+
+[data-bs-theme="dark"] .filter-chip-clear-all {
+    color: #94a3b8;
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+[data-bs-theme="dark"] .filter-chip-clear-all:hover {
+    color: #e2e8f0;
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
 [data-bs-theme="dark"] .trip-card.trip-status-bg-danger .trip-card-header,
 [data-bs-theme="dark"] .trip-card.trip-status-danger .trip-card-header {
     background: rgba(239, 68, 68, 0.12);

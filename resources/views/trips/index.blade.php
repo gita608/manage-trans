@@ -37,6 +37,44 @@
             default => 'Trips',
         };
     }
+
+    $statusLabels = [
+        'unassigned' => 'Unassigned',
+        'assigned' => 'Assigned',
+        'in_progress' => 'In Progress',
+        'completed' => 'Completed',
+        'cancelled' => 'Cancelled',
+    ];
+
+    $activeFilters = [];
+
+    if ($hasSearch) {
+        $activeFilters[] = ['key' => 'search', 'label' => 'Search', 'value' => $searchTerm];
+    }
+    if (request()->filled('driver')) {
+        $activeFilters[] = ['key' => 'driver', 'label' => 'Driver', 'value' => request('driver')];
+    }
+    if (request()->filled('vessel')) {
+        $activeFilters[] = ['key' => 'vessel', 'label' => 'Vessel', 'value' => request('vessel')];
+    }
+    if (request()->filled('status')) {
+        $activeFilters[] = [
+            'key' => 'status',
+            'label' => 'Status',
+            'value' => $statusLabels[request('status')] ?? request('status'),
+        ];
+    }
+    if (request()->filled('date_range')) {
+        $dateChipValue = $dateRangeLabel ?? request('date_range');
+        if (request('date_range') === 'custom' && (request()->filled('date_from') || request()->filled('date_to'))) {
+            $from = request('date_from') ? formatDate(request('date_from'), 'M d, Y') : '…';
+            $to = request('date_to') ? formatDate(request('date_to'), 'M d, Y') : '…';
+            $dateChipValue = $from.' – '.$to;
+        }
+        $activeFilters[] = ['key' => 'date_range', 'label' => 'Date', 'value' => $dateChipValue];
+    }
+
+    $activeFilterCount = count($activeFilters);
 @endphp
 
 @include('partials.page-header', [
@@ -243,90 +281,126 @@
         <div class="card border shadow-sm trips-list-card">
             <div class="card-header border-bottom py-3">
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                    <h5 class="card-title mb-0">{{ $listTitle }}</h5>
-                    <div class="d-flex align-items-center flex-wrap gap-2 trips-list-toolbar">
-                        <label class="visually-hidden" for="filter-search">Search Trips</label>
-                        <div class="input-group input-group-sm trips-list-search">
-                            <span class="input-group-text"><i class="ri-search-line"></i></span>
-                            <input type="text" id="filter-search" class="form-control" placeholder="Search ref, crew, phone, route, vessel..." value="{{ request('search') }}" autocomplete="off">
-                        </div>
-                        <button type="button" class="btn btn-sm btn-outline-secondary flex-shrink-0" data-bs-toggle="collapse" data-bs-target="#filterSection">
-                            <i class="ri-filter-3-line me-1"></i> Filters
-                        </button>
+                    <div class="min-width-0">
+                        <h5 class="card-title mb-0">{{ $listTitle }}</h5>
+                        @if($activeFilterCount > 0)
+                            <small class="text-muted">{{ $activeFilterCount }} active filter{{ $activeFilterCount !== 1 ? 's' : '' }}</small>
+                        @endif
                     </div>
+                    <button type="button" class="btn btn-sm {{ $activeFilterCount > 0 ? 'btn-soft-primary' : 'btn-outline-secondary' }} flex-shrink-0" data-bs-toggle="collapse" data-bs-target="#filterSection" aria-expanded="true" aria-controls="filterSection">
+                        <i class="ri-filter-3-line me-1"></i> Filters
+                        @if($activeFilterCount > 0)
+                            <span class="badge bg-primary ms-1">{{ $activeFilterCount }}</span>
+                        @endif
+                    </button>
                 </div>
             </div>
             <div class="card-body py-4">
 
+                @if($activeFilterCount > 0)
+                    <div class="active-filters-bar mb-3" id="active-filters-bar" aria-label="Active filters">
+                        <span class="active-filters-label"><i class="ri-filter-line me-1"></i>Active:</span>
+                        <div class="active-filters-chips">
+                            @foreach($activeFilters as $filter)
+                                <button type="button"
+                                    class="filter-chip"
+                                    data-clear="{{ $filter['key'] }}"
+                                    title="Remove {{ $filter['label'] }} filter">
+                                    <span class="filter-chip-label">{{ $filter['label'] }}:</span>
+                                    <span class="filter-chip-value">{{ $filter['value'] }}</span>
+                                    <i class="ri-close-line filter-chip-remove" aria-hidden="true"></i>
+                                </button>
+                            @endforeach
+                            <button type="button" class="filter-chip filter-chip-clear-all" id="filter-clear-all" title="Clear all filters">
+                                Clear all
+                            </button>
+                        </div>
+                    </div>
+                @endif
+
                 <div class="collapse show" id="filterSection">
-                    <div class="row g-3 mb-4 p-4 filter-bar">
-                        <div class="col-sm-6 col-xxl-3">
-                            <label class="form-label fw-semibold">
-                                <i class="ri-user-line me-1"></i>Driver
-                            </label>
-                            <select id="filter-driver" class="form-select">
-                                <option value="">All Drivers</option>
-                                @foreach($drivers as $d)
-                                    <option value="{{ $d->name }}">{{ $d->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-sm-6 col-xxl-3">
-                            <label class="form-label fw-semibold">
-                                <i class="ri-ship-line me-1"></i>Vessel
-                            </label>
-                            <select id="filter-vessel" class="form-select">
-                                <option value="">All Vessels</option>
-                                @foreach($vessels as $v)
-                                    <option value="{{ $v->name }}">{{ $v->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-sm-6 col-xxl-2">
-                            <label class="form-label fw-semibold">
-                                <i class="ri-checkbox-circle-line me-1"></i>Status
-                            </label>
-                            <select id="filter-status" class="form-select">
-                                <option value="">All Status</option>
-                                <option value="unassigned">Unassigned</option>
-                                <option value="assigned">Assigned</option>
-                                <option value="in_progress">In Progress</option>
-                                <option value="completed">Completed</option>
-                                <option value="cancelled">Cancelled</option>
-                            </select>
-                        </div>
-                        <div class="col-sm-6 col-xxl-2">
-                            <label class="form-label fw-semibold" for="filter-date-range">
-                                <i class="ri-calendar-line me-1"></i>Date Range
-                            </label>
-                            <select id="filter-date-range" class="form-select">
-                                <option value="all" @selected($selectedDateRange === 'all')>All Dates</option>
-                                <option value="today" @selected($selectedDateRange === 'today')>Today</option>
-                                <option value="yesterday" @selected($selectedDateRange === 'yesterday')>Yesterday</option>
-                                <option value="tomorrow" @selected($selectedDateRange === 'tomorrow')>Tomorrow</option>
-                                <option value="last_2_days" @selected($selectedDateRange === 'last_2_days')>Last 2 Days</option>
-                                <option value="last_7_days" @selected($selectedDateRange === 'last_7_days')>Last 7 Days</option>
-                                <option value="this_month" @selected($selectedDateRange === 'this_month')>This Month</option>
-                                <option value="custom" @selected($selectedDateRange === 'custom')>Custom Range</option>
-                            </select>
-                        </div>
-                        <div class="col-12 col-xxl-2 d-flex align-items-end gap-2">
-                            <button type="button" id="filter-apply" class="btn btn-primary flex-fill flex-sm-grow-0 flex-xxl-fill px-4">
-                                <i class="ri-search-line me-1"></i> Apply
-                            </button>
-                            <button type="button" id="filter-reset" class="btn btn-soft-secondary">
-                                <i class="ri-refresh-line"></i>
-                            </button>
-                        </div>
-                        <div class="col-12" id="custom-date-row" style="{{ $selectedDateRange === 'custom' ? '' : 'display: none;' }}">
-                            <div class="row g-3">
-                                <div class="col-sm-6">
-                                    <label class="form-label small text-muted">From</label>
-                                    <input type="date" id="filter-date-from" class="form-control">
+                    <div class="filter-bar p-3 p-md-4 mb-4">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label fw-semibold" for="filter-search">
+                                    <i class="ri-search-line me-1"></i>Search
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-search-line"></i></span>
+                                    <input type="text"
+                                        id="filter-search"
+                                        class="form-control filter-field {{ $hasSearch ? 'is-active' : '' }}"
+                                        placeholder="Ref, crew, phone, route, vessel..."
+                                        value="{{ request('search') }}"
+                                        autocomplete="off">
                                 </div>
-                                <div class="col-sm-6">
-                                    <label class="form-label small text-muted">To</label>
-                                    <input type="date" id="filter-date-to" class="form-control">
+                            </div>
+                            <div class="col-sm-6 col-lg-3">
+                                <label class="form-label fw-semibold" for="filter-driver">
+                                    <i class="ri-user-line me-1"></i>Driver
+                                </label>
+                                <select id="filter-driver" class="form-select filter-field {{ request()->filled('driver') ? 'is-active' : '' }}">
+                                    <option value="">All Drivers</option>
+                                    @foreach($drivers as $d)
+                                        <option value="{{ $d->name }}" @selected(request('driver') === $d->name)>{{ $d->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-sm-6 col-lg-3">
+                                <label class="form-label fw-semibold" for="filter-vessel">
+                                    <i class="ri-ship-line me-1"></i>Vessel
+                                </label>
+                                <select id="filter-vessel" class="form-select filter-field {{ request()->filled('vessel') ? 'is-active' : '' }}">
+                                    <option value="">All Vessels</option>
+                                    @foreach($vessels as $v)
+                                        <option value="{{ $v->name }}" @selected(request('vessel') === $v->name)>{{ $v->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-sm-6 col-lg-2">
+                                <label class="form-label fw-semibold" for="filter-status">
+                                    <i class="ri-checkbox-circle-line me-1"></i>Status
+                                </label>
+                                <select id="filter-status" class="form-select filter-field {{ request()->filled('status') ? 'is-active' : '' }}">
+                                    <option value="">All Status</option>
+                                    @foreach($statusLabels as $statusKey => $statusLabel)
+                                        <option value="{{ $statusKey }}" @selected(request('status') === $statusKey)>{{ $statusLabel }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-sm-6 col-lg-2">
+                                <label class="form-label fw-semibold" for="filter-date-range">
+                                    <i class="ri-calendar-line me-1"></i>Date Range
+                                </label>
+                                <select id="filter-date-range" class="form-select filter-field {{ request()->filled('date_range') ? 'is-active' : '' }}">
+                                    <option value="all" @selected($selectedDateRange === 'all')>All Dates</option>
+                                    <option value="today" @selected($selectedDateRange === 'today')>Today</option>
+                                    <option value="yesterday" @selected($selectedDateRange === 'yesterday')>Yesterday</option>
+                                    <option value="tomorrow" @selected($selectedDateRange === 'tomorrow')>Tomorrow</option>
+                                    <option value="last_2_days" @selected($selectedDateRange === 'last_2_days')>Last 2 Days</option>
+                                    <option value="last_7_days" @selected($selectedDateRange === 'last_7_days')>Last 7 Days</option>
+                                    <option value="this_month" @selected($selectedDateRange === 'this_month')>This Month</option>
+                                    <option value="custom" @selected($selectedDateRange === 'custom')>Custom Range</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-lg-2 d-flex align-items-end gap-2">
+                                <button type="button" id="filter-apply" class="btn btn-primary flex-fill">
+                                    <i class="ri-search-line me-1"></i> Apply
+                                </button>
+                                <button type="button" id="filter-reset" class="btn btn-soft-secondary" title="Reset filters">
+                                    <i class="ri-refresh-line"></i>
+                                </button>
+                            </div>
+                            <div class="col-12" id="custom-date-row" style="{{ $selectedDateRange === 'custom' ? '' : 'display: none;' }}">
+                                <div class="row g-3">
+                                    <div class="col-sm-6">
+                                        <label class="form-label small text-muted" for="filter-date-from">From</label>
+                                        <input type="date" id="filter-date-from" class="form-control filter-field {{ request()->filled('date_from') ? 'is-active' : '' }}" value="{{ request('date_from') }}">
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label class="form-label small text-muted" for="filter-date-to">To</label>
+                                        <input type="date" id="filter-date-to" class="form-control filter-field {{ request()->filled('date_to') ? 'is-active' : '' }}" value="{{ request('date_to') }}">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -500,13 +574,10 @@
                         var customDateRow = document.getElementById('custom-date-row');
                         var applyBtn = document.getElementById('filter-apply');
                         var resetBtn = document.getElementById('filter-reset');
+                        var clearAllBtn = document.getElementById('filter-clear-all');
+                        var indexUrl = '{{ route('trips.index') }}';
 
                         var urlParams = new URLSearchParams(window.location.search);
-                        if (urlParams.has('driver')) driverSel.value = urlParams.get('driver');
-                        if (urlParams.has('vessel')) vesselSel.value = urlParams.get('vessel');
-                        if (urlParams.has('status')) statusSel.value = urlParams.get('status');
-                        if (urlParams.has('search')) searchInp.value = urlParams.get('search');
-
                         var initialSearch = (urlParams.get('search') || '').trim();
                         var userChoseDateRange = urlParams.has('date_range');
                         var autoSwitchedToAllDates = !userChoseDateRange && initialSearch !== '';
@@ -521,14 +592,57 @@
                         }
 
                         customDateRow.style.display = dateRangeSel.value === 'custom' ? 'block' : 'none';
-                        
-                        if (urlParams.has('date_from')) dateFromInp.value = urlParams.get('date_from');
-                        if (urlParams.has('date_to')) dateToInp.value = urlParams.get('date_to');
+
+                        function defaultDateRangeValue() {
+                            return searchInp.value.trim() ? 'all' : 'today';
+                        }
+
+                        function updateActiveFieldStates() {
+                            driverSel.classList.toggle('is-active', driverSel.value !== '');
+                            vesselSel.classList.toggle('is-active', vesselSel.value !== '');
+                            statusSel.classList.toggle('is-active', statusSel.value !== '');
+                            searchInp.classList.toggle('is-active', searchInp.value.trim() !== '');
+
+                            var explicitDateChoice = userChoseDateRange || dateRangeSel.value === 'custom';
+                            var differsFromDefault = dateRangeSel.value !== defaultDateRangeValue();
+                            dateRangeSel.classList.toggle('is-active', explicitDateChoice || differsFromDefault);
+
+                            dateFromInp.classList.toggle('is-active', dateFromInp.value !== '');
+                            dateToInp.classList.toggle('is-active', dateToInp.value !== '');
+                        }
+
+                        function navigateWithParams(params) {
+                            var qs = params.toString();
+                            window.location.href = indexUrl + (qs ? '?' + qs : '');
+                        }
+
+                        function removeFilterKey(params, key) {
+                            params.delete(key);
+                            if (key === 'date_range') {
+                                params.delete('date_from');
+                                params.delete('date_to');
+                            }
+                        }
+
+                        document.querySelectorAll('.filter-chip[data-clear]').forEach(function (chip) {
+                            chip.addEventListener('click', function () {
+                                var params = new URLSearchParams(window.location.search);
+                                removeFilterKey(params, chip.getAttribute('data-clear'));
+                                navigateWithParams(params);
+                            });
+                        });
+
+                        if (clearAllBtn) {
+                            clearAllBtn.addEventListener('click', function () {
+                                window.location.href = indexUrl;
+                            });
+                        }
 
                         dateRangeSel.addEventListener('change', function() {
                             userChoseDateRange = true;
                             autoSwitchedToAllDates = false;
                             customDateRow.style.display = this.value === 'custom' ? 'block' : 'none';
+                            updateActiveFieldStates();
                         });
 
                         searchInp.addEventListener('input', function() {
@@ -542,6 +656,11 @@
                                 autoSwitchedToAllDates = false;
                                 customDateRow.style.display = 'none';
                             }
+                            updateActiveFieldStates();
+                        });
+
+                        [driverSel, vesselSel, statusSel, dateFromInp, dateToInp].forEach(function (el) {
+                            el.addEventListener('change', updateActiveFieldStates);
                         });
 
                         function applyFilters() {
@@ -569,7 +688,7 @@
                                 }
                             }
 
-                            window.location.href = '{{ route('trips.index') }}?' + params.toString();
+                            window.location.href = indexUrl + '?' + params.toString();
                         }
 
                         applyBtn.addEventListener('click', applyFilters);
@@ -580,8 +699,10 @@
                             }
                         });
                         resetBtn.addEventListener('click', function () {
-                            window.location.href = '{{ route('trips.index') }}';
+                            window.location.href = indexUrl;
                         });
+
+                        updateActiveFieldStates();
 
                         var extractForm = document.getElementById('extract-form');
                         var extractBtn = document.getElementById('extract-btn');
