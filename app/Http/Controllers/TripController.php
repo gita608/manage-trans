@@ -32,59 +32,9 @@ class TripController extends Controller
         $query = Trip::with(['driver', 'crews.vessel', 'partner', 'partnerRequest']);
 
         $search = trim((string) $request->input('search', ''));
-        if ($search !== '') {
-            $query->where(function ($builder) use ($search) {
-                $builder->where('trip_reference', 'like', '%'.$search.'%')
-                    ->orWhereHas('partnerRequest', function ($partnerRequestQuery) use ($search) {
-                        $partnerRequestQuery->where('request_reference', 'like', '%'.$search.'%');
-                    });
-            });
-        }
+        $query->universalSearch($search);
 
-        // Date Filtering Logic
-        $dateFrom = $request->input('date_from');
-        $dateTo = $request->input('date_to');
-        $dateRange = $request->input('date_range');
-
-        // Handle preset ranges
-        if ($dateRange) {
-            switch ($dateRange) {
-                case 'today':
-                    $dateFrom = $dateTo = today()->format('Y-m-d');
-                    break;
-                case 'yesterday':
-                    $dateFrom = $dateTo = today()->subDay()->format('Y-m-d');
-                    break;
-                case 'tomorrow':
-                    $dateFrom = $dateTo = Carbon::tomorrow()->format('Y-m-d');
-                    break;
-                case 'last_2_days':
-                    $dateFrom = today()->subDay()->format('Y-m-d');
-                    $dateTo = today()->format('Y-m-d');
-                    break;
-                case 'last_7_days':
-                    $dateFrom = today()->subDays(6)->format('Y-m-d');
-                    $dateTo = today()->format('Y-m-d');
-                    break;
-                case 'this_month':
-                    $dateFrom = today()->startOfMonth()->format('Y-m-d');
-                    $dateTo = today()->endOfMonth()->format('Y-m-d');
-                    break;
-            }
-        }
-
-        // Apply date filter
-        if ($dateFrom && $dateTo) {
-            $query->whereBetween('trip_date', [$dateFrom, $dateTo]);
-        } elseif ($request->has('date') && $request->date) {
-            // Legacy/Single date support
-            $query->whereDate('trip_date', $request->date);
-        } else {
-            // Default to today if no specific date filter
-            if (! $dateFrom && ! $dateTo && ! $request->has('date')) {
-                $query->whereDate('trip_date', today());
-            }
-        }
+        $this->applyTripIndexDateFilter($request, $query, $search !== '');
 
         if ($request->has('driver') && $request->driver) {
             $query->whereHas('driver', function ($q) use ($request) {
@@ -826,6 +776,76 @@ class TripController extends Controller
         }
 
         return redirect()->route('trips.index')->with('warning', 'No trips were selected or created.');
+    }
+
+    /**
+     * Apply the Trips list date filter.
+     *
+     * No search + no explicit date => today only.
+     * Search + no explicit date => all historical dates.
+     * An explicit date_range / custom range / legacy date still restricts results.
+     */
+    protected function applyTripIndexDateFilter(Request $request, $query, bool $hasSearch): void
+    {
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
+        $dateRange = $request->input('date_range');
+
+        if ($dateRange === 'all') {
+            return;
+        }
+
+        if ($dateRange) {
+            switch ($dateRange) {
+                case 'today':
+                    $dateFrom = $dateTo = today()->format('Y-m-d');
+                    break;
+                case 'yesterday':
+                    $dateFrom = $dateTo = today()->subDay()->format('Y-m-d');
+                    break;
+                case 'tomorrow':
+                    $dateFrom = $dateTo = Carbon::tomorrow()->format('Y-m-d');
+                    break;
+                case 'last_2_days':
+                    $dateFrom = today()->subDay()->format('Y-m-d');
+                    $dateTo = today()->format('Y-m-d');
+                    break;
+                case 'last_7_days':
+                    $dateFrom = today()->subDays(6)->format('Y-m-d');
+                    $dateTo = today()->format('Y-m-d');
+                    break;
+                case 'this_month':
+                    $dateFrom = today()->startOfMonth()->format('Y-m-d');
+                    $dateTo = today()->endOfMonth()->format('Y-m-d');
+                    break;
+            }
+        }
+
+        if ($dateFrom && $dateTo) {
+            $query->whereDate('trip_date', '>=', $dateFrom)
+                ->whereDate('trip_date', '<=', $dateTo);
+
+            return;
+        }
+
+        if ($request->filled('date')) {
+            $query->whereDate('trip_date', $request->date);
+
+            return;
+        }
+
+        $hasExplicitDateFilter = $request->filled('date_range')
+            || $request->filled('date_from')
+            || $request->filled('date_to')
+            || $request->filled('date');
+
+        if ($hasSearch && ! $hasExplicitDateFilter) {
+            return;
+        }
+
+        if (! $dateFrom && ! $dateTo && ! $request->has('date')) {
+            $query->whereDate('trip_date', today());
+        }
     }
 
     /**

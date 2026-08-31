@@ -171,6 +171,72 @@ class Trip extends Model
     }
 
     /**
+     * Universal Trip Search: match the trip and related enquiry fields.
+     *
+     * All OR conditions stay inside one grouped constraint so other filters
+     * continue to combine with AND semantics.
+     */
+    public function scopeUniversalSearch($query, ?string $term)
+    {
+        $term = trim((string) $term);
+
+        if ($term === '') {
+            return $query;
+        }
+
+        $pattern = '%'.$term.'%';
+
+        return $query->where(function ($builder) use ($pattern) {
+            $builder->whereLike('trip_reference', $pattern)
+                ->orWhereLike('title', $pattern)
+                ->orWhereHas('partner', function ($partnerQuery) use ($pattern) {
+                    $partnerQuery->whereLike('title', $pattern);
+                })
+                ->orWhereHas('driver', function ($driverQuery) use ($pattern) {
+                    $driverQuery->where(function ($driver) use ($pattern) {
+                        $driver->whereLike('name', $pattern)
+                            ->orWhereLike('contact', $pattern);
+                    });
+                })
+                ->orWhereHas('partnerRequest', function ($requestQuery) use ($pattern) {
+                    $requestQuery->whereLike('request_reference', $pattern);
+                })
+                ->orWhereHas('crews', function ($crewQuery) use ($pattern) {
+                    $crewQuery->where(function ($crew) use ($pattern) {
+                        $crew->whereLike('name', $pattern)
+                            ->orWhereLike('phone', $pattern)
+                            ->orWhereLike('phone_2', $pattern)
+                            ->orWhereLike('address', $pattern)
+                            ->orWhereLike('from_location', $pattern)
+                            ->orWhereLike('to_location', $pattern)
+                            ->orWhereLike('flight_number', $pattern)
+                            ->orWhereLike('remarks', $pattern)
+                            ->orWhereLike('sub_remark', $pattern)
+                            ->orWhereHas('vessel', function ($vesselQuery) use ($pattern) {
+                                $vesselQuery->whereLike('name', $pattern);
+                            });
+                    });
+                })
+                ->orWhereHas('crewRemovals', function ($removalQuery) use ($pattern) {
+                    $removalQuery->where(function ($removal) use ($pattern) {
+                        $removal->whereLike('crew_name', $pattern)
+                            ->orWhereLike('phone', $pattern)
+                            ->orWhereLike('phone_2', $pattern)
+                            ->orWhereLike('address', $pattern)
+                            ->orWhereLike('vessel_name', $pattern)
+                            ->orWhereLike('from_location', $pattern)
+                            ->orWhereLike('to_location', $pattern)
+                            ->orWhereLike('flight_number', $pattern)
+                            ->orWhereLike('remarks', $pattern)
+                            ->orWhereLike('sub_remark', $pattern)
+                            ->orWhereLike('removal_remark', $pattern)
+                            ->orWhereLike('driver_name', $pattern);
+                    });
+                });
+        });
+    }
+
+    /**
      * Get the trip issues for this trip.
      */
     public function tripIssues()

@@ -4,17 +4,39 @@
 
 @section('content')
 @php
-    $dateRange = request('date_range', 'today');
-    $listTitle = match ($dateRange) {
-        'today' => "Today's Trips",
-        'yesterday' => "Yesterday's Trips",
-        'tomorrow' => "Tomorrow's Trips",
-        'last_2_days' => 'Trips — Last 2 Days',
-        'last_7_days' => 'Trips — Last 7 Days',
-        'this_month' => 'Trips — This Month',
-        'custom' => 'Filtered Trips',
-        default => 'Trips',
+    $searchTerm = trim((string) request('search', ''));
+    $hasSearch = $searchTerm !== '';
+    $dateRange = request('date_range');
+    $selectedDateRange = request()->filled('date_range')
+        ? request('date_range')
+        : ($hasSearch ? 'all' : 'today');
+
+    $dateRangeLabel = match ($dateRange) {
+        'today' => 'Today',
+        'yesterday' => 'Yesterday',
+        'tomorrow' => 'Tomorrow',
+        'last_2_days' => 'Last 2 Days',
+        'last_7_days' => 'Last 7 Days',
+        'this_month' => 'This Month',
+        'custom' => 'Custom Range',
+        default => null,
     };
+
+    if ($hasSearch) {
+        $listTitle = $dateRangeLabel ? 'Search Results — '.$dateRangeLabel : 'Search Results';
+    } else {
+        $listTitle = match ($dateRange ?: 'today') {
+            'today' => "Today's Trips",
+            'yesterday' => "Yesterday's Trips",
+            'tomorrow' => "Tomorrow's Trips",
+            'last_2_days' => 'Trips — Last 2 Days',
+            'last_7_days' => 'Trips — Last 7 Days',
+            'this_month' => 'Trips — This Month',
+            'custom' => 'Filtered Trips',
+            'all' => 'Trips',
+            default => 'Trips',
+        };
+    }
 @endphp
 
 @include('partials.page-header', [
@@ -267,23 +289,24 @@
                             </select>
                         </div>
                         <div class="col-sm-6 col-xxl-2">
-                            <label class="form-label fw-semibold">
-                                <i class="ri-hashtag me-1"></i>Reference
+                            <label class="form-label fw-semibold" for="filter-search">
+                                <i class="ri-search-line me-1"></i>Search Trips
                             </label>
-                            <input type="text" id="filter-search" class="form-control" placeholder="TRP or REQ" value="{{ request('search') }}">
+                            <input type="text" id="filter-search" class="form-control" placeholder="Search ref, crew, phone, route, vessel..." value="{{ request('search') }}" autocomplete="off">
                         </div>
                         <div class="col-sm-6 col-xxl-2">
-                            <label class="form-label fw-semibold">
+                            <label class="form-label fw-semibold" for="filter-date-range">
                                 <i class="ri-calendar-line me-1"></i>Date Range
                             </label>
                             <select id="filter-date-range" class="form-select">
-                                <option value="today">Today</option>
-                                <option value="yesterday">Yesterday</option>
-                                <option value="tomorrow">Tomorrow</option>
-                                <option value="last_2_days">Last 2 Days</option>
-                                <option value="last_7_days">Last 7 Days</option>
-                                <option value="this_month">This Month</option>
-                                <option value="custom">Custom Range</option>
+                                <option value="all" @selected($selectedDateRange === 'all')>All Dates</option>
+                                <option value="today" @selected($selectedDateRange === 'today')>Today</option>
+                                <option value="yesterday" @selected($selectedDateRange === 'yesterday')>Yesterday</option>
+                                <option value="tomorrow" @selected($selectedDateRange === 'tomorrow')>Tomorrow</option>
+                                <option value="last_2_days" @selected($selectedDateRange === 'last_2_days')>Last 2 Days</option>
+                                <option value="last_7_days" @selected($selectedDateRange === 'last_7_days')>Last 7 Days</option>
+                                <option value="this_month" @selected($selectedDateRange === 'this_month')>This Month</option>
+                                <option value="custom" @selected($selectedDateRange === 'custom')>Custom Range</option>
                             </select>
                         </div>
                         <div class="col-12 col-xxl-2 d-flex align-items-end gap-2">
@@ -294,7 +317,7 @@
                                 <i class="ri-refresh-line"></i>
                             </button>
                         </div>
-                        <div class="col-12" id="custom-date-row" style="display: none;">
+                        <div class="col-12" id="custom-date-row" style="{{ $selectedDateRange === 'custom' ? '' : 'display: none;' }}">
                             <div class="row g-3">
                                 <div class="col-sm-6">
                                     <label class="form-label small text-muted">From</label>
@@ -482,29 +505,62 @@
                         if (urlParams.has('vessel')) vesselSel.value = urlParams.get('vessel');
                         if (urlParams.has('status')) statusSel.value = urlParams.get('status');
                         if (urlParams.has('search')) searchInp.value = urlParams.get('search');
-                        
+
+                        var initialSearch = (urlParams.get('search') || '').trim();
+                        var userChoseDateRange = urlParams.has('date_range');
+                        var autoSwitchedToAllDates = !userChoseDateRange && initialSearch !== '';
+                        var applyingFilters = false;
+
                         if (urlParams.has('date_range')) {
                             dateRangeSel.value = urlParams.get('date_range');
-                            if (dateRangeSel.value === 'custom') {
-                                customDateRow.style.display = 'block';
-                            }
+                        } else if (initialSearch) {
+                            dateRangeSel.value = 'all';
+                        } else {
+                            dateRangeSel.value = 'today';
                         }
+
+                        customDateRow.style.display = dateRangeSel.value === 'custom' ? 'block' : 'none';
                         
                         if (urlParams.has('date_from')) dateFromInp.value = urlParams.get('date_from');
                         if (urlParams.has('date_to')) dateToInp.value = urlParams.get('date_to');
 
                         dateRangeSel.addEventListener('change', function() {
+                            userChoseDateRange = true;
+                            autoSwitchedToAllDates = false;
                             customDateRow.style.display = this.value === 'custom' ? 'block' : 'none';
                         });
 
+                        searchInp.addEventListener('input', function() {
+                            var term = this.value.trim();
+                            if (term && !userChoseDateRange && dateRangeSel.value === 'today') {
+                                dateRangeSel.value = 'all';
+                                autoSwitchedToAllDates = true;
+                                customDateRow.style.display = 'none';
+                            } else if (!term && autoSwitchedToAllDates) {
+                                dateRangeSel.value = 'today';
+                                autoSwitchedToAllDates = false;
+                                customDateRow.style.display = 'none';
+                            }
+                        });
+
                         function applyFilters() {
+                            if (applyingFilters) {
+                                return;
+                            }
+                            applyingFilters = true;
+
                             var params = new URLSearchParams();
+                            var searchValue = searchInp.value.trim();
                             if (driverSel.value) params.set('driver', driverSel.value);
                             if (vesselSel.value) params.set('vessel', vesselSel.value);
                             if (statusSel.value) params.set('status', statusSel.value);
-                            if (searchInp.value) params.set('search', searchInp.value.trim());
-                            
-                            if (dateRangeSel.value) {
+                            if (searchValue) params.set('search', searchValue);
+
+                            if (dateRangeSel.value === 'all') {
+                                if (!searchValue) {
+                                    params.set('date_range', 'all');
+                                }
+                            } else if (dateRangeSel.value) {
                                 params.set('date_range', dateRangeSel.value);
                                 if (dateRangeSel.value === 'custom') {
                                     if (dateFromInp.value) params.set('date_from', dateFromInp.value);
@@ -516,6 +572,12 @@
                         }
 
                         applyBtn.addEventListener('click', applyFilters);
+                        searchInp.addEventListener('keydown', function (e) {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                applyFilters();
+                            }
+                        });
                         resetBtn.addEventListener('click', function () {
                             window.location.href = '{{ route('trips.index') }}';
                         });

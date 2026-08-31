@@ -324,6 +324,7 @@ class TripCrewRemovalTest extends TestCase
         $staff = $this->createStaff(['view_trips', 'delete_trips']);
         $driver = Driver::create(['name' => 'Driver A']);
         [$trip] = $this->createAssignedTrip($driver);
+        $trip->update(['trip_date' => today()->toDateString()]);
 
         $show = $this->actingAs($staff)->get(route('trips.show', $trip));
         $show->assertOk();
