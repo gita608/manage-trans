@@ -16,7 +16,7 @@
 <form action="{{ route('partner.requests.store') }}" method="POST" id="requestForm">
     @csrf
 
-    <input type="hidden" name="entry_mode" id="entry_mode" value="individual">
+    <input type="hidden" name="entry_mode" id="entry_mode" value="group">
 
     <div class="row">
         <div class="col-lg-12">
@@ -27,7 +27,7 @@
                     <div class="row g-3">
                         <div class="col-12 col-sm-6">
                             <div class="mode-selector-card">
-                                <input id="modeIndividual" name="mode_selector" type="radio" class="mode-selector-input" value="individual" checked>
+                                <input id="modeIndividual" name="mode_selector" type="radio" class="mode-selector-input" value="individual">
                                 <label class="mode-selector-label" for="modeIndividual">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <span class="fs-14 fw-semibold text-body">Individual Entry</span>
@@ -39,7 +39,7 @@
                         </div>
                         <div class="col-12 col-sm-6">
                             <div class="mode-selector-card">
-                                <input id="modeGroup" name="mode_selector" type="radio" class="mode-selector-input" value="group">
+                                <input id="modeGroup" name="mode_selector" type="radio" class="mode-selector-input" value="group" checked>
                                 <label class="mode-selector-label" for="modeGroup">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <span class="fs-14 fw-semibold text-body">Group / Bulk Entry</span>
@@ -54,7 +54,7 @@
             </div>
 
             <!-- Group Mode Common Details -->
-            <div class="card partner-page-card mb-3 d-none" id="groupCommonDetailsCard">
+            <div class="card partner-page-card mb-3" id="groupCommonDetailsCard">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Common Details</h5>
                 </div>
@@ -68,18 +68,6 @@
                                    class="form-control"
                                    id="common-trip-date"
                                    name="_common[trip_date]">
-                            <div class="invalid-feedback"></div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label" for="common-vessel">
-                                Vessel
-                            </label>
-                            <select class="form-select vessel-select2" id="common-vessel" name="_common[vessel_id]" data-placeholder="Select vessel (optional)">
-                                <option value="">Select vessel (optional)</option>
-                                @foreach($vessels as $vessel)
-                                    <option value="{{ $vessel->id }}">{{ $vessel->name }}</option>
-                                @endforeach
-                            </select>
                             <div class="invalid-feedback"></div>
                         </div>
                         <div class="col-md-6">
@@ -123,12 +111,12 @@
                 </div>
                 <div class="card-body">
                     <!-- Individual Mode Container -->
-                    <div id="crew-items-container">
+                    <div id="crew-items-container" class="d-none">
                         <!-- Crew items will be added here -->
                     </div>
 
                     <!-- Group Mode Container -->
-                    <div id="group-crew-items-container" class="d-none">
+                    <div id="group-crew-items-container">
                         <div class="table-responsive">
                             <table class="table table-bordered mb-0" id="group-crew-table">
                                 <thead class="table-light">
@@ -136,6 +124,10 @@
                                         <th style="width: 50px;">#</th>
                                         <th>Crew Member Name <span class="text-danger">*</span></th>
                                         <th>Phone Number</th>
+                                        <th>Phone Number 2</th>
+                                        <th>Vessel</th>
+                                        <th>Pickup Time</th>
+                                        <th>Flight Details</th>
                                         <th style="width: 100px;">Remove</th>
                                     </tr>
                                 </thead>
@@ -146,13 +138,13 @@
                         </div>
                     </div>
 
-                    <div class="mt-4" id="individual-actions">
+                    <div class="mt-4 d-none" id="individual-actions">
                         <button type="button" class="btn btn-success btn-touch" id="addCrewBtn">
                             <i class="ri-add-line align-middle me-1"></i> Add Another Crew Member
                         </button>
                     </div>
 
-                    <div class="mt-4 d-none gap-2 flex-wrap" id="group-actions">
+                    <div class="mt-4 d-flex gap-2 flex-wrap" id="group-actions">
                         <button type="button" class="btn btn-success btn-touch" id="addGroupRowBtn">
                             <i class="ri-add-line align-middle me-1"></i> Add Row
                         </button>
@@ -237,6 +229,18 @@
             </div>
 
             <div class="col-md-6">
+                <label class="form-label" for="crew-phone2-0">
+                    Phone Number 2
+                </label>
+                <input type="text"
+                       class="form-control"
+                       id="crew-phone2-0"
+                       name="items[0][phone_2]"
+                       placeholder="+123 456 7890">
+                <div class="invalid-feedback"></div>
+            </div>
+
+            <div class="col-md-6">
                 <label class="form-label" for="crew-vessel-0">
                     Vessel
                 </label>
@@ -247,6 +251,17 @@
                     @endforeach
                 </select>
                 <small class="form-text-helper">Leave blank if unsure</small>
+                <div class="invalid-feedback"></div>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label" for="crew-pickup-0">
+                    Pickup Time
+                </label>
+                <input type="time"
+                       class="form-control"
+                       id="crew-pickup-0"
+                       name="items[0][pick_up_time]">
                 <div class="invalid-feedback"></div>
             </div>
 
@@ -277,6 +292,30 @@
                 <small class="form-text-helper">Where should we drop off?</small>
                 <div class="invalid-feedback"></div>
             </div>
+
+            <div class="col-md-6">
+                <label class="form-label" for="crew-flight-0">
+                    Flight Details
+                </label>
+                <input type="text"
+                       class="form-control"
+                       id="crew-flight-0"
+                       name="items[0][flight_number]"
+                       placeholder="e.g. EK202">
+                <div class="invalid-feedback"></div>
+            </div>
+
+            <div class="col-12">
+                <label class="form-label" for="crew-remarks-0">
+                    Remarks
+                </label>
+                <textarea class="form-control"
+                          id="crew-remarks-0"
+                          name="items[0][remarks]"
+                          rows="2"
+                          placeholder="Any additional notes for this crew member"></textarea>
+                <div class="invalid-feedback"></div>
+            </div>
         </div>
     </div>
 </template>
@@ -285,15 +324,36 @@
 <template id="group-crew-item-template">
     <tr class="group-crew-row" data-index="0">
         <td class="align-middle fw-medium group-crew-number text-center">1</td>
-        <td>
+        <td class="group-field-name">
             <input type="text" class="form-control" id="group-name-0" name="items[0][name]" placeholder="Full name" aria-required="true">
             <div class="invalid-feedback"></div>
         </td>
-        <td>
+        <td class="group-field-phone">
             <input type="text" class="form-control" id="group-phone-0" name="items[0][phone]" placeholder="+123 456 7890">
             <div class="invalid-feedback"></div>
         </td>
-        <td class="align-middle text-center">
+        <td class="group-field-phone2">
+            <input type="text" class="form-control" id="group-phone2-0" name="items[0][phone_2]" placeholder="+123 456 7890">
+            <div class="invalid-feedback"></div>
+        </td>
+        <td class="group-field-vessel">
+            <select class="form-select vessel-select2 group-vessel-select" id="group-vessel-0" name="items[0][vessel_id]" data-placeholder="Select vessel (optional)">
+                <option value="">Select vessel (optional)</option>
+                @foreach($vessels as $vessel)
+                    <option value="{{ $vessel->id }}">{{ $vessel->name }}</option>
+                @endforeach
+            </select>
+            <div class="invalid-feedback"></div>
+        </td>
+        <td class="group-field-pickup">
+            <input type="time" class="form-control" id="group-pickup-0" name="items[0][pick_up_time]">
+            <div class="invalid-feedback"></div>
+        </td>
+        <td class="group-field-flight">
+            <input type="text" class="form-control" id="group-flight-0" name="items[0][flight_number]" placeholder="e.g. EK202">
+            <div class="invalid-feedback"></div>
+        </td>
+        <td class="align-middle text-center group-field-remove">
             <button type="button" class="btn btn-sm btn-danger remove-group-crew-btn" aria-label="Remove this crew member">
                 <i class="ri-delete-bin-line"></i> Remove
             </button>
@@ -427,29 +487,25 @@
     #group-crew-table td.group-crew-number::before {
         content: 'Crew #';
     }
-    #group-crew-table td:last-child {
+    #group-crew-table td.group-field-remove {
         text-align: left !important;
         border-top: 1px dashed var(--vz-border-color) !important;
         margin-top: 0.5rem;
         padding-top: 0.75rem !important;
     }
-    /* Add labels on mobile */
-    #group-crew-table td:nth-child(2)::before {
-        content: 'Crew Member Name *';
+    #group-crew-table td[class*="group-field-"]::before {
         display: block;
         font-weight: 600;
         margin-bottom: 0.25rem;
         font-size: 0.8125rem;
         color: var(--vz-body-color);
     }
-    #group-crew-table td:nth-child(3)::before {
-        content: 'Phone Number';
-        display: block;
-        font-weight: 600;
-        margin-bottom: 0.25rem;
-        font-size: 0.8125rem;
-        color: var(--vz-body-color);
-    }
+    #group-crew-table td.group-field-name::before { content: 'Crew Member Name *'; }
+    #group-crew-table td.group-field-phone::before { content: 'Phone Number'; }
+    #group-crew-table td.group-field-phone2::before { content: 'Phone Number 2'; }
+    #group-crew-table td.group-field-vessel::before { content: 'Vessel'; }
+    #group-crew-table td.group-field-pickup::before { content: 'Pickup Time'; }
+    #group-crew-table td.group-field-flight::before { content: 'Flight Details'; }
 }
 </style>
 @endpush
@@ -460,7 +516,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Shared State
-    let currentMode = 'individual'; // 'individual' or 'group'
+    let currentMode = 'group'; // 'individual' or 'group'
     const entryModeInput = document.getElementById('entry_mode');
 
     // Individual State
@@ -485,7 +541,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Common fields
     const commonTripDate = document.getElementById('common-trip-date');
-    const commonVessel = document.getElementById('common-vessel');
     const commonFrom = document.getElementById('common-from');
     const commonTo = document.getElementById('common-to');
 
@@ -530,14 +585,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Initialize Mode based on old input if exists
-    @if(old('entry_mode') === 'group')
+    @if(old('entry_mode') === 'individual')
+        setMode('individual');
+        document.getElementById('modeIndividual').checked = true;
+    @else
         setMode('group');
         document.getElementById('modeGroup').checked = true;
-    @else
-        setMode('individual');
     @endif
-
-    bindVesselSelect2(commonVessel);
 
     // Add first crew items on load
     addCrewItem();
@@ -587,7 +641,6 @@ document.addEventListener('DOMContentLoaded', function() {
             groupActions.classList.add('d-flex');
 
             enableRequiredFields('group');
-            bindVesselSelect2(commonVessel);
         }
     }
 
@@ -607,7 +660,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
         } else {
-            const commonInputs = [commonTripDate, commonVessel, commonFrom, commonTo];
+            const commonInputs = [commonTripDate, commonFrom, commonTo];
             commonInputs.forEach(input => {
                 if (input.value.trim() !== '') hasData = true;
             });
@@ -634,10 +687,10 @@ document.addEventListener('DOMContentLoaded', function() {
             addCrewItem();
         } else {
             commonTripDate.value = '';
-            setVesselSelectValue(commonVessel, '');
             commonFrom.value = '';
             commonTo.value = '';
 
+            destroyVesselSelect2(groupContainer);
             groupContainer.innerHTML = '';
             groupCrewIndex = 0;
             addGroupCrewItem();
@@ -736,6 +789,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (removeBtn) {
             const row = removeBtn.closest('.group-crew-row');
             if (groupContainer.querySelectorAll('.group-crew-row').length > 1) {
+                destroyVesselSelect2(row);
                 row.remove();
                 updateGroupCrewNumbers();
             } else {
@@ -764,6 +818,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         groupContainer.appendChild(clone);
+        const addedRow = groupContainer.querySelector(`[data-index="${groupCrewIndex}"]`);
+        if (addedRow) {
+            bindVesselSelect2(addedRow.querySelector('.vessel-select2'));
+        }
         groupCrewIndex++;
         updateGroupCrewNumbers();
 
@@ -797,7 +855,7 @@ document.addEventListener('DOMContentLoaded', function() {
             rows.forEach(row => {
                 const index = row.getAttribute('data-index');
 
-                ['trip_date', 'vessel_id', 'from_location', 'to_location'].forEach(field => {
+                ['trip_date', 'from_location', 'to_location'].forEach(field => {
                     let hiddenInput = row.querySelector(`input[name="items[${index}][${field}]"]`);
                     if (!hiddenInput) {
                         hiddenInput = document.createElement('input');
@@ -818,7 +876,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             // Disable group mode inputs
             document.querySelectorAll('#groupCommonDetailsCard input, #groupCommonDetailsCard select').forEach(el => el.disabled = true);
-            groupContainer.querySelectorAll('input').forEach(el => el.disabled = true);
+            groupContainer.querySelectorAll('input, select').forEach(el => el.disabled = true);
         }
 
         submitBtn.disabled = true;
@@ -830,7 +888,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const oldItems = @json(old('items', []));
         const oldCommon = @json(old('_common', []));
         const errors = @json($errors->messages());
-        const oldMode = "{{ old('entry_mode', 'individual') }}";
+        const oldMode = "{{ old('entry_mode', 'group') }}";
 
         if (oldMode === 'individual') {
             destroyVesselSelect2(container);
@@ -850,6 +908,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (input && item[key] !== null) {
                                 if (key === 'vessel_id') {
                                     setVesselSelectValue(input, item[key]);
+                                } else if (key === 'pick_up_time' && item[key]) {
+                                    input.value = String(item[key]).substring(0, 5);
                                 } else {
                                     input.value = item[key];
                                 }
@@ -864,10 +924,10 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             // Group Mode Restoration
             if (oldCommon.trip_date) commonTripDate.value = oldCommon.trip_date;
-            if (oldCommon.vessel_id) setVesselSelectValue(commonVessel, oldCommon.vessel_id);
             if (oldCommon.from_location) commonFrom.value = oldCommon.from_location;
             if (oldCommon.to_location) commonTo.value = oldCommon.to_location;
 
+            destroyVesselSelect2(groupContainer);
             groupContainer.innerHTML = '';
             groupCrewIndex = 0;
 
@@ -880,14 +940,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     const row = groupContainer.querySelector(`[data-index="${index}"]`);
                     if(row) {
-                        if (item.name) {
-                            const nameInput = row.querySelector(`[name="items[${index}][name]"]`);
-                            if (nameInput) nameInput.value = item.name;
-                        }
-                        if (item.phone) {
-                            const phoneInput = row.querySelector(`[name="items[${index}][phone]"]`);
-                            if (phoneInput) phoneInput.value = item.phone;
-                        }
+                        ['name', 'phone', 'phone_2', 'pick_up_time', 'flight_number', 'vessel_id'].forEach(field => {
+                            const input = row.querySelector(`[name="items[${index}][${field}]"]`);
+                            if (!input || item[field] === null || item[field] === undefined || item[field] === '') {
+                                return;
+                            }
+                            if (field === 'vessel_id') {
+                                setVesselSelectValue(input, item[field]);
+                            } else if (field === 'pick_up_time') {
+                                input.value = String(item[field]).substring(0, 5);
+                            } else {
+                                input.value = item[field];
+                            }
+                        });
                     }
                 });
                 groupCrewIndex++;
@@ -914,11 +979,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                 } else {
-                    const commonFields = ['trip_date', 'vessel_id', 'from_location', 'to_location'];
+                    const commonFields = ['trip_date', 'from_location', 'to_location'];
                     if (commonFields.includes(field)) {
                         let inputId = '';
                         if (field === 'trip_date') inputId = 'common-trip-date';
-                        else if (field === 'vessel_id') inputId = 'common-vessel';
                         else if (field === 'from_location') inputId = 'common-from';
                         else if (field === 'to_location') inputId = 'common-to';
 

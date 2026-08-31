@@ -9,7 +9,6 @@ use App\Models\PartnerUser;
 use App\Models\Trip;
 use App\Models\User;
 use App\Models\Vessel;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
@@ -181,8 +180,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $response->assertRedirect(route('partner.requests.index'));
@@ -203,8 +202,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $this->assertEquals(1, PartnerRequest::count());
@@ -226,8 +225,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -249,8 +248,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -271,8 +270,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -293,8 +292,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -317,8 +316,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -340,8 +339,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -362,8 +361,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -391,8 +390,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Crew 2',
                         'from_location' => 'Location C',
                         'to_location' => 'Location D',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -406,7 +405,7 @@ class PartnerPortalPhase3Test extends TestCase
 
         $response = $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
-                'items' => []
+                'items' => [],
             ]);
 
         $response->assertSessionHasErrors('items');
@@ -423,8 +422,8 @@ class PartnerPortalPhase3Test extends TestCase
                 'items' => [
                     [
                         // Missing all required fields
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $response->assertSessionHasErrors([
@@ -450,8 +449,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
                         'driver_id' => 999, // Malicious attempt
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $item = PartnerRequestItem::first();
@@ -473,8 +472,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
                         'vessel_id' => 999, // Invalid - does not exist
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         // Should be rejected by validation
@@ -497,8 +496,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -529,8 +528,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::where('partner_id', $partnerB->id)->first();
@@ -566,8 +565,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -603,8 +602,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -621,8 +620,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Modified Crew',
                         'from_location' => 'Location X',
                         'to_location' => 'Location Y',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $response->assertNotFound();
@@ -652,8 +651,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -688,8 +687,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -724,8 +723,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -751,8 +750,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -778,8 +777,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -798,8 +797,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Modified Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request->refresh();
@@ -820,8 +819,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -840,8 +839,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Modified Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request->refresh();
@@ -871,8 +870,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -890,8 +889,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Modified Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request->refresh();
@@ -912,8 +911,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -932,8 +931,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Modified Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $item->refresh();
@@ -957,8 +956,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
                         'vessel_id' => $vessel->id,
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -975,8 +974,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
                         'vessel_id' => $vessel->id, // Explicitly keeps vessel
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $item->refresh();
@@ -997,8 +996,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -1023,8 +1022,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'New Crew',
                         'from_location' => 'Location C',
                         'to_location' => 'Location D',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request->refresh();
@@ -1052,8 +1051,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Crew 2',
                         'from_location' => 'Location C',
                         'to_location' => 'Location D',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -1070,9 +1069,9 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Crew 1',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
+                    ],
                     // Item 2 is not included, so it should be deleted
-                ]
+                ],
             ]);
 
         $request->refresh();
@@ -1094,8 +1093,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Request 1 Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $this->actingAs($partnerUser, 'partner')
@@ -1107,8 +1106,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Request 2 Crew',
                         'from_location' => 'Location C',
                         'to_location' => 'Location D',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request1 = PartnerRequest::first();
@@ -1127,8 +1126,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Hacked Crew',
                         'from_location' => 'Location X',
                         'to_location' => 'Location Y',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         // Item2 should remain unchanged
@@ -1150,8 +1149,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -1180,8 +1179,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -1210,8 +1209,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -1240,8 +1239,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -1269,8 +1268,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -1298,8 +1297,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -1326,8 +1325,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -1369,8 +1368,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Crew A',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $requestA = PartnerRequest::where('partner_id', $partnerA->id)->first();
@@ -1385,8 +1384,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Crew B',
                         'from_location' => 'Location C',
                         'to_location' => 'Location D',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $requestB = PartnerRequest::where('partner_id', $partnerB->id)->first();
@@ -1415,8 +1414,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Pending Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $pendingRequest = PartnerRequest::where('status', PartnerRequest::STATUS_PENDING)->first();
@@ -1431,8 +1430,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Approved Crew',
                         'from_location' => 'Location C',
                         'to_location' => 'Location D',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $approvedRequest = PartnerRequest::where('partner_id', $partner->id)
@@ -1474,8 +1473,8 @@ class PartnerPortalPhase3Test extends TestCase
                             'name' => "Crew $i",
                             'from_location' => 'Location A',
                             'to_location' => 'Location B',
-                        ]
-                    ]
+                        ],
+                    ],
                 ]);
         }
 
@@ -1501,8 +1500,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -1537,8 +1536,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $this->assertEquals(1, PartnerRequest::count());
@@ -1559,8 +1558,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -1576,8 +1575,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Modified Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $this->assertEquals(0, Trip::count());
@@ -1601,8 +1600,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
                         // No pick_up_time
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $response->assertSessionDoesntHaveErrors();
@@ -1622,8 +1621,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $item = PartnerRequestItem::first();
@@ -1644,8 +1643,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
                         // No vessel_id
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $response->assertSessionDoesntHaveErrors();
@@ -1665,8 +1664,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $item = PartnerRequestItem::first();
@@ -1688,8 +1687,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
                         'vessel_id' => $vessel->id,
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $response->assertSessionDoesntHaveErrors();
@@ -1711,8 +1710,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
                         'vessel_id' => $vessel->id,
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $item = PartnerRequestItem::first();
@@ -1733,8 +1732,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
                         'vessel_id' => 99999, // Non-existent vessel
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $response->assertSessionHasErrors('items.0.vessel_id');
@@ -1742,7 +1741,7 @@ class PartnerPortalPhase3Test extends TestCase
     }
 
     /** @test */
-    public function test_partner_cannot_submit_pick_up_time_via_crafted_request()
+    public function test_partner_can_submit_pick_up_time()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
 
@@ -1754,17 +1753,17 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                        'pick_up_time' => '10:00', // Crafted attempt
-                    ]
-                ]
+                        'pick_up_time' => '10:00',
+                    ],
+                ],
             ]);
 
         $item = PartnerRequestItem::first();
-        $this->assertNull($item->pick_up_time);
+        $this->assertSame('10:00:00', $item->pick_up_time);
     }
 
     /** @test */
-    public function test_partner_cannot_submit_phone_2_via_crafted_request()
+    public function test_partner_can_submit_phone_2()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
 
@@ -1776,13 +1775,13 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                        'phone_2' => '1234567890', // Crafted attempt
-                    ]
-                ]
+                        'phone_2' => '1234567890',
+                    ],
+                ],
             ]);
 
         $item = PartnerRequestItem::first();
-        $this->assertNull($item->phone_2);
+        $this->assertSame('1234567890', $item->phone_2);
     }
 
     /** @test */
@@ -1799,8 +1798,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
                         'address' => '123 Main St', // Crafted attempt
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $item = PartnerRequestItem::first();
@@ -1808,7 +1807,7 @@ class PartnerPortalPhase3Test extends TestCase
     }
 
     /** @test */
-    public function test_partner_cannot_submit_flight_number_via_crafted_request()
+    public function test_partner_can_submit_flight_number()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
 
@@ -1820,17 +1819,17 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                        'flight_number' => 'FL123', // Crafted attempt
-                    ]
-                ]
+                        'flight_number' => 'FL123',
+                    ],
+                ],
             ]);
 
         $item = PartnerRequestItem::first();
-        $this->assertNull($item->flight_number);
+        $this->assertSame('FL123', $item->flight_number);
     }
 
     /** @test */
-    public function test_partner_cannot_submit_remarks_via_crafted_request()
+    public function test_partner_can_submit_remarks()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
 
@@ -1842,13 +1841,13 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                        'remarks' => 'Some remark', // Crafted attempt
-                    ]
-                ]
+                        'remarks' => 'Some remark',
+                    ],
+                ],
             ]);
 
         $item = PartnerRequestItem::first();
-        $this->assertNull($item->remarks);
+        $this->assertSame('Some remark', $item->remarks);
     }
 
     /** @test */
@@ -1865,8 +1864,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
                         'sub_remark' => 'Sub remark', // Crafted attempt
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $item = PartnerRequestItem::first();
@@ -1886,8 +1885,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -1915,8 +1914,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'name' => 'Modified Crew',
                         'from_location' => 'Location C',
                         'to_location' => 'Location D',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $item->refresh();
@@ -1924,15 +1923,15 @@ class PartnerPortalPhase3Test extends TestCase
         $this->assertEquals('2026-08-26', $item->trip_date->format('Y-m-d'));
         $this->assertEquals('Modified Crew', $item->name);
 
-        // Internal fields should be preserved
-        $this->assertEquals('10:00:00', $item->pick_up_time);
-        $this->assertEquals('9876543210', $item->phone_2);
+        // Internal-only fields should be preserved
         $this->assertEquals('456 Internal St', $item->address);
-        $this->assertEquals('FL999', $item->flight_number);
-        $this->assertEquals('Internal remark', $item->remarks);
         $this->assertEquals('Internal sub remark', $item->sub_remark);
         $this->assertEquals(123, $item->driver_id);
         $this->assertEquals('RAW VESSEL NAME', $item->vessel_name_raw);
+        $this->assertNull($item->pick_up_time);
+        $this->assertNull($item->phone_2);
+        $this->assertNull($item->flight_number);
+        $this->assertNull($item->remarks);
     }
 
     /** @test */
@@ -1951,8 +1950,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
                         'vessel_id' => $vessel1->id,
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -1970,8 +1969,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
                         'vessel_id' => $vessel2->id,
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $item->refresh();
@@ -2055,8 +2054,8 @@ class PartnerPortalPhase3Test extends TestCase
                         'to_location' => 'Loc B',
                         'driver_id' => 888, // Malicious
                         'pick_up_time' => '10:00', // Malicious
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -2065,6 +2064,6 @@ class PartnerPortalPhase3Test extends TestCase
 
         $item = $request->items()->first();
         $this->assertNull($item->driver_id);
-        $this->assertNull($item->pick_up_time);
+        $this->assertSame('10:00:00', $item->pick_up_time);
     }
 }

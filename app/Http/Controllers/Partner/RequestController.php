@@ -65,7 +65,7 @@ class RequestController extends Controller
      */
     public function createImage()
     {
-        if (!$this->imageSubmissionEnabled()) {
+        if (! $this->imageSubmissionEnabled()) {
             return redirect()->route('partner.dashboard')
                 ->with('error', 'Image request submission is not enabled for your account.');
         }
@@ -78,7 +78,7 @@ class RequestController extends Controller
      */
     public function storeImage(Request $request, PartnerRequestImageExtractionService $extractionService)
     {
-        if (!$this->imageSubmissionEnabled()) {
+        if (! $this->imageSubmissionEnabled()) {
             return redirect()->route('partner.dashboard')
                 ->with('error', 'Image request submission is not enabled for your account.');
         }
@@ -94,14 +94,14 @@ class RequestController extends Controller
         try {
             $uploadedFile = $request->file('image');
             $extension = $uploadedFile->guessExtension() ?: 'jpg';
-            $filename = Str::uuid()->toString() . '.' . $extension;
+            $filename = Str::uuid()->toString().'.'.$extension;
             $storedPath = $uploadedFile->storeAs(
-                'partner-requests/' . $partnerUser->partner_id,
+                'partner-requests/'.$partnerUser->partner_id,
                 $filename,
                 'local'
             );
 
-            if (!$storedPath || !Storage::disk('local')->exists($storedPath)) {
+            if (! $storedPath || ! Storage::disk('local')->exists($storedPath)) {
                 throw new \RuntimeException('Image storage failed.');
             }
 
@@ -149,7 +149,7 @@ class RequestController extends Controller
                 ->with('success', "Request {$partnerRequest->request_reference} submitted successfully.");
         } catch (\Exception $e) {
             // Image or REQ creation failed
-            if ($storedPath && !$partnerRequest) {
+            if ($storedPath && ! $partnerRequest) {
                 Storage::disk('local')->delete($storedPath);
             }
 
@@ -166,17 +166,17 @@ class RequestController extends Controller
     {
         $this->ensurePartnerOwnsRequest($partnerRequest);
 
-        if (!$partnerRequest->isImage() || empty($partnerRequest->source_image_path)) {
+        if (! $partnerRequest->isImage() || empty($partnerRequest->source_image_path)) {
             abort(404);
         }
 
         $storedPath = $partnerRequest->source_image_path;
 
-        if (!$this->isValidPartnerRequestImagePath($storedPath, $partnerRequest->partner_id)) {
+        if (! $this->isValidPartnerRequestImagePath($storedPath, $partnerRequest->partner_id)) {
             abort(404);
         }
 
-        if (!Storage::disk('local')->exists($storedPath)) {
+        if (! Storage::disk('local')->exists($storedPath)) {
             abort(404);
         }
 
@@ -195,7 +195,7 @@ class RequestController extends Controller
         $partner = $partnerUser->partner;
 
         // Check if manual submission is enabled
-        if (!$partner->allow_manual_submission) {
+        if (! $partner->allow_manual_submission) {
             return redirect()->route('partner.requests.index')
                 ->with('error', 'Manual request submission is not enabled for your account.');
         }
@@ -215,20 +215,12 @@ class RequestController extends Controller
         $partner = $partnerUser->partner;
 
         // Check if manual submission is enabled
-        if (!$partner->allow_manual_submission) {
+        if (! $partner->allow_manual_submission) {
             return redirect()->route('partner.requests.index')
                 ->with('error', 'Manual request submission is not enabled for your account.');
         }
 
-        $validated = $request->validate([
-            'items' => ['required', 'array', 'min:1'],
-            'items.*.trip_date' => ['required', 'date'],
-            'items.*.name' => ['required', 'string', 'max:255'],
-            'items.*.phone' => ['nullable', 'string', 'max:255'],
-            'items.*.from_location' => ['required', 'string', 'max:255'],
-            'items.*.to_location' => ['required', 'string', 'max:255'],
-            'items.*.vessel_id' => ['nullable', 'exists:vessels,id'],
-        ]);
+        $validated = $request->validate($this->partnerManualItemValidationRules());
 
         try {
             DB::beginTransaction();
@@ -244,25 +236,16 @@ class RequestController extends Controller
                 'source_image_path' => null,
             ]);
 
-            // Create request items - only Partner-editable fields
             foreach ($validated['items'] as $itemData) {
-                $partnerRequest->items()->create([
-                    'trip_date' => $itemData['trip_date'],
-                    'name' => $itemData['name'],
-                    'phone' => $itemData['phone'] ?? null,
-                    'from_location' => $itemData['from_location'],
-                    'to_location' => $itemData['to_location'],
-                    'vessel_id' => $itemData['vessel_id'] ?? null,
-                    // Internal fields remain null for Partner submission
-                    'pick_up_time' => null,
-                    'phone_2' => null,
-                    'address' => null,
-                    'flight_number' => null,
-                    'remarks' => null,
-                    'sub_remark' => null,
-                    'vessel_name_raw' => null,
-                    'driver_id' => null,
-                ]);
+                $partnerRequest->items()->create(array_merge(
+                    $this->partnerEditableItemAttributes($itemData),
+                    [
+                        'address' => null,
+                        'sub_remark' => null,
+                        'vessel_name_raw' => null,
+                        'driver_id' => null,
+                    ]
+                ));
             }
 
             DB::commit();
@@ -271,6 +254,7 @@ class RequestController extends Controller
                 ->with('success', "Request {$partnerRequest->request_reference} submitted successfully.");
         } catch (\Exception $e) {
             DB::rollBack();
+
             return back()->withInput()->with('error', 'An error occurred while submitting your request. Please try again.');
         }
     }
@@ -305,7 +289,7 @@ class RequestController extends Controller
         }
 
         // Check if request can be edited
-        if (!$partnerRequest->canPartnerEdit()) {
+        if (! $partnerRequest->canPartnerEdit()) {
             return redirect()->route('partner.requests.show', $partnerRequest)
                 ->with('error', 'This request cannot be edited.');
         }
@@ -331,26 +315,22 @@ class RequestController extends Controller
         }
 
         // Check if request can be edited
-        if (!$partnerRequest->canPartnerEdit()) {
+        if (! $partnerRequest->canPartnerEdit()) {
             return redirect()->route('partner.requests.show', $partnerRequest)
                 ->with('error', 'This request cannot be edited.');
         }
 
-        $validated = $request->validate([
-            'items' => ['required', 'array', 'min:1'],
-            'items.*.id' => [
-                'nullable',
-                'integer',
-                Rule::exists('partner_request_items', 'id')
-                    ->where('partner_request_id', $partnerRequest->id),
-            ],
-            'items.*.trip_date' => ['required', 'date'],
-            'items.*.name' => ['required', 'string', 'max:255'],
-            'items.*.phone' => ['nullable', 'string', 'max:255'],
-            'items.*.from_location' => ['required', 'string', 'max:255'],
-            'items.*.to_location' => ['required', 'string', 'max:255'],
-            'items.*.vessel_id' => ['nullable', 'exists:vessels,id'],
-        ]);
+        $validated = $request->validate(array_merge(
+            $this->partnerManualItemValidationRules(),
+            [
+                'items.*.id' => [
+                    'nullable',
+                    'integer',
+                    Rule::exists('partner_request_items', 'id')
+                        ->where('partner_request_id', $partnerRequest->id),
+                ],
+            ]
+        ));
 
         try {
             return DB::transaction(function () use ($validated, $partnerRequest, $partnerUser) {
@@ -359,11 +339,11 @@ class RequestController extends Controller
                     ->lockForUpdate()
                     ->first();
 
-                if (!$lockedRequest || $lockedRequest->partner_id !== $partnerUser->partner_id) {
+                if (! $lockedRequest || $lockedRequest->partner_id !== $partnerUser->partner_id) {
                     abort(404);
                 }
 
-                if (!$lockedRequest->canPartnerEdit()) {
+                if (! $lockedRequest->canPartnerEdit()) {
                     return redirect()->route('partner.requests.show', $partnerRequest)
                         ->with('error', 'This request cannot be edited.');
                 }
@@ -371,38 +351,24 @@ class RequestController extends Controller
                 $submittedItemIds = [];
 
                 foreach ($validated['items'] as $itemData) {
-                    if (!empty($itemData['id'])) {
+                    if (! empty($itemData['id'])) {
                         $item = PartnerRequestItem::find($itemData['id']);
 
                         if ($item && $item->partner_request_id === $lockedRequest->id) {
-                            $item->update([
-                                'trip_date' => $itemData['trip_date'],
-                                'name' => $itemData['name'],
-                                'phone' => $itemData['phone'] ?? null,
-                                'from_location' => $itemData['from_location'],
-                                'to_location' => $itemData['to_location'],
-                                'vessel_id' => $itemData['vessel_id'] ?? null,
-                            ]);
+                            $item->update($this->partnerEditableItemAttributes($itemData));
 
                             $submittedItemIds[] = $item->id;
                         }
                     } else {
-                        $newItem = $lockedRequest->items()->create([
-                            'trip_date' => $itemData['trip_date'],
-                            'name' => $itemData['name'],
-                            'phone' => $itemData['phone'] ?? null,
-                            'from_location' => $itemData['from_location'],
-                            'to_location' => $itemData['to_location'],
-                            'vessel_id' => $itemData['vessel_id'] ?? null,
-                            'pick_up_time' => null,
-                            'phone_2' => null,
-                            'address' => null,
-                            'flight_number' => null,
-                            'remarks' => null,
-                            'sub_remark' => null,
-                            'vessel_name_raw' => null,
-                            'driver_id' => null,
-                        ]);
+                        $newItem = $lockedRequest->items()->create(array_merge(
+                            $this->partnerEditableItemAttributes($itemData),
+                            [
+                                'address' => null,
+                                'sub_remark' => null,
+                                'vessel_name_raw' => null,
+                                'driver_id' => null,
+                            ]
+                        ));
 
                         $submittedItemIds[] = $newItem->id;
                     }
@@ -437,7 +403,7 @@ class RequestController extends Controller
         }
 
         // Only pending requests can be withdrawn
-        if (!$partnerRequest->isPending()) {
+        if (! $partnerRequest->isPending()) {
             return redirect()->route('partner.requests.show', $partnerRequest)
                 ->with('error', 'Only pending requests can be withdrawn.');
         }
@@ -449,11 +415,11 @@ class RequestController extends Controller
                     ->lockForUpdate()
                     ->first();
 
-                if (!$lockedRequest || $lockedRequest->partner_id !== $partnerUser->partner_id) {
+                if (! $lockedRequest || $lockedRequest->partner_id !== $partnerUser->partner_id) {
                     abort(404);
                 }
 
-                if (!$lockedRequest->isPending()) {
+                if (! $lockedRequest->isPending()) {
                     return redirect()->route('partner.requests.show', $partnerRequest)
                         ->with('error', 'Only pending requests can be withdrawn.');
                 }
@@ -490,8 +456,53 @@ class RequestController extends Controller
             return false;
         }
 
-        $expectedPrefix = 'partner-requests/' . $partnerId . '/';
+        $expectedPrefix = 'partner-requests/'.$partnerId.'/';
 
         return str_starts_with($storedPath, $expectedPrefix);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function partnerManualItemValidationRules(): array
+    {
+        return [
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.trip_date' => ['required', 'date'],
+            'items.*.name' => ['required', 'string', 'max:255'],
+            'items.*.phone' => ['nullable', 'string', 'max:255'],
+            'items.*.phone_2' => ['nullable', 'string', 'max:255'],
+            'items.*.from_location' => ['required', 'string', 'max:255'],
+            'items.*.to_location' => ['required', 'string', 'max:255'],
+            'items.*.vessel_id' => ['nullable', 'exists:vessels,id'],
+            'items.*.pick_up_time' => ['nullable', 'date_format:H:i'],
+            'items.*.flight_number' => ['nullable', 'string', 'max:255'],
+            'items.*.remarks' => ['nullable', 'string'],
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $itemData
+     * @return array<string, mixed>
+     */
+    protected function partnerEditableItemAttributes(array $itemData): array
+    {
+        $pickUpTime = $itemData['pick_up_time'] ?? null;
+        if (is_string($pickUpTime) && preg_match('/^\d{2}:\d{2}$/', $pickUpTime)) {
+            $pickUpTime .= ':00';
+        }
+
+        return [
+            'trip_date' => $itemData['trip_date'],
+            'name' => $itemData['name'],
+            'phone' => $itemData['phone'] ?? null,
+            'phone_2' => $itemData['phone_2'] ?? null,
+            'from_location' => $itemData['from_location'],
+            'to_location' => $itemData['to_location'],
+            'vessel_id' => $itemData['vessel_id'] ?? null,
+            'pick_up_time' => $pickUpTime,
+            'flight_number' => $itemData['flight_number'] ?? null,
+            'remarks' => $itemData['remarks'] ?? null,
+        ];
     }
 }

@@ -306,7 +306,7 @@ class PartnerPortalPhase5Test extends TestCase
 
     protected function createTripsFromApprovedRequest(PartnerRequest $request, User $staff, ?array $crews = null): void
     {
-        if (!$request->fresh()->isApproved()) {
+        if (! $request->fresh()->isApproved()) {
             $request = $this->approveRequest($request, $staff);
         }
 
@@ -488,7 +488,7 @@ class PartnerPortalPhase5Test extends TestCase
             ->get(route('partner-requests.show', $request))
             ->assertOk()
             ->assertSee($request->fresh()->request_reference)
-            ->assertSee('Approve Request')
+            ->assertSee('Approve')
             ->assertSee('Decline Request')
             ->assertDontSee('Save Review')
             ->assertDontSee('Add Crew Member');
@@ -1304,20 +1304,26 @@ class PartnerPortalPhase5Test extends TestCase
             ->assertSessionHas('error');
     }
 
-    public function test_manual_prefill_omits_operational_fields_not_submitted_by_partner(): void
+    public function test_manual_prefill_includes_partner_operational_fields(): void
     {
         [$partner, $partnerUser] = $this->createPartnerContext();
-        $request = $this->createPendingRequest($partner, $partnerUser);
-        $request->items()->first()->update(['pick_up_time' => '09:00:00']);
+        $request = $this->createPendingRequest($partner, $partnerUser, 'manual', [
+            'pick_up_time' => '09:30:00',
+            'phone_2' => '0551234567',
+            'flight_number' => 'EK202',
+            'remarks' => 'Terminal 3 pickup',
+        ]);
         $staff = $this->createStaff(['view_trips', 'create_trips']);
         $request = $this->approveRequest($request, $staff);
 
         $response = $this->actingAs($staff)
             ->get(route('trips.create-from-partner-request', $request));
 
-        $response->assertOk()
-            ->assertSee($request->items->first()->name)
-            ->assertDontSee('value="09:00"', false);
+        $prefillCrews = $response->viewData('prefillCrews');
+        $this->assertSame('09:30', $prefillCrews[0]['pick_up_time']);
+        $this->assertSame('0551234567', $prefillCrews[0]['phone_2']);
+        $this->assertSame('EK202', $prefillCrews[0]['flight_number']);
+        $this->assertSame('Terminal 3 pickup', $prefillCrews[0]['remarks']);
     }
 
     // ========================================================================
@@ -1421,7 +1427,7 @@ class PartnerPortalPhase5Test extends TestCase
             ->get(route('partner-requests.show', $request));
 
         $response->assertOk();
-        $response->assertDontSee('Approve Request');
+        $response->assertDontSee('Approve');
         $response->assertDontSee('Decline Request');
     }
 
@@ -1442,7 +1448,7 @@ class PartnerPortalPhase5Test extends TestCase
             ->get(route('partner-requests.show', $request));
 
         $response->assertOk();
-        $response->assertSee('Approve Request');
+        $response->assertSee('Approve');
         $response->assertDontSee('Decline Request');
     }
 
@@ -1463,7 +1469,7 @@ class PartnerPortalPhase5Test extends TestCase
             ->get(route('partner-requests.show', $request));
 
         $response->assertOk();
-        $response->assertDontSee('Approve Request');
+        $response->assertDontSee('btn-review-approve');
         $response->assertSee('Decline Request');
     }
 
@@ -1484,8 +1490,9 @@ class PartnerPortalPhase5Test extends TestCase
             ->get(route('partner-requests.show', $request));
 
         $response->assertOk();
-        $response->assertSee('Approve Request');
+        $response->assertSee('Approve');
         $response->assertSee('Decline Request');
+        $response->assertDontSee('id="approveModal"');
     }
 
     // ========================================================================

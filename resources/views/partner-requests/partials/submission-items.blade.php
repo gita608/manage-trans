@@ -65,37 +65,35 @@
                                     @endif
                                 </div>
                             </div>
-                            @if($partnerRequest->isImage())
-                                @if($item->pick_up_time)
-                                    <div>
-                                        <label>Pickup Time</label>
-                                        <div>{{ \Carbon\Carbon::parse($item->pick_up_time)->format('g:i A') }}</div>
-                                    </div>
-                                @endif
-                                @if($item->phone_2)
-                                    <div>
-                                        <label>Phone 2</label>
-                                        <div>{{ $item->phone_2 }}</div>
-                                    </div>
-                                @endif
-                                @if($item->address)
-                                    <div>
-                                        <label>Address</label>
-                                        <div>{{ $item->address }}</div>
-                                    </div>
-                                @endif
-                                @if($item->flight_number)
-                                    <div>
-                                        <label>Flight Number</label>
-                                        <div>{{ $item->flight_number }}</div>
-                                    </div>
-                                @endif
-                                @if($item->remarks)
-                                    <div class="submission-item-span-2">
-                                        <label>Remarks</label>
-                                        <div>{{ $item->remarks }}</div>
-                                    </div>
-                                @endif
+                            @if($item->pick_up_time)
+                                <div>
+                                    <label>Pickup Time</label>
+                                    <div>{{ \Carbon\Carbon::parse($item->pick_up_time)->format('g:i A') }}</div>
+                                </div>
+                            @endif
+                            @if($item->phone_2)
+                                <div>
+                                    <label>Phone 2</label>
+                                    <div>{{ $item->phone_2 }}</div>
+                                </div>
+                            @endif
+                            @if($partnerRequest->isImage() && $item->address)
+                                <div>
+                                    <label>Address</label>
+                                    <div>{{ $item->address }}</div>
+                                </div>
+                            @endif
+                            @if($item->flight_number)
+                                <div>
+                                    <label>Flight Number</label>
+                                    <div>{{ $item->flight_number }}</div>
+                                </div>
+                            @endif
+                            @if($item->remarks)
+                                <div class="submission-item-span-2">
+                                    <label>Remarks</label>
+                                    <div>{{ $item->remarks }}</div>
+                                </div>
                             @endif
                         </div>
                     </div>

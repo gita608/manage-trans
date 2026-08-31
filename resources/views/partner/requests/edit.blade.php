@@ -128,6 +128,18 @@
             </div>
 
             <div class="col-md-6">
+                <label class="form-label" for="crew-phone2-0">
+                    Phone Number 2
+                </label>
+                <input type="text"
+                       class="form-control"
+                       id="crew-phone2-0"
+                       name="items[0][phone_2]"
+                       placeholder="+123 456 7890">
+                <div class="invalid-feedback"></div>
+            </div>
+
+            <div class="col-md-6">
                 <label class="form-label" for="crew-vessel-0">
                     Vessel
                 </label>
@@ -138,6 +150,17 @@
                     @endforeach
                 </select>
                 <small class="form-text-helper">Leave blank if unsure</small>
+                <div class="invalid-feedback"></div>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label" for="crew-pickup-0">
+                    Pickup Time
+                </label>
+                <input type="time"
+                       class="form-control"
+                       id="crew-pickup-0"
+                       name="items[0][pick_up_time]">
                 <div class="invalid-feedback"></div>
             </div>
 
@@ -168,6 +191,30 @@
                        required
                        aria-required="true">
                 <small class="form-text-helper">Where should we drop off?</small>
+                <div class="invalid-feedback"></div>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label" for="crew-flight-0">
+                    Flight Details
+                </label>
+                <input type="text"
+                       class="form-control"
+                       id="crew-flight-0"
+                       name="items[0][flight_number]"
+                       placeholder="e.g. EK202">
+                <div class="invalid-feedback"></div>
+            </div>
+
+            <div class="col-12">
+                <label class="form-label" for="crew-remarks-0">
+                    Remarks
+                </label>
+                <textarea class="form-control"
+                          id="crew-remarks-0"
+                          name="items[0][remarks]"
+                          rows="2"
+                          placeholder="Any additional notes for this crew member"></textarea>
                 <div class="invalid-feedback"></div>
             </div>
         </div>
@@ -332,12 +379,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 idInput.value = itemData.id || '';
             }
 
-            const fields = ['trip_date', 'name', 'phone', 'from_location', 'to_location', 'vessel_id'];
+            const fields = ['trip_date', 'name', 'phone', 'phone_2', 'from_location', 'to_location', 'vessel_id', 'pick_up_time', 'flight_number', 'remarks'];
 
             fields.forEach(field => {
                 const input = crewDiv.querySelector(`[name$="[${field}]"]`);
                 if (input && itemData[field] !== null && itemData[field] !== undefined) {
-                    input.value = itemData[field];
+                    if (field === 'pick_up_time' && itemData[field]) {
+                        input.value = String(itemData[field]).substring(0, 5);
+                    } else {
+                        input.value = itemData[field];
+                    }
                 }
             });
         }

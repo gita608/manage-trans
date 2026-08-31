@@ -396,8 +396,8 @@ class TripUniversalSearchTest extends TestCase
         $response->assertOk();
         $response->assertSee('value="Mohammed Ali Active"', false);
         $response->assertSee('selected>All Dates', false);
-        $response->assertSee('Search Trips', false);
-        $response->assertSee('Search ref, crew, phone, route, vessel...', false);
+        $response->assertSee('for="filter-search"', false);
+        $response->assertSee('Ref, crew, phone, route, vessel...', false);
     }
 
     public function test_removed_crew_match_does_not_return_a_different_trip(): void

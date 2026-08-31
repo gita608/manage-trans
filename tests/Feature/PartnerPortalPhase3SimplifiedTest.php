@@ -7,9 +7,7 @@ use App\Models\PartnerRequest;
 use App\Models\PartnerRequestItem;
 use App\Models\PartnerUser;
 use App\Models\Trip;
-use App\Models\User;
 use App\Models\Vessel;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
@@ -148,7 +146,7 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
     public function test_pickup_time_is_not_required()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $response = $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -158,8 +156,8 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
                         // NO pick_up_time
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $response->assertSessionHasNoErrors();
@@ -170,7 +168,7 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
     public function test_manual_request_submitted_without_pickup_time()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -179,8 +177,8 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $item = PartnerRequestItem::first();
@@ -191,7 +189,7 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
     public function test_vessel_is_optional()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $response = $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -201,8 +199,8 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
                         // NO vessel_id
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $response->assertSessionHasNoErrors();
@@ -213,7 +211,7 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
     public function test_request_with_no_vessel_saves_vessel_id_null()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -222,8 +220,8 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $item = PartnerRequestItem::first();
@@ -235,7 +233,7 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
         $vessel = Vessel::create(['name' => 'Test Vessel']);
-        
+
         $response = $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -245,8 +243,8 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
                         'vessel_id' => $vessel->id,
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $response->assertSessionHasNoErrors();
@@ -258,7 +256,7 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
         $vessel = Vessel::create(['name' => 'Test Vessel']);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -268,8 +266,8 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
                         'vessel_id' => $vessel->id,
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $item = PartnerRequestItem::first();
@@ -280,7 +278,7 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
     public function test_invalid_vessel_id_is_rejected()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $response = $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -290,8 +288,8 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
                         'vessel_id' => 9999, // Nonexistent
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $response->assertSessionHasErrors('items.0.vessel_id');
@@ -302,7 +300,7 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
     public function test_partner_cannot_submit_driver_id()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -312,8 +310,8 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
                         'driver_id' => 999, // Malicious attempt
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $item = PartnerRequestItem::first();
@@ -321,10 +319,10 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
     }
 
     /** @test */
-    public function test_partner_cannot_submit_pick_up_time_via_crafted_request()
+    public function test_partner_can_submit_pick_up_time()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -333,20 +331,20 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                        'pick_up_time' => '10:00', // Malicious attempt
-                    ]
-                ]
+                        'pick_up_time' => '10:00',
+                    ],
+                ],
             ]);
 
         $item = PartnerRequestItem::first();
-        $this->assertNull($item->pick_up_time);
+        $this->assertSame('10:00:00', $item->pick_up_time);
     }
 
     /** @test */
-    public function test_partner_cannot_submit_phone_2_via_crafted_request()
+    public function test_partner_can_submit_phone_2()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -355,20 +353,20 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                        'phone_2' => '555-0000', // Malicious attempt
-                    ]
-                ]
+                        'phone_2' => '555-0000',
+                    ],
+                ],
             ]);
 
         $item = PartnerRequestItem::first();
-        $this->assertNull($item->phone_2);
+        $this->assertSame('555-0000', $item->phone_2);
     }
 
     /** @test */
     public function test_partner_cannot_submit_address_via_crafted_request()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -378,8 +376,8 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
                         'address' => 'Malicious Address', // Malicious attempt
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $item = PartnerRequestItem::first();
@@ -387,10 +385,10 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
     }
 
     /** @test */
-    public function test_partner_cannot_submit_flight_number_via_crafted_request()
+    public function test_partner_can_submit_flight_number()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -399,20 +397,20 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                        'flight_number' => 'FL123', // Malicious attempt
-                    ]
-                ]
+                        'flight_number' => 'FL123',
+                    ],
+                ],
             ]);
 
         $item = PartnerRequestItem::first();
-        $this->assertNull($item->flight_number);
+        $this->assertSame('FL123', $item->flight_number);
     }
 
     /** @test */
-    public function test_partner_cannot_submit_remarks_via_crafted_request()
+    public function test_partner_can_submit_remarks()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -421,20 +419,20 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                        'remarks' => 'Malicious Remarks', // Malicious attempt
-                    ]
-                ]
+                        'remarks' => 'Terminal 3 pickup',
+                    ],
+                ],
             ]);
 
         $item = PartnerRequestItem::first();
-        $this->assertNull($item->remarks);
+        $this->assertSame('Terminal 3 pickup', $item->remarks);
     }
 
     /** @test */
     public function test_partner_cannot_submit_sub_remark_via_crafted_request()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -444,8 +442,8 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
                         'sub_remark' => 'Malicious Sub Remark', // Malicious attempt
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $item = PartnerRequestItem::first();
@@ -456,7 +454,7 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
     public function test_editing_partner_fields_preserves_existing_internal_fields()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         // Create request
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
@@ -466,8 +464,8 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -495,20 +493,20 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
                         'name' => 'Modified Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
-        // Verify internal fields are preserved
+        // Verify internal-only fields are preserved
         $item->refresh();
-        $this->assertEquals('10:00:00', $item->pick_up_time);
-        $this->assertEquals('555-0000', $item->phone_2);
         $this->assertEquals('Internal Address', $item->address);
-        $this->assertEquals('FL123', $item->flight_number);
-        $this->assertEquals('Internal Remarks', $item->remarks);
         $this->assertEquals('Internal Sub Remark', $item->sub_remark);
         $this->assertEquals(123, $item->driver_id);
         $this->assertEquals('ADNOC A08', $item->vessel_name_raw);
+        $this->assertNull($item->pick_up_time);
+        $this->assertNull($item->phone_2);
+        $this->assertNull($item->flight_number);
+        $this->assertNull($item->remarks);
     }
 
     /** @test */
@@ -517,7 +515,7 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
         $vessel1 = Vessel::create(['name' => 'Vessel 1']);
         $vessel2 = Vessel::create(['name' => 'Vessel 2']);
-        
+
         // Create request with vessel 1
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
@@ -528,8 +526,8 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
                         'vessel_id' => $vessel1->id,
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -547,8 +545,8 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
                         'vessel_id' => $vessel2->id,
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $item->refresh();
@@ -559,7 +557,7 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
     public function test_creating_partner_req_creates_zero_trip_records()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->assertEquals(0, Trip::count());
 
         $this->actingAs($partnerUser, 'partner')
@@ -570,8 +568,8 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $this->assertEquals(1, PartnerRequest::count());
@@ -582,7 +580,7 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
     public function test_updating_partner_req_creates_zero_trip_records()
     {
         [$partner, $partnerUser] = $this->createPartnerWithUser(true);
-        
+
         $this->actingAs($partnerUser, 'partner')
             ->post(route('partner.requests.store'), [
                 'items' => [
@@ -591,8 +589,8 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
                         'name' => 'Test Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $request = PartnerRequest::first();
@@ -607,8 +605,8 @@ class PartnerPortalPhase3SimplifiedTest extends TestCase
                         'name' => 'Modified Crew',
                         'from_location' => 'Location A',
                         'to_location' => 'Location B',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $this->assertEquals(0, Trip::count());

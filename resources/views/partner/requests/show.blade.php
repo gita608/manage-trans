@@ -218,6 +218,18 @@
                                         <p class="detail-value">{{ $item->phone }}</p>
                                     </div>
                                 @endif
+                                @if($item->phone_2)
+                                    <div class="col-md-4 col-sm-6">
+                                        <p class="detail-label">Phone Number 2</p>
+                                        <p class="detail-value">{{ $item->phone_2 }}</p>
+                                    </div>
+                                @endif
+                                @if($item->pick_up_time)
+                                    <div class="col-md-4 col-sm-6">
+                                        <p class="detail-label">Pickup Time</p>
+                                        <p class="detail-value">{{ \Carbon\Carbon::parse($item->pick_up_time)->format('g:i A') }}</p>
+                                    </div>
+                                @endif
                                 <div class="col-md-4 col-sm-6">
                                     <p class="detail-label">Vessel</p>
                                     <p class="detail-value text-break-safe">{{ $item->vessel ? $item->vessel->name : 'Not specified' }}</p>
@@ -230,6 +242,18 @@
                                     <p class="detail-label">To Location</p>
                                     <p class="detail-value text-break-safe">{{ $item->to_location ?? 'N/A' }}</p>
                                 </div>
+                                @if($item->flight_number)
+                                    <div class="col-md-4 col-sm-6">
+                                        <p class="detail-label">Flight Details</p>
+                                        <p class="detail-value text-break-safe">{{ $item->flight_number }}</p>
+                                    </div>
+                                @endif
+                                @if($item->remarks)
+                                    <div class="col-12">
+                                        <p class="detail-label">Remarks</p>
+                                        <p class="detail-value text-break-safe">{{ $item->remarks }}</p>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     @endforeach

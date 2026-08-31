@@ -1179,14 +1179,15 @@ class TripController extends Controller
                 'sub_remark' => '',
             ];
 
+            $crew['pick_up_time'] = $item->pick_up_time
+                ? Carbon::parse($item->pick_up_time)->format('H:i')
+                : '';
+            $crew['phone_2'] = $item->phone_2 ?? '';
+            $crew['flight_number'] = $item->flight_number ?? '';
+            $crew['remarks'] = $item->remarks ?? '';
+
             if ($partnerRequest->isImage()) {
-                $crew['pick_up_time'] = $item->pick_up_time
-                    ? Carbon::parse($item->pick_up_time)->format('H:i')
-                    : '';
-                $crew['phone_2'] = $item->phone_2 ?? '';
                 $crew['address'] = $item->address ?? '';
-                $crew['flight_number'] = $item->flight_number ?? '';
-                $crew['remarks'] = $item->remarks ?? '';
                 $crew['sub_remark'] = $item->sub_remark ?? '';
             }
 

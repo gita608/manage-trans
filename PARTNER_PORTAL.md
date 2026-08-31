@@ -196,7 +196,7 @@ Partner must NOT see:
 
 ## Manual Submission
 
-Partner manual input fields ONLY:
+Partner manual input fields:
 
 Required:
 
@@ -208,7 +208,11 @@ Required:
 Optional:
 
 - `phone`
+- `phone_2`
 - `vessel_id`
+- `pick_up_time`
+- `flight_number`
+- `remarks`
 
 Manual Create supports:
 - Individual Entry
@@ -218,18 +222,30 @@ Group mode is UI convenience only.
 Both serialize into the existing PartnerRequest `items[]` contract.
 No new REQ type or database structure.
 
+Group / Bulk common fields (copied to every crew row on submit):
+
+- `trip_date`
+- `from_location`
+- `to_location`
+
+Group / Bulk per-crew fields:
+
+- `name`
+- `phone`
+- `phone_2`
+- `vessel_id`
+- `pick_up_time`
+- `flight_number`
+
 Do NOT expose as Partner inputs:
 
-- `pick_up_time`
-- `phone_2`
 - `address`
-- `flight_number`
-- `remarks`
 - `sub_remark`
-- `vessel_name_raw`
+- `vessel_name_raw` (unless populated through OCR on Image requests)
 - `driver_id`
 
-Existing internal values must survive Partner edits.
+Internal-only values on existing items (`address`, `sub_remark`, `driver_id`,
+`vessel_name_raw`) must survive Partner edits.
 
 Partner manual Pending REQ:
 

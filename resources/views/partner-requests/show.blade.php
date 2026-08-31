@@ -185,36 +185,6 @@
 @endif
 
 @if($canApprove || $canDecline)
-    @if($canApprove)
-    <div class="modal fade modal-approve" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="approveModalLabel">Approve Request</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="mb-3">Approve this request and continue to operational Trip setup?</p>
-                    <div class="approval-info d-flex align-items-start">
-                        <i class="ri-information-line" aria-hidden="true"></i>
-                        <div>
-                            <strong>Approval records the decision only</strong>
-                            <p class="mb-0 mt-1 small">No trips are created yet. You will enter driver, vessel, pickup time, and crew details on the next screen.</p>
-                        </div>
-                    </div>
-                    <p class="mb-0 mt-3 text-muted small">Request: <strong>{{ $partnerRequest->request_reference }}</strong></p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-success" id="approveBtn">
-                        <i class="ri-checkbox-circle-line me-1"></i> Approve Request
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    @endif
-
     @if($canDecline)
     <div class="modal fade modal-decline" id="declineModal" tabindex="-1" aria-labelledby="declineModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -257,6 +227,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const approveBtn = document.getElementById('approveBtn');
     const approveForm = document.getElementById('approveForm');
     approveBtn?.addEventListener('click', function() {
+        if (approveBtn.disabled) {
+            return;
+        }
         approveBtn.disabled = true;
         approveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Approving...';
         approveForm.submit();

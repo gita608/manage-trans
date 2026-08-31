@@ -5,7 +5,7 @@
         </a>
         <div class="review-actions-primary">
             @if($canApprove)
-                <button type="button" class="btn btn-success btn-review-approve" data-bs-toggle="modal" data-bs-target="#approveModal">
+                <button type="button" class="btn btn-success btn-review-approve" id="approveBtn">
                     <i class="ri-checkbox-circle-line me-1"></i> Approve
                 </button>
             @endif
