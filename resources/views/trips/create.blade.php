@@ -221,6 +221,20 @@
                         </table>
                     </div>
 
+                    <div class="form-check form-switch mt-4 mb-3">
+                        <input
+                            type="checkbox"
+                            class="form-check-input"
+                            role="switch"
+                            id="create_return_trip"
+                            name="create_return_trip"
+                            value="1"
+                            {{ old('create_return_trip') ? 'checked' : '' }}
+                        >
+                        <label class="form-check-label fw-semibold" for="create_return_trip">Return Trip</label>
+                        <div class="form-text">Create a separate unassigned trip with From and To reversed.</div>
+                    </div>
+
                     <div class="mt-4">
                         <button class="btn btn-success" type="submit">Create Trip</button>
                         <a href="{{ route('trips.index') }}" class="btn btn-secondary" id="cancel-trip-btn">Cancel</a>

@@ -169,6 +169,7 @@ class TripController extends Controller
             'crews.*.phone' => ['nullable', 'string', 'max:255'],
             'crews.*.phone_2' => ['nullable', 'string', 'max:255'],
             'crews.*.address' => ['nullable', 'string'],
+            'create_return_trip' => ['nullable', 'boolean'],
         ], [
             'crews.required' => 'At least one crew member row is required.',
             'crews.*.trip_date.required' => 'A trip date is required for every crew row.',
@@ -203,10 +204,11 @@ class TripController extends Controller
 
         $rootDriverId = $validated['driver_id'] ?? null;
         $groupedTrips = $this->groupCrewsByDriverAndDate($request->crews, $rootDriverId);
+        $createReturnTrip = $request->boolean('create_return_trip');
         $tripIdsToNotify = [];
 
         try {
-            DB::transaction(function () use ($groupedTrips, $partnerId, $partnerRequestId, &$tripIdsToNotify) {
+            DB::transaction(function () use ($groupedTrips, $partnerId, $partnerRequestId, $createReturnTrip, &$tripIdsToNotify) {
                 if ($partnerRequestId) {
                     $lockedRequest = PartnerRequest::query()
                         ->whereKey($partnerRequestId)
@@ -225,26 +227,14 @@ class TripController extends Controller
                 }
 
                 foreach ($groupedTrips as $group) {
-                    $driverId = $group['driver_id'];
-                    $tripDate = $group['trip_date'];
-                    $tripTitle = Trip::generateTripTitle($driverId, $tripDate);
-                    $status = $driverId ? TripCrew::STATUS_ASSIGNED : TripCrew::STATUS_UNASSIGNED;
+                    $trip = $this->createTripFromGroup($group, $partnerId, $partnerRequestId);
 
-                    $trip = Trip::create([
-                        'driver_id' => $driverId,
-                        'partner_id' => $partnerId,
-                        'partner_request_id' => $partnerRequestId,
-                        'trip_date' => $tripDate,
-                        'title' => $tripTitle,
-                        'status' => $status,
-                    ]);
-
-                    foreach ($group['crews'] as $crewData) {
-                        $trip->crews()->create($crewData);
+                    if ($group['driver_id']) {
+                        $tripIdsToNotify[] = $trip->id;
                     }
 
-                    if ($driverId) {
-                        $tripIdsToNotify[] = $trip->id;
+                    if ($createReturnTrip) {
+                        $this->createReturnTripForGroup($group, $partnerId, $partnerRequestId);
                     }
                 }
             });
@@ -846,6 +836,71 @@ class TripController extends Controller
         if (! $dateFrom && ! $dateTo && ! $request->has('date')) {
             $query->whereDate('trip_date', today());
         }
+    }
+
+    /**
+     * Create an outbound trip from a driver/date crew group.
+     */
+    protected function createTripFromGroup(array $group, ?int $partnerId, ?int $partnerRequestId): Trip
+    {
+        $driverId = $group['driver_id'];
+        $tripDate = $group['trip_date'];
+        $tripTitle = Trip::generateTripTitle($driverId, $tripDate);
+        $status = $driverId ? TripCrew::STATUS_ASSIGNED : TripCrew::STATUS_UNASSIGNED;
+
+        $trip = Trip::create([
+            'driver_id' => $driverId,
+            'partner_id' => $partnerId,
+            'partner_request_id' => $partnerRequestId,
+            'trip_date' => $tripDate,
+            'title' => $tripTitle,
+            'status' => $status,
+        ]);
+
+        foreach ($group['crews'] as $crewData) {
+            $trip->crews()->create($crewData);
+        }
+
+        return $trip;
+    }
+
+    /**
+     * Create an unassigned return trip with reversed From/To for each crew row.
+     */
+    protected function createReturnTripForGroup(array $group, ?int $partnerId, ?int $partnerRequestId): Trip
+    {
+        $tripDate = $group['trip_date'];
+        $tripTitle = Trip::generateTripTitle(null, $tripDate);
+
+        $trip = Trip::create([
+            'driver_id' => null,
+            'partner_id' => $partnerId,
+            'partner_request_id' => $partnerRequestId,
+            'trip_date' => $tripDate,
+            'title' => $tripTitle,
+            'status' => TripCrew::STATUS_UNASSIGNED,
+        ]);
+
+        foreach ($group['crews'] as $crewData) {
+            $trip->crews()->create($this->buildReturnCrewData($crewData));
+        }
+
+        return $trip;
+    }
+
+    /**
+     * Build return crew payload: copy all fields except reverse from/to locations.
+     *
+     * @param  array<string, mixed>  $crewData
+     * @return array<string, mixed>
+     */
+    protected function buildReturnCrewData(array $crewData): array
+    {
+        $returnCrew = $crewData;
+        $returnCrew['from_location'] = $crewData['to_location'];
+        $returnCrew['to_location'] = $crewData['from_location'];
+
+        return $returnCrew;
     }
 
     /**
