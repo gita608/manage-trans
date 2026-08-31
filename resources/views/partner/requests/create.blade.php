@@ -16,7 +16,7 @@
 <form action="{{ route('partner.requests.store') }}" method="POST" id="requestForm">
     @csrf
 
-    <input type="hidden" name="entry_mode" id="entry_mode" value="group">
+    <input type="hidden" name="entry_mode" id="entry_mode" value="{{ old('entry_mode', 'individual') }}">
 
     <div class="row">
         <div class="col-lg-12">
@@ -27,7 +27,7 @@
                     <div class="row g-3">
                         <div class="col-12 col-sm-6">
                             <div class="mode-selector-card">
-                                <input id="modeIndividual" name="mode_selector" type="radio" class="mode-selector-input" value="individual">
+                                <input id="modeIndividual" name="mode_selector" type="radio" class="mode-selector-input" value="individual" @checked(old('entry_mode', 'individual') === 'individual')>
                                 <label class="mode-selector-label" for="modeIndividual">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <span class="fs-14 fw-semibold text-body">Individual Entry</span>
@@ -39,7 +39,7 @@
                         </div>
                         <div class="col-12 col-sm-6">
                             <div class="mode-selector-card">
-                                <input id="modeGroup" name="mode_selector" type="radio" class="mode-selector-input" value="group" checked>
+                                <input id="modeGroup" name="mode_selector" type="radio" class="mode-selector-input" value="group" @checked(old('entry_mode') === 'group')>
                                 <label class="mode-selector-label" for="modeGroup">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <span class="fs-14 fw-semibold text-body">Group / Bulk Entry</span>
@@ -54,7 +54,7 @@
             </div>
 
             <!-- Group Mode Common Details -->
-            <div class="card partner-page-card mb-3" id="groupCommonDetailsCard">
+            <div class="card partner-page-card mb-3 d-none" id="groupCommonDetailsCard">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Common Details</h5>
                 </div>
@@ -111,12 +111,12 @@
                 </div>
                 <div class="card-body">
                     <!-- Individual Mode Container -->
-                    <div id="crew-items-container" class="d-none">
+                    <div id="crew-items-container">
                         <!-- Crew items will be added here -->
                     </div>
 
                     <!-- Group Mode Container -->
-                    <div id="group-crew-items-container">
+                    <div id="group-crew-items-container" class="d-none">
                         <div class="table-responsive">
                             <table class="table table-bordered mb-0" id="group-crew-table">
                                 <thead class="table-light">
@@ -138,13 +138,13 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 d-none" id="individual-actions">
+                    <div class="mt-4" id="individual-actions">
                         <button type="button" class="btn btn-success btn-touch" id="addCrewBtn">
                             <i class="ri-add-line align-middle me-1"></i> Add Another Crew Member
                         </button>
                     </div>
 
-                    <div class="mt-4 d-flex gap-2 flex-wrap" id="group-actions">
+                    <div class="mt-4 d-none gap-2 flex-wrap" id="group-actions">
                         <button type="button" class="btn btn-success btn-touch" id="addGroupRowBtn">
                             <i class="ri-add-line align-middle me-1"></i> Add Row
                         </button>
@@ -516,7 +516,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Shared State
-    let currentMode = 'group'; // 'individual' or 'group'
+    let currentMode = 'individual'; // 'individual' or 'group'
     const entryModeInput = document.getElementById('entry_mode');
 
     // Individual State
@@ -585,12 +585,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Initialize Mode based on old input if exists
-    @if(old('entry_mode') === 'individual')
-        setMode('individual');
-        document.getElementById('modeIndividual').checked = true;
-    @else
+    @if(old('entry_mode') === 'group')
         setMode('group');
         document.getElementById('modeGroup').checked = true;
+    @else
+        setMode('individual');
+        document.getElementById('modeIndividual').checked = true;
     @endif
 
     // Add first crew items on load
@@ -602,10 +602,11 @@ document.addEventListener('DOMContentLoaded', function() {
         radio.addEventListener('change', function(e) {
             const newMode = e.target.value;
             if (newMode !== currentMode) {
-                if (hasDataEntered(currentMode)) {
+                const previousMode = currentMode;
+                if (hasDataEntered(previousMode)) {
                     if (confirm("Switching entry mode will clear the crew details entered in this form. Continue?")) {
+                        clearData(previousMode);
                         setMode(newMode);
-                        clearData(currentMode); // Clear the mode we are leaving
                     } else {
                         // Revert radio selection
                         document.querySelector(`input[name="mode_selector"][value="${currentMode}"]`).checked = true;
@@ -652,9 +653,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const firstItem = items[0];
             if (firstItem) {
-                const inputs = firstItem.querySelectorAll('input:not([type="hidden"]), select');
-                inputs.forEach(input => {
-                    if (input.value.trim() !== '') {
+                const fields = firstItem.querySelectorAll('input:not([type="hidden"]), select, textarea');
+                fields.forEach(field => {
+                    if (field.value.trim() !== '') {
                         hasData = true;
                     }
                 });
@@ -670,9 +671,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const firstRow = rows[0];
             if (firstRow) {
-                const inputs = firstRow.querySelectorAll('input');
-                inputs.forEach(input => {
-                    if (input.value.trim() !== '') hasData = true;
+                const fields = firstRow.querySelectorAll('input, select, textarea');
+                fields.forEach(field => {
+                    if (field.value.trim() !== '') hasData = true;
                 });
             }
         }
@@ -699,11 +700,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function enableRequiredFields(mode) {
         // Reset all native required attributes
-        container.querySelectorAll('input, select').forEach(el => el.required = false);
+        container.querySelectorAll('input, select, textarea').forEach(el => el.required = false);
         commonTripDate.required = false;
         commonFrom.required = false;
         commonTo.required = false;
-        groupContainer.querySelectorAll('input').forEach(el => el.required = false);
+        groupContainer.querySelectorAll('input, select, textarea').forEach(el => el.required = false);
 
         if (mode === 'individual') {
             container.querySelectorAll('input[name$="[trip_date]"], input[name$="[name]"], input[name$="[from_location]"], input[name$="[to_location]"]')
@@ -804,7 +805,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         row.setAttribute('data-index', groupCrewIndex);
 
-        const inputs = row.querySelectorAll('input');
+        const inputs = row.querySelectorAll('input, select, textarea');
         inputs.forEach(input => {
             if (input.name) {
                 input.name = input.name.replace('[0]', `[${groupCrewIndex}]`);
@@ -871,12 +872,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             });
 
-            // Disable individual mode inputs so they aren't submitted
-            container.querySelectorAll('input, select').forEach(el => el.disabled = true);
+            // Disable individual mode fields so they aren't submitted
+            container.querySelectorAll('input, select, textarea').forEach(el => el.disabled = true);
         } else {
-            // Disable group mode inputs
-            document.querySelectorAll('#groupCommonDetailsCard input, #groupCommonDetailsCard select').forEach(el => el.disabled = true);
-            groupContainer.querySelectorAll('input, select').forEach(el => el.disabled = true);
+            // Disable group mode fields
+            document.querySelectorAll('#groupCommonDetailsCard input, #groupCommonDetailsCard select, #groupCommonDetailsCard textarea').forEach(el => el.disabled = true);
+            groupContainer.querySelectorAll('input, select, textarea').forEach(el => el.disabled = true);
         }
 
         submitBtn.disabled = true;
@@ -888,7 +889,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const oldItems = @json(old('items', []));
         const oldCommon = @json(old('_common', []));
         const errors = @json($errors->messages());
-        const oldMode = "{{ old('entry_mode', 'group') }}";
+        const oldMode = "{{ old('entry_mode', 'individual') }}";
 
         if (oldMode === 'individual') {
             destroyVesselSelect2(container);

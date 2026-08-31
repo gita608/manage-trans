@@ -525,4 +525,88 @@ class PartnerPortalManualOperationalFieldsTest extends TestCase
         $this->assertNull($item->sub_remark);
         $this->assertNull($item->vessel_name_raw);
     }
+
+    public function test_manual_create_page_defaults_to_individual_entry_mode(): void
+    {
+        [, $partnerUser] = $this->createPartnerContext();
+        Vessel::create(['name' => 'Vessel A']);
+
+        $response = $this->actingAs($partnerUser, 'partner')
+            ->get(route('partner.requests.create'));
+
+        $response->assertOk()
+            ->assertSee('id="entry_mode" value="individual"', false)
+            ->assertSee('id="modeIndividual"', false)
+            ->assertSee('value="individual" checked', false)
+            ->assertSee('id="crew-items-container"', false)
+            ->assertSee('id="group-crew-items-container" class="d-none"', false)
+            ->assertSee('id="groupCommonDetailsCard"', false)
+            ->assertSee('partner-page-card mb-3 d-none', false)
+            ->assertDontSee('_common[vessel_id]', false)
+            ->assertDontSee('common-vessel', false);
+    }
+
+    public function test_manual_create_page_js_protects_group_indexing_and_inactive_controls(): void
+    {
+        $blade = file_get_contents(resource_path('views/partner/requests/create.blade.php'));
+
+        $this->assertStringContainsString("querySelectorAll('input, select, textarea')", $blade);
+        $this->assertStringContainsString('const previousMode = currentMode;', $blade);
+        $this->assertStringContainsString('clearData(previousMode);', $blade);
+        $this->assertStringContainsString("old('entry_mode') === 'group'", $blade);
+        $this->assertStringContainsString('items[0][vessel_id]', $blade);
+        $this->assertStringContainsString('group-vessel-select', $blade);
+        $this->assertStringContainsString('bindVesselSelect2', $blade);
+        $this->assertStringContainsString('destroyVesselSelect2', $blade);
+        $this->assertStringContainsString("let currentMode = 'individual'", $blade);
+        $this->assertStringContainsString('container.querySelectorAll(\'input, select, textarea\').forEach(el => el.disabled = true)', $blade);
+    }
+
+    public function test_validation_error_restores_group_entry_mode_from_old_input(): void
+    {
+        [, $partnerUser] = $this->createPartnerContext();
+        Vessel::create(['name' => 'Vessel A']);
+
+        $response = $this->actingAs($partnerUser, 'partner')
+            ->from(route('partner.requests.create'))
+            ->post(route('partner.requests.store'), [
+                'entry_mode' => 'group',
+                '_common' => [
+                    'trip_date' => '2026-08-31',
+                    'from_location' => 'Port Rashid',
+                    'to_location' => 'Dubai Airport',
+                ],
+                'items' => [
+                    [
+                        'trip_date' => '2026-08-31',
+                        'name' => '',
+                        'from_location' => 'Port Rashid',
+                        'to_location' => 'Dubai Airport',
+                        'vessel_id' => '',
+                    ],
+                ],
+            ]);
+
+        $response->assertRedirect(route('partner.requests.create'))
+            ->assertSessionHasErrors('items.0.name');
+
+        $followUp = $this->actingAs($partnerUser, 'partner')
+            ->get(route('partner.requests.create'));
+
+        $followUp->assertOk()
+            ->assertSee('id="entry_mode" value="group"', false)
+            ->assertSee('id="modeGroup"', false)
+            ->assertSee('setMode(\'group\')', false);
+    }
+
+    public function test_decline_modal_remains_on_internal_review_page(): void
+    {
+        $showBlade = file_get_contents(resource_path('views/partner-requests/show.blade.php'));
+        $actionsBlade = file_get_contents(resource_path('views/partner-requests/partials/decision-actions.blade.php'));
+
+        $this->assertStringContainsString('id="declineModal"', $showBlade);
+        $this->assertStringContainsString('data-bs-target="#declineModal"', $actionsBlade);
+        $this->assertStringNotContainsString('id="approveModal"', $showBlade);
+        $this->assertStringNotContainsString('id="approveModal"', $actionsBlade);
+    }
 }
