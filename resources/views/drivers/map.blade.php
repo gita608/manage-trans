@@ -651,8 +651,13 @@
                     <div class="theme-selector">
                         <select id="themeSelector" title="Change Map Theme">
                             <option value="light">Light</option>
-                            <option value="dark">Dark</option>
-                            <option value="voyager">Voyager</option>
+                            @if(filled(config('services.carto.basemap_key')))
+                                <option value="dark">Dark</option>
+                                <option value="voyager">Voyager</option>
+                            @else
+                                <option value="dark" disabled hidden>Dark</option>
+                                <option value="voyager" disabled hidden>Voyager</option>
+                            @endif
                             <option value="osm">OpenStreetMap</option>
                         </select>
                     </div>
@@ -687,33 +692,24 @@
     crossorigin=""></script>
 
 <script>
+    const cartoBasemapKey = @json(config('services.carto.basemap_key'));
+    const isCartoAvailable = typeof cartoBasemapKey === 'string' && cartoBasemapKey.trim().length > 0;
+    const cartoKeyParam = isCartoAvailable ? `?key=${encodeURIComponent(cartoBasemapKey.trim())}` : '';
+
     let map;
     let markers = {};
     let driversData = [];
     let autoRefreshInterval = null;
     let currentTileLayer = null;
-    let savedTheme = localStorage.getItem('mapTheme') || 'light';
     const REFRESH_INTERVAL = 30000; // 30 seconds
 
     // Map theme configurations
     const mapThemes = {
         light: {
-            url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+            url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{x}/{y}',
             attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012',
             subdomains: '',
             maxZoom: 19
-        },
-        dark: {
-            url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
-            maxZoom: 20
-        },
-        voyager: {
-            url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
-            maxZoom: 20
         },
         osm: {
             url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -722,6 +718,29 @@
             maxZoom: 19
         }
     };
+
+    if (isCartoAvailable) {
+        mapThemes.dark = {
+            url: `https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png${cartoKeyParam}`,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20,
+            isCarto: true
+        };
+        mapThemes.voyager = {
+            url: `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png${cartoKeyParam}`,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20,
+            isCarto: true
+        };
+    }
+
+    let savedTheme = localStorage.getItem('mapTheme') || 'light';
+    if (!mapThemes[savedTheme]) {
+        savedTheme = 'light';
+        localStorage.setItem('mapTheme', 'light');
+    }
 
     // Initialize map
     function initMap() {
@@ -737,7 +756,21 @@
 
         // Load saved theme or default to light
         const themeSel = document.getElementById('themeSelector');
-        if (themeSel) themeSel.value = savedTheme;
+        if (themeSel) {
+            if (!isCartoAvailable) {
+                const darkOpt = themeSel.querySelector('option[value="dark"]');
+                const voyagerOpt = themeSel.querySelector('option[value="voyager"]');
+                if (darkOpt) {
+                    darkOpt.disabled = true;
+                    darkOpt.hidden = true;
+                }
+                if (voyagerOpt) {
+                    voyagerOpt.disabled = true;
+                    voyagerOpt.hidden = true;
+                }
+            }
+            themeSel.value = savedTheme;
+        }
         changeMapTheme(savedTheme);
 
         // Load initial driver locations
@@ -747,15 +780,21 @@
     // Change map theme
     function changeMapTheme(theme) {
         if (!mapThemes[theme]) {
-            theme = 'light'; // Fallback to light if invalid theme
+            theme = 'light'; // Fallback to light if invalid theme or CARTO unavailable
         }
 
         localStorage.setItem('mapTheme', theme);
+        const themeSel = document.getElementById('themeSelector');
+        if (themeSel && themeSel.value !== theme) {
+            themeSel.value = theme;
+        }
+
         const config = mapThemes[theme];
         
         // Remove current tile layer
         if (currentTileLayer) {
             map.removeLayer(currentTileLayer);
+            currentTileLayer = null;
         }
 
         // Add new tile layer
@@ -763,10 +802,20 @@
             attribution: config.attribution,
             subdomains: config.subdomains || 'abcd',
             maxZoom: config.maxZoom || 20
-        }).addTo(map);
+        });
 
-        // Save theme preference
-        localStorage.setItem('mapTheme', theme);
+        if (config.isCarto) {
+            let hasFallenBack = false;
+            currentTileLayer.on('tileerror', function() {
+                if (!hasFallenBack) {
+                    hasFallenBack = true;
+                    console.warn('CARTO basemap unavailable; falling back to Light.');
+                    changeMapTheme('light');
+                }
+            });
+        }
+
+        currentTileLayer.addTo(map);
     }
 
     // Load driver locations from API

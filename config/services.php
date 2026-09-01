@@ -46,4 +46,8 @@ return [
         'project_id' => env('FIREBASE_PROJECT_ID', 'managetrans-fc138'),
     ],
 
+    'carto' => [
+        'basemap_key' => env('CARTO_BASEMAP_API_KEY'),
+    ],
+
 ];
